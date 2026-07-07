@@ -8,7 +8,7 @@ Native Android-App (Kotlin, Jetpack Compose): nimmt per Share-Intent eine Artike
 
 ## Eckdaten
 
-- App-Name: **ScatterTo**, `applicationId`: `io.github.ollrich.scatterto`
+- App-Name: **ScatterTo**, `applicationId`: `app.scatterto` (neutral, keine personenbezogenen Daten; nach erstem Release unveränderlich)
 - `minSdk` 34, `targetSdk` 35, Kotlin + Jetpack Compose + Material 3, Dark Mode systemabhängig
 - Netzwerk: Retrofit + OkHttp + kotlinx.serialization; HTML-Parsing: jsoup
 - UI-Sprache: Deutsch (einzige Locale)
@@ -17,7 +17,7 @@ Native Android-App (Kotlin, Jetpack Compose): nimmt per Share-Intent eine Artike
 
 ## Build & Release
 
-- **Auf dieser Entwicklungsmaschine ist kein JDK und kein Android SDK installiert.** Release-Builds laufen ausschließlich über GitHub Actions. Für lokale Builds müssten zuerst JDK 17+ und das Android SDK (Command-Line-Tools genügen) installiert werden — vorher mit dem Nutzer klären.
+- **Lokale Toolchain ist installiert** (Stand 2026-07-07): OpenJDK 17 (`JAVA_HOME=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home`) und Android SDK (`ANDROID_HOME=/opt/homebrew/share/android-commandlinetools`, Platform 35 + Build-Tools 35.0.0, Lizenzen akzeptiert). Beides ist in `~/.zshrc` exportiert; in einer Login-Shell funktionieren `java`, `adb`, `sdkmanager` direkt. Lokale Debug-Builds und JVM-Unit-Tests (`./gradlew test`) laufen damit ohne CI. Ein Emulator/AVD ist **nicht** installiert (nur Platform + Build-Tools) — Instrumented Tests bräuchten zusätzlich ein Systemabbild. **Release-Signing** passiert weiterhin ausschließlich in der CI (der Keystore liegt nicht auf dieser Maschine im Build-Pfad).
 - Signing: Der Release-Keystore liegt **nicht** im Repo (lokal unter `signing/`, gitignored). Der CI-Workflow [.github/workflows/release.yml](.github/workflows/release.yml) rekonstruiert ihn aus dem Secret `SIGNING_KEYSTORE_BASE64` und übergibt dem Gradle-Build vier Umgebungsvariablen:
   `SIGNING_STORE_FILE`, `SIGNING_STORE_PASSWORD`, `SIGNING_KEY_ALIAS`, `SIGNING_KEY_PASSWORD`.
   Die `signingConfig` in `app/build.gradle.kts` muss genau diese Env-Variablen lesen. Fehlen sie (lokaler Build), darf der Build nicht scheitern — dann unsigned bzw. nur Debug bauen.
