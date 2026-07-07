@@ -1,0 +1,21 @@
+# Signing — Keystore und Zugangsdaten dürfen NIE ins Repo (§9.2 Pflichtenheft)
+signing/
+
+# Gradle
+.gradle/
+build/
+*/build/
+
+# Android / IDE
+local.properties
+.idea/
+*.iml
+captures/
+.externalNativeBuild/
+.cxx/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log

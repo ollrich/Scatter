@@ -1,0 +1,52 @@
+# Release-Build für ScatterTo (Pflichtenheft §9.3):
+# Läuft bei Push eines v*-Tags, baut eine signierte Release-APK und hängt sie
+# als einziges Asset an ein GitHub Release (Obtainium-Kontrakt, §9.4).
+#
+# Voraussetzung: Das Android-Gradle-Projekt existiert im Repo-Root und die
+# signingConfig in app/build.gradle.kts liest die vier SIGNING_*-Env-Variablen
+# (siehe CLAUDE.md). Die vier Secrets sind im Repo hinterlegt.
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Keystore aus Secret rekonstruieren
+        run: echo "$SIGNING_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.p12"
+        env:
+          SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+
+      - name: Signierte Release-APK bauen
+        run: ./gradlew assembleRelease
+        env:
+          SIGNING_STORE_FILE: ${{ runner.temp }}/release.p12
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+
+      - name: APK versioniert benennen
+        run: cp app/build/outputs/apk/release/app-release.apk "scatterto-${{ github.ref_name }}.apk"
+
+      - name: GitHub Release erstellen
+        uses: softprops/action-gh-release@v2
+        with:
+          files: scatterto-${{ github.ref_name }}.apk
+          generate_release_notes: true
