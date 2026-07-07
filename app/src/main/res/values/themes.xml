@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Fenster-Basistheme vor dem Compose-Aufbau; Compose übernimmt danach das Theming.
+         values-night liefert die dunkle Variante (Dark Mode systemabhängig, §2). -->
+    <style name="Theme.ScatterTo" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>

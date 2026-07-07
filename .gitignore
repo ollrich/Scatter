@@ -3,6 +3,7 @@ signing/
 
 # Gradle
 .gradle/
+.kotlin/
 build/
 */build/
 
