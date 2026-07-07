@@ -55,6 +55,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true // für BuildConfig.DEBUG (OkHttp-Logging nur im Debug-Build)
     }
 }
 
