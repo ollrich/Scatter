@@ -82,8 +82,23 @@ class BlueskyRepository(private val credentialStore: CredentialStore) {
             embed = embed,
         )
 
-        val result = authed { auth ->
-            api.createRecord(auth, CreateRecordRequest(repo = current.did!!, record = record))
+        val result = try {
+            authed { auth ->
+                api.createRecord(auth, CreateRecordRequest(repo = current.did!!, record = record))
+            }
+        } catch (e: HttpException) {
+            // §6: Die Link-Karte darf das Posten nie blockieren — lehnt der Server das Embed ab,
+            // denselben Post ohne Karte absetzen.
+            if (e.code() == 400 && record.embed != null) {
+                authed { auth ->
+                    api.createRecord(
+                        auth,
+                        CreateRecordRequest(repo = current.did!!, record = record.copy(embed = null)),
+                    )
+                }
+            } else {
+                throw e
+            }
         }
         return atUriToWebUrl(result.uri, current.handle ?: current.did!!)
     }

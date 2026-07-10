@@ -14,8 +14,10 @@ import app.scatterto.core.stripTrackingParams
 import app.scatterto.data.AppContainer
 import app.scatterto.data.bluesky.LinkCard
 import app.scatterto.data.metadata.PageMetadata
+import app.scatterto.data.net.readableMessage
 import app.scatterto.ui.PostStatus
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import java.net.SocketTimeoutException
 import java.util.UUID
 
@@ -150,6 +152,8 @@ class MainViewModel(
                     mastodonStatus = PostStatus.Idle,
                     blueskyStatus = PostStatus.Idle,
                 )
+            } catch (e: HttpException) {
+                uiState.copy(generationPhase = GenerationPhase.Error(e.readableMessage()))
             } catch (e: Exception) {
                 uiState.copy(generationPhase = GenerationPhase.Error(e.message ?: "Generierung fehlgeschlagen"))
             }
@@ -216,6 +220,8 @@ class MainViewModel(
         } catch (e: SocketTimeoutException) {
             // Idempotency-Key macht den Retry sicher (§12.1 Nr. 5).
             uiState.copy(mastodonStatus = PostStatus.Failed("Zeitüberschreitung – erneut versuchen ist sicher"))
+        } catch (e: HttpException) {
+            uiState.copy(mastodonStatus = PostStatus.Failed(e.readableMessage()))
         } catch (e: Exception) {
             uiState.copy(mastodonStatus = PostStatus.Failed(e.message ?: "Fehler beim Posten"))
         }
@@ -235,6 +241,8 @@ class MainViewModel(
         } catch (e: SocketTimeoutException) {
             // Kein Idempotenz-Mechanismus: unklarer Ausgang, nicht automatisch retryen (§12.1 Nr. 5).
             uiState.copy(blueskyStatus = PostStatus.Uncertain("Unklar – bitte im Bluesky-Profil prüfen"))
+        } catch (e: HttpException) {
+            uiState.copy(blueskyStatus = PostStatus.Failed(e.readableMessage()))
         } catch (e: Exception) {
             uiState.copy(blueskyStatus = PostStatus.Failed(e.message ?: "Fehler beim Posten"))
         }
