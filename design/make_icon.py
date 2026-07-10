@@ -1,14 +1,13 @@
 """Erzeugt aus design/icon-source.svg die Adaptive-Icon-Ebenen.
 
-Das Quell-SVG ist ein fertiges quadratisches Icon (blaues Squircle + weisses Motiv).
-Android legt seine eigene Maske an, daher wird der Rahmen NICHT uebernommen:
-  - Hintergrundebene = das Blau (als Farb-Ressource, siehe Ausgabe "BLAU")
-  - Vordergrundebene = nur das weisse Motiv, zentriert, transparent freigestellt
+Erwartet ein randloses Icon-SVG: flaechige Hintergrundfarbe (das Blau) + weisses Motiv.
+Android legt seine eigene Maske an, daher wird nur das Motiv uebernommen:
+  - Hintergrundebene = die Hintergrundfarbe (als Farb-Ressource, siehe Ausgabe "BLAU")
+  - Vordergrundebene = das weisse Motiv, zentriert, transparent freigestellt
   - Monochrom-Ebene  = dasselbe Motiv als Silhouette (fuer Themed Icons)
 
-Trick zur Freistellung: Der weisse Seitenhintergrund und das weisse Motiv sind farblich
-identisch. Also wird die Aussenflaeche von (0,0) aus mit Blau geflutet - das Motiv bleibt
-verschont, weil es rundum vom blauen Squircle eingeschlossen ist.
+Freistellung: Der Hintergrund ist einfarbig, das Motiv weiss. Der Rot-Kanal trennt beides
+sauber (Hintergrund-R niedrig, Weiss-R = 255) -> daraus die Alpha-Maske.
 
 Voraussetzungen: rsvg-convert (brew install librsvg), Pillow.
 Aufruf: python make_icon.py
@@ -17,18 +16,16 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from PIL import Image, ImageChops, ImageDraw
+from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 SVG = ROOT / "design" / "icon-source.svg"
 RES = ROOT / "app" / "src" / "main" / "res" / "drawable-nodpi"
 
-RENDER_PX = 1024        # Zwischenrendern des SVG
-CANVAS = 432            # 108dp @ xxxhdpi
-WHITE_THRESHOLD = 24    # "nahezu weiss" vom Seitenhintergrund trennen
-PAGE_FLOOD_THRESH = 300 # Toleranz (Summe ueber RGB) beim Fluten der Aussenflaeche
-GLYPH_CUTOFF = 128      # ab hier zaehlt ein Pixel als Motiv (Rest = Antialias-Ring)
-MAX_GLYPH_RATIO = 0.52  # Motivgroesse relativ zum Quadrat; klein genug fuer die Kreis-Maske
+RENDER_PX = 1024       # Zwischenrendern des SVG
+CANVAS = 432           # 108dp @ xxxhdpi
+GLYPH_CUTOFF = 128     # ab hier zaehlt ein Pixel als Motiv (fuer die Bbox)
+MAX_GLYPH_RATIO = 0.52 # Motivgroesse relativ zur Leinwand; klein genug fuer die Kreis-Maske
 
 
 def render_svg() -> Image.Image:
@@ -40,18 +37,11 @@ def render_svg() -> Image.Image:
         return Image.open(tmp.name).convert("RGB")
 
 
-def square_bbox(img: Image.Image):
-    """Bbox des farbigen Icon-Quadrats (alles, was vom Seitenhintergrund abweicht)."""
-    page = Image.new("RGB", img.size, img.getpixel((2, 2)))
-    diff = ImageChops.difference(img, page).convert("L")
-    return diff.point(lambda p: 255 if p > WHITE_THRESHOLD else 0).getbbox()
-
-
-def whiteness(img: Image.Image, blue) -> Image.Image:
-    """Alpha-Maske: 255 = weiss (Motiv), 0 = blau. Kanal R trennt am besten."""
-    span = 255 - blue[0]
+def whiteness(img: Image.Image, bg) -> Image.Image:
+    """Alpha-Maske: 255 = weisses Motiv, 0 = Hintergrund. Rot-Kanal trennt am besten."""
+    span = max(1, 255 - bg[0])
     return img.getchannel("R").point(
-        lambda r: max(0, min(255, round((r - blue[0]) * 255 / span)))
+        lambda r: max(0, min(255, round((r - bg[0]) * 255 / span)))
     )
 
 
@@ -70,27 +60,21 @@ def layer(alpha: Image.Image, target: int, color) -> Image.Image:
 
 def main() -> None:
     img = render_svg()
-    box = square_bbox(img)
-    side = box[2] - box[0]
+    bg = img.getpixel((2, 2))  # randlos -> Ecke ist die Hintergrundfarbe
 
-    blue = img.getpixel((box[0] + round(side * 0.10), box[1] + round(side * 0.10)))
-
-    # Aussenflaeche auf Blau fluten -> danach ist nur noch das Motiv weiss.
-    ImageDraw.floodfill(img, (0, 0), blue, thresh=PAGE_FLOOD_THRESH)
-
-    alpha = whiteness(img, blue)
+    alpha = whiteness(img, bg)
     glyph_box = alpha.point(lambda a: 255 if a >= GLYPH_CUTOFF else 0).getbbox()
     glyph = alpha.crop(glyph_box)
 
-    ratio = max(glyph.size) / side
+    ratio = max(glyph.size) / RENDER_PX
     target = round(min(ratio, MAX_GLYPH_RATIO) * CANVAS)
 
     RES.mkdir(parents=True, exist_ok=True)
     layer(glyph, target, (255, 255, 255)).save(RES / "ic_launcher_foreground.png")
     layer(glyph, target, (0, 0, 0)).save(RES / "ic_launcher_monochrome.png")
 
-    print("BLAU  = #%02X%02X%02X" % blue)
-    print("Motiv = %.0f%% des Quadrats -> %dpx auf %dpx Leinwand" % (ratio * 100, target, CANVAS))
+    print("BLAU  = #%02X%02X%02X" % bg)
+    print("Motiv = %.0f%% der Leinwand -> %dpx auf %dpx" % (ratio * 100, target, CANVAS))
     print("Geschrieben:", RES / "ic_launcher_foreground.png", "+ ic_launcher_monochrome.png")
 
 

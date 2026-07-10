@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Blau des Quell-Icons (design/icon-source.svg); der Vordergrund ist das freigestellte Motiv. -->
-    <color name="ic_launcher_background">#0C82B3</color>
+    <color name="ic_launcher_background">#1A80B6</color>
 </resources>
