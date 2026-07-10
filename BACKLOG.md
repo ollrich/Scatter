@@ -3,10 +3,24 @@
 Offene Punkte, nach Aufwand und Priorität gruppiert. Die verbindliche Spezifikation bleibt
 [pflichtenheft-share-app.md](pflichtenheft-share-app.md); dies hier ist die laufende Arbeitsliste.
 
-## Als Nächstes
+## Als Nächstes: Slide-Panel + Unterseiten (ersetzt das Einzel-Settings-Fenster)
 
-- **Einstellungen als Slide-/Burger-Menü** mit Untermenüs; das Protokoll wandert dorthin.
-- **„Über"-Screen** mit Kontakt/GitHub-Link (bei Weitergabe an Dritte ggf. Impressumspflicht).
+`ModalNavigationDrawer`, geöffnet über ein Hamburger-Icon in der Top-Bar der Hauptseite.
+
+- **Panel-Kopf:** verbundene Accounts (Avatar + Handle + Netzwerk-Farbe), tippbar → Accounts-Unterseite.
+- **Menüpunkte** (führen je auf eine eigene Unterseite; heutiges Settings-Monolith wird zerlegt):
+  - **Accounts** — verbinden/trennen je Netzwerk. Trennen mit Rückfrage (destruktiv, Token weg).
+    Immer derselbe Weg, egal ob 0 oder Accounts verbunden (kein Sonderfall). Kein direktes
+    „Zahnrad zum Trennen" — zu fehlklick-anfällig.
+  - **Mammouth-KI** — Token-Eingabe + Modellauswahl (dynamische Anbieter-Auflösung, wie gehabt).
+  - **Display** — zunächst **Theme: System / Hell / Dunkel** (Drei-Zustand statt Toggle, damit
+    „dem System folgen" erhalten bleibt; §2). Persistenz in normalen Prefs (keine Credentials).
+    Theme-Wahl muss in der MainActivity gelesen und ans Theme gegeben werden (leicht übergreifend).
+    *Später:* Schalter „Dynamische Farben (Material You) aus" + feste Akzentfarbe.
+  - **Logs** — wie gehabt, wandert vom Einstellungs-Button hierher.
+  - **About** — kurze App-Erklärung, Info zum Autor, GitHub-Link, **App-Version** (Obtainium-relevant),
+    Datenschutz-Zeile („keine Telemetrie, Zugangsdaten nur verschlüsselt auf dem Gerät", §8).
+    Impressum erst bei Weitergabe an Dritte.
 
 ## Feinschliff
 
