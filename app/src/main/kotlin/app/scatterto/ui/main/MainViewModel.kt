@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import app.scatterto.core.computeFacets
 import app.scatterto.core.composePost
 import app.scatterto.core.extractUrl
+import app.scatterto.core.normalizeHashtag
 import app.scatterto.core.stripTrackingParams
 import app.scatterto.data.AppContainer
 import app.scatterto.data.bluesky.LinkCard
@@ -20,7 +21,7 @@ import java.util.UUID
 
 /**
  * Orchestriert die Hauptseite (§5) und das getrennte Sende-/Retry-Handling (§7).
- * Der übergebene [savedStateHandle] rettet URL und generierte Texte über Process-Death (§12.3 Nr. 4).
+ * Der übergebene [savedStateHandle] rettet URL und generierte Inhalte über Process-Death (§12.3 Nr. 4).
  */
 class MainViewModel(
     private val container: AppContainer,
@@ -57,14 +58,14 @@ class MainViewModel(
     private fun restore(url: String) {
         uiState = uiState.copy(
             urlInput = url,
-            mastodon = uiState.mastodon.copy(
+            mastodon = NetworkPost(
                 text = savedStateHandle[KEY_M_TEXT] ?: "",
-                hashtag = savedStateHandle[KEY_M_TAG] ?: "",
+                extraHashtags = savedStateHandle.get<String>(KEY_M_TAGS)?.toTagList() ?: emptyList(),
                 url = url,
             ),
-            bluesky = uiState.bluesky.copy(
+            bluesky = NetworkPost(
                 text = savedStateHandle[KEY_B_TEXT] ?: "",
-                hashtag = savedStateHandle[KEY_B_TAG] ?: "",
+                extraHashtags = savedStateHandle.get<String>(KEY_B_TAGS)?.toTagList() ?: emptyList(),
                 url = url,
             ),
         )
@@ -77,7 +78,6 @@ class MainViewModel(
         refreshConnections()
         val url = extractUrl(sharedText)?.let(::stripTrackingParams)
         if (url == null) {
-            // Kein Link im geteilten Text (§12.1 Nr. 3).
             uiState = uiState.copy(isFromShare = true, generationPhase = GenerationPhase.Error("Kein Link im geteilten Text gefunden."))
             return
         }
@@ -140,11 +140,13 @@ class MainViewModel(
                     blueskyUrl = uiState.urlInput,
                 )
                 mastodonIdempotencyKey = UUID.randomUUID().toString()
-                persistPosts(posts.deText, posts.deHashtag, posts.enText, posts.enHashtag)
+                val mastodon = NetworkPost(posts.de.text, posts.de.extraHashtags, uiState.urlInput)
+                val bluesky = NetworkPost(posts.en.text, posts.en.extraHashtags, uiState.urlInput)
+                persist(mastodon, bluesky)
                 uiState.copy(
                     generationPhase = GenerationPhase.Done,
-                    mastodon = NetworkPost(posts.deText, posts.deHashtag, uiState.urlInput),
-                    bluesky = NetworkPost(posts.enText, posts.enHashtag, uiState.urlInput),
+                    mastodon = mastodon,
+                    bluesky = bluesky,
                     mastodonStatus = PostStatus.Idle,
                     blueskyStatus = PostStatus.Idle,
                 )
@@ -157,24 +159,32 @@ class MainViewModel(
     // --- Editieren ---
 
     fun onMastodonTextChange(value: String) = updateMastodon { it.copy(text = value) }
-    fun onMastodonHashtagChange(value: String) = updateMastodon { it.copy(hashtag = value) }
     fun onMastodonUrlChange(value: String) = updateMastodon { it.copy(url = value) }
+    fun addMastodonHashtag(tag: String) = updateMastodon { it.copy(extraHashtags = it.extraHashtags.addTag(tag)) }
+    fun removeMastodonHashtag(tag: String) = updateMastodon { it.copy(extraHashtags = it.extraHashtags - tag) }
+
     fun onBlueskyTextChange(value: String) = updateBluesky { it.copy(text = value) }
-    fun onBlueskyHashtagChange(value: String) = updateBluesky { it.copy(hashtag = value) }
     fun onBlueskyUrlChange(value: String) = updateBluesky { it.copy(url = value) }
+    fun addBlueskyHashtag(tag: String) = updateBluesky { it.copy(extraHashtags = it.extraHashtags.addTag(tag)) }
+    fun removeBlueskyHashtag(tag: String) = updateBluesky { it.copy(extraHashtags = it.extraHashtags - tag) }
+
+    private fun List<String>.addTag(raw: String): List<String> {
+        val tag = normalizeHashtag(raw)
+        return if (tag.isEmpty() || tag in this) this else this + tag
+    }
 
     private fun updateMastodon(block: (NetworkPost) -> NetworkPost) {
         val updated = block(uiState.mastodon)
         uiState = uiState.copy(mastodon = updated)
         savedStateHandle[KEY_M_TEXT] = updated.text
-        savedStateHandle[KEY_M_TAG] = updated.hashtag
+        savedStateHandle[KEY_M_TAGS] = updated.extraHashtags.toTagString()
     }
 
     private fun updateBluesky(block: (NetworkPost) -> NetworkPost) {
         val updated = block(uiState.bluesky)
         uiState = uiState.copy(bluesky = updated)
         savedStateHandle[KEY_B_TEXT] = updated.text
-        savedStateHandle[KEY_B_TAG] = updated.hashtag
+        savedStateHandle[KEY_B_TAGS] = updated.extraHashtags.toTagString()
     }
 
     // --- Absenden (§5.5, §7) ---
@@ -200,7 +210,7 @@ class MainViewModel(
         val account = container.credentialStore.loadMastodon() ?: return
         uiState = uiState.copy(mastodonStatus = PostStatus.Pending)
         uiState = try {
-            val post = composePost(uiState.mastodon.text, uiState.mastodon.hashtag, uiState.mastodon.url)
+            val post = composePost(uiState.mastodon.text, uiState.mastodon.extraHashtags, uiState.mastodon.url)
             val url = container.mastodonRepository.post(account, post, mastodonIdempotencyKey)
             uiState.copy(mastodonStatus = PostStatus.Success(url))
         } catch (e: SocketTimeoutException) {
@@ -215,8 +225,8 @@ class MainViewModel(
         val account = container.credentialStore.loadBluesky() ?: return
         uiState = uiState.copy(blueskyStatus = PostStatus.Pending)
         uiState = try {
-            val post = composePost(uiState.bluesky.text, uiState.bluesky.hashtag, uiState.bluesky.url)
-            val facets = computeFacets(post, uiState.bluesky.url, uiState.bluesky.hashtag)
+            val post = composePost(uiState.bluesky.text, uiState.bluesky.extraHashtags, uiState.bluesky.url)
+            val facets = computeFacets(post, uiState.bluesky.url)
             val card = uiState.bluesky.url.takeIf { it.isNotBlank() }?.let {
                 LinkCard(uri = it, title = cardTitle, description = cardDescription, imageUrl = cardImageUrl)
             }
@@ -230,18 +240,21 @@ class MainViewModel(
         }
     }
 
-    private fun persistPosts(mText: String, mTag: String, bText: String, bTag: String) {
-        savedStateHandle[KEY_M_TEXT] = mText
-        savedStateHandle[KEY_M_TAG] = mTag
-        savedStateHandle[KEY_B_TEXT] = bText
-        savedStateHandle[KEY_B_TAG] = bTag
+    private fun persist(mastodon: NetworkPost, bluesky: NetworkPost) {
+        savedStateHandle[KEY_M_TEXT] = mastodon.text
+        savedStateHandle[KEY_M_TAGS] = mastodon.extraHashtags.toTagString()
+        savedStateHandle[KEY_B_TEXT] = bluesky.text
+        savedStateHandle[KEY_B_TAGS] = bluesky.extraHashtags.toTagString()
     }
+
+    private fun List<String>.toTagString() = joinToString(" ")
+    private fun String.toTagList() = split(" ").filter { it.isNotBlank() }
 
     private companion object {
         const val KEY_URL = "url"
         const val KEY_M_TEXT = "m_text"
-        const val KEY_M_TAG = "m_tag"
+        const val KEY_M_TAGS = "m_tags"
         const val KEY_B_TEXT = "b_text"
-        const val KEY_B_TAG = "b_tag"
+        const val KEY_B_TAGS = "b_tags"
     }
 }

@@ -2,10 +2,13 @@ package app.scatterto.ui.main
 
 import app.scatterto.ui.PostStatus
 
-/** Editierbare Textbausteine eines Netzwerks (§5.4). */
+/**
+ * Editierbare Bausteine eines Netzwerks (§5.4): Text mit eingebetteten Rahmen-Hashtags,
+ * ergänzende Hashtags als Pill-Liste, sowie die URL.
+ */
 data class NetworkPost(
     val text: String = "",
-    val hashtag: String = "",
+    val extraHashtags: List<String> = emptyList(),
     val url: String = "",
 )
 

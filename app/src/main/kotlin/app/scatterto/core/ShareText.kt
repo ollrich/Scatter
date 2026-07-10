@@ -8,6 +8,12 @@ package app.scatterto.core
 /** Findet die erste http(s)-URL in einem String; matcht bis zum ersten Whitespace/Klammer-Ende. */
 val URL_REGEX = Regex("""https?://[^\s<>"']+""")
 
+/** Extrahiert den Host einer URL ohne „www." — als Fallback-Hinweis für den Medien-Hashtag. */
+fun domainOf(url: String): String? {
+    val host = Regex("""https?://([^/\s?#]+)""").find(url)?.groupValues?.get(1) ?: return null
+    return host.removePrefix("www.").ifBlank { null }
+}
+
 /** Am Ende häufige Satzzeichen, die nicht zur URL gehören (z. B. „…/artikel." am Satzende). */
 private const val TRAILING_PUNCTUATION = ".,;:!?)]}\"'»«"
 

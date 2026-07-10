@@ -4,13 +4,16 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * Bluesky-Facets (§6, §12.2 Nr. 6): machen URL und Hashtag im Plaintext klickbar.
+ * Bluesky-Facets (§6, §12.2 Nr. 6): machen URL und Hashtags im Plaintext klickbar.
  * Offsets sind **UTF-8-Byte-Offsets**, nicht Zeichen-Offsets — bei Umlauten/Emoji weichen sie ab.
- * Modell ist bereits im Bluesky-Wire-Format (`$type`-Diskriminator) für die spätere Serialisierung.
+ * Es werden ALLE Hashtags im Post erfasst (Rahmen-Tags im Satz + ergänzende), plus die URL.
  */
 
 const val FACET_LINK_TYPE = "app.bsky.richtext.facet#link"
 const val FACET_TAG_TYPE = "app.bsky.richtext.facet#tag"
+
+// Hashtag = # gefolgt von Unicode-Buchstaben, dann Buchstaben/Ziffern/Unterstrich.
+private val HASHTAG_REGEX = Regex("""#\p{L}[\p{L}\p{N}_]*""")
 
 @Serializable
 data class ByteSlice(val byteStart: Int, val byteEnd: Int)
@@ -28,28 +31,34 @@ data class Facet(val index: ByteSlice, val features: List<FacetFeature>)
 private fun utf8ByteOffset(text: String, charIndex: Int): Int =
     text.substring(0, charIndex).toByteArray(Charsets.UTF_8).size
 
-private fun facetFor(post: String, substring: String, feature: FacetFeature): Facet? {
-    val charStart = post.indexOf(substring)
-    if (charStart < 0) return null
+private fun facetAt(post: String, charStart: Int, length: Int, feature: FacetFeature): Facet {
     val byteStart = utf8ByteOffset(post, charStart)
-    val byteEnd = utf8ByteOffset(post, charStart + substring.length)
+    val byteEnd = utf8ByteOffset(post, charStart + length)
     return Facet(ByteSlice(byteStart, byteEnd), listOf(feature))
 }
 
 /**
- * Berechnet die Facets für den zusammengesetzten [post]. Die Byte-Range des Tags umfasst das „#";
- * im `tag`-Feld steht der Hashtag ohne „#". Ergebnis nach byteStart sortiert.
+ * Berechnet die Facets für den zusammengesetzten [post]: Link-Facet für [url] und je ein Tag-Facet
+ * pro Hashtag im Text. Hashtags innerhalb der URL (z. B. `#fragment`) werden ausgenommen.
+ * Die Byte-Range eines Tags umfasst das „#"; im `tag`-Feld steht der Tag ohne „#". Nach byteStart sortiert.
  */
-fun computeFacets(post: String, url: String?, hashtag: String?): List<Facet> {
+fun computeFacets(post: String, url: String?): List<Facet> {
     val facets = mutableListOf<Facet>()
 
+    var urlRange: IntRange? = null
     if (!url.isNullOrEmpty()) {
-        facetFor(post, url, FacetFeature(FACET_LINK_TYPE, uri = url))?.let { facets += it }
+        val start = post.indexOf(url)
+        if (start >= 0) {
+            urlRange = start until (start + url.length)
+            facets += facetAt(post, start, url.length, FacetFeature(FACET_LINK_TYPE, uri = url))
+        }
     }
-    if (!hashtag.isNullOrEmpty()) {
-        val withHash = if (hashtag.startsWith("#")) hashtag else "#$hashtag"
-        facetFor(post, withHash, FacetFeature(FACET_TAG_TYPE, tag = withHash.removePrefix("#")))
-            ?.let { facets += it }
+
+    for (match in HASHTAG_REGEX.findAll(post)) {
+        // Hashtags, die zur URL gehören (Fragment), nicht als Tag verlinken.
+        if (urlRange != null && match.range.first in urlRange) continue
+        val tag = match.value.removePrefix("#")
+        facets += facetAt(post, match.range.first, match.value.length, FacetFeature(FACET_TAG_TYPE, tag = tag))
     }
 
     return facets.sortedBy { it.index.byteStart }

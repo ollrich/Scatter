@@ -2,36 +2,36 @@ package app.scatterto.data.mammouth
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AiResponseParserTest {
 
-    @Test fun parsesPlainJson() {
+    @Test fun parsesNewSchema() {
         val json = """
-            {"de_text":"Guter Fund","de_hashtag":"#Klima","en_text":"Nice find","en_hashtag":"#Climate"}
+            {"de":{"text":"Bei #NDR über #klima. Ein Satz.","extra_hashtags":["#moor"]},
+             "en":{"text":"#NDR reported on #climate. One sentence.","extra_hashtags":[]}}
         """.trimIndent()
         val posts = AiResponseParser.parse(json)
-        assertEquals("Guter Fund", posts.deText)
-        assertEquals("#Klima", posts.deHashtag)
-        assertEquals("Nice find", posts.enText)
-        assertEquals("#Climate", posts.enHashtag)
+        assertEquals("Bei #NDR über #klima. Ein Satz.", posts.de.text)
+        assertEquals(listOf("#moor"), posts.de.extraHashtags)
+        assertTrue(posts.en.extraHashtags.isEmpty())
     }
 
-    @Test fun stripsMarkdownFencesAndProse() {
+    @Test fun stripsFencesAndNormalizesExtraTags() {
         val content = """
-            Klar, hier ist das JSON:
+            Klar:
             ```json
-            {"de_text":"A","de_hashtag":"tag eins","en_text":"B","en_hashtag":"Tag"}
+            {"de":{"text":"T","extra_hashtags":["klima","#Wald"]},"en":{"text":"T","extra_hashtags":["#a a"]}}
             ```
         """.trimIndent()
         val posts = AiResponseParser.parse(content)
-        assertEquals("A", posts.deText)
-        assertEquals("#TagEins", posts.deHashtag) // normalisiert: # + CamelCase
-        assertEquals("#Tag", posts.enHashtag)
+        assertEquals(listOf("#klima", "#Wald"), posts.de.extraHashtags) // # ergänzt, Case bleibt
+        assertEquals(listOf("#aa"), posts.en.extraHashtags)             // Leerzeichen entfernt
     }
 
-    @Test fun throwsOnMissingTextField() {
-        val json = """{"de_text":"","de_hashtag":"#x","en_text":"ok","en_hashtag":"#y"}"""
+    @Test fun throwsOnMissingText() {
+        val json = """{"de":{"text":"","extra_hashtags":[]},"en":{"text":"ok","extra_hashtags":[]}}"""
         assertThrows(AiParseException::class.java) { AiResponseParser.parse(json) }
     }
 

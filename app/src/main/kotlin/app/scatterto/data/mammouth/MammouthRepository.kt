@@ -1,5 +1,6 @@
 package app.scatterto.data.mammouth
 
+import app.scatterto.core.domainOf
 import app.scatterto.data.metadata.PageMetadata
 import app.scatterto.data.model.GeneratedPosts
 import app.scatterto.data.model.MammouthConfig
@@ -34,6 +35,7 @@ class MammouthRepository {
                 ChatMessage(
                     "user",
                     PromptBuilder.user(
+                        medium = metadata.siteName ?: domainOf(blueskyUrl),
                         title = metadata.title,
                         description = metadata.description,
                         deBudget = PromptBuilder.mastodonTextBudget(mastodonMaxChars),

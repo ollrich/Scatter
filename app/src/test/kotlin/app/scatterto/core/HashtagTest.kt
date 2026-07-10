@@ -9,12 +9,18 @@ class HashtagTest {
         assertEquals("#Test", normalizeHashtag("Test"))
     }
 
-    @Test fun keepsSingleWordCase() {
+    @Test fun preservesLowercaseTopic() {
         assertEquals("#klimawandel", normalizeHashtag("#klimawandel"))
     }
 
-    @Test fun joinsMultipleWordsAsCamelCase() {
-        assertEquals("#KlimaWandel", normalizeHashtag("klima wandel"))
+    @Test fun preservesAcronymCase() {
+        // Eigennamen/Kürzel bleiben unverändert — kein erzwungenes Klein/CamelCase.
+        assertEquals("#NDR", normalizeHashtag("NDR"))
+        assertEquals("#NDR", normalizeHashtag("#NDR"))
+    }
+
+    @Test fun joinsWordsWithoutForcingCase() {
+        assertEquals("#klimawandel", normalizeHashtag("klima wandel"))
     }
 
     @Test fun collapsesDoubleHash() {

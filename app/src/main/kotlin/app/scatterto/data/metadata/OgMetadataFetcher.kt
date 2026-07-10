@@ -39,7 +39,13 @@ class OgMetadataFetcher {
             val description = doc.ogProperty("og:description")
                 ?: doc.selectFirst("meta[name=description]")?.attr("content")?.ifBlank { null }
             val image = doc.selectFirst("meta[property=og:image]")?.absUrl("content")?.ifBlank { null }
-            return PageMetadata(title = title?.trim(), description = description?.trim(), imageUrl = image)
+            val siteName = doc.ogProperty("og:site_name")
+            return PageMetadata(
+                title = title?.trim(),
+                description = description?.trim(),
+                imageUrl = image,
+                siteName = siteName?.trim(),
+            )
         }
 
         private fun Document.ogProperty(property: String): String? =

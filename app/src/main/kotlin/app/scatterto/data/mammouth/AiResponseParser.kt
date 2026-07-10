@@ -1,6 +1,7 @@
 package app.scatterto.data.mammouth
 
 import app.scatterto.core.normalizeHashtag
+import app.scatterto.data.model.GeneratedPost
 import app.scatterto.data.model.GeneratedPosts
 import app.scatterto.data.net.Network
 import kotlinx.serialization.SerializationException
@@ -10,7 +11,7 @@ class AiParseException(message: String, cause: Throwable? = null) : Exception(me
 
 /**
  * Defensives Parsen der KI-Antwort (§5.3, §12.2 Nr. 4): extrahiert das JSON-Objekt auch aus
- * Markdown-Fences/Fließtext, dekodiert es und normalisiert die Hashtags. Reine Funktion → testbar.
+ * Markdown-Fences/Fließtext, dekodiert es und normalisiert die ergänzenden Hashtags. Rein → testbar.
  */
 object AiResponseParser {
 
@@ -24,17 +25,19 @@ object AiResponseParser {
             throw AiParseException("Antwort nicht im erwarteten JSON-Format", e)
         }
 
-        if (raw.deText.isBlank() || raw.enText.isBlank()) {
+        if (raw.de.text.isBlank() || raw.en.text.isBlank()) {
             throw AiParseException("KI-Antwort ohne Post-Text")
         }
 
         return GeneratedPosts(
-            deText = raw.deText.trim(),
-            deHashtag = normalizeHashtag(raw.deHashtag),
-            enText = raw.enText.trim(),
-            enHashtag = normalizeHashtag(raw.enHashtag),
+            de = GeneratedPost(raw.de.text.trim(), cleanTags(raw.de.extraHashtags)),
+            en = GeneratedPost(raw.en.text.trim(), cleanTags(raw.en.extraHashtags)),
         )
     }
+
+    // Ergänzende Hashtags normalisieren (# sicherstellen, Leerzeichen raus), Schreibweise bleibt.
+    private fun cleanTags(tags: List<String>): List<String> =
+        tags.map(::normalizeHashtag).filter { it.isNotEmpty() }.distinct()
 
     /** Nimmt vom ersten `{` bis zum letzten `}` — robust gegen ```json-Fences und Begleittext. */
     fun extractJsonObject(raw: String): String {

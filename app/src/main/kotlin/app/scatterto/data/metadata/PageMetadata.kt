@@ -8,6 +8,7 @@ data class PageMetadata(
     val title: String? = null,
     val description: String? = null,
     val imageUrl: String? = null, // og:image, für die Bluesky-Link-Karte (§6)
+    val siteName: String? = null, // og:site_name, Hinweis für den Medien-Hashtag im Prompt
 ) {
     val isUsable: Boolean get() = !title.isNullOrBlank() || !description.isNullOrBlank()
 }

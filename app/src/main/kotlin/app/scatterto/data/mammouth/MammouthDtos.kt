@@ -33,11 +33,15 @@ data class ModelsResponse(val data: List<ModelData> = emptyList())
 @Serializable
 data class ModelData(val id: String)
 
-/** Rohschema der KI-Antwort (§5.3), vor Normalisierung. */
+/** Rohschema der KI-Antwort (§5.3): je Sprache ein Text mit Inline-Hashtags + optionale Ergänzungen. */
+@Serializable
+data class AiLangResult(
+    val text: String = "",
+    @SerialName("extra_hashtags") val extraHashtags: List<String> = emptyList(),
+)
+
 @Serializable
 data class AiResult(
-    @SerialName("de_text") val deText: String,
-    @SerialName("de_hashtag") val deHashtag: String = "",
-    @SerialName("en_text") val enText: String,
-    @SerialName("en_hashtag") val enHashtag: String = "",
+    val de: AiLangResult = AiLangResult(),
+    val en: AiLangResult = AiLangResult(),
 )
