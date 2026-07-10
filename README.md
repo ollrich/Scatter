@@ -18,6 +18,8 @@ ScatterTo ist eine native Android-App für Leute, die denselben Artikel auf **Ma
 
 Es ist ein **persönlicher Ein-Nutzer-Client**: Token-basierte Anmeldung (kein OAuth), keine Telemetrie, Zugangsdaten nur verschlüsselt auf dem Gerät.
 
+Ein privates Projekt von **[Olli](https://eichhof.me)**.
+
 ### Funktionen
 
 - **Share-Intent:** Link aus einer beliebigen App teilen — die URL landet direkt in ScatterTo.
@@ -81,6 +83,8 @@ ScatterTo is a native Android app for people who share the same article on **Mas
 
 It is a **personal single-user client**: token-based sign-in (no OAuth), no telemetry, credentials stored encrypted on the device only.
 
+A personal project by **[Olli](https://eichhof.me)**.
+
 ### Features
 
 - **Share intent:** share a link from any app — the URL lands straight in ScatterTo.
@@ -137,6 +141,10 @@ Binding specification (German): [pflichtenheft-share-app.md](pflichtenheft-share
 A GitHub Actions workflow builds a **signed** release APK on every `v*` tag and attaches it as the single asset of a release (the Obtainium contract). The signing keystore is not in the repo.
 
 ---
+
+## Lizenz / License
+
+MIT — siehe [LICENSE](LICENSE).
 
 ## Screenshots
 
