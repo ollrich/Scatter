@@ -1,12 +1,12 @@
 package app.scatterto.ui.settings
 
-import app.scatterto.data.model.MammouthModels
+import app.scatterto.data.model.ModelChoices
 
 /** UI-Zustand des Einstellungsmenüs (§4). */
 data class SettingsUiState(
     // Mammouth
     val mammouthToken: String = "",
-    val selectedModelId: String = MammouthModels.default.modelId,
+    val modelChoiceKey: String = ModelChoices.DEFAULT_KEY,
     val customModelId: String = "",
     val mammouthValidation: ValidationState = ValidationState.None,
 
@@ -29,12 +29,8 @@ data class SettingsUiState(
     val blueskyError: String? = null,
     val blueskyConnecting: Boolean = false,
 ) {
-    /** true, wenn ein Modell außerhalb der Presets gewählt ist → Freitextfeld zeigen (§12.4 Nr. 3). */
-    val isCustomModel: Boolean get() = MammouthModels.isCustom(selectedModelId) || selectedModelId == CUSTOM_SENTINEL
-
-    companion object {
-        const val CUSTOM_SENTINEL = "__custom__"
-    }
+    /** true, wenn „Eigene Modell-ID" gewählt ist → Freitextfeld zeigen (§12.4 Nr. 3). */
+    val isCustomModel: Boolean get() = modelChoiceKey == ModelChoices.CUSTOM_KEY
 }
 
 sealed interface ValidationState {

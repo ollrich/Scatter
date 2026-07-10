@@ -16,7 +16,8 @@ data class ChatRequest(
     val model: String,
     val messages: List<ChatMessage>,
     @SerialName("response_format") val responseFormat: ResponseFormat? = null,
-    val temperature: Double = 0.7,
+    // Nullable, damit der Fallback temperature komplett weglassen kann (manche neuen Modelle lehnen sie ab).
+    val temperature: Double? = 0.7,
 )
 
 @Serializable

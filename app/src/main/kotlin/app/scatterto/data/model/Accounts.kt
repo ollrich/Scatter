@@ -8,29 +8,38 @@ import kotlinx.serialization.Serializable
  * niemals loggen (§8).
  */
 
-/** Ein auswählbares Mammouth-Modell (§4.1). */
-data class ModelOption(val displayName: String, val modelId: String)
-
-object MammouthModels {
-    /** Die vier vordefinierten Optionen (§4.1). */
-    val presets: List<ModelOption> = listOf(
-        ModelOption("GPT-4.1 mini", "gpt-4.1-mini"),
-        ModelOption("Mistral Medium 3.1", "mistral-medium-3.1"),
-        ModelOption("Gemini 2.5 Flash", "gemini-2.5-flash"),
-        ModelOption("Claude Haiku 4.5", "claude-haiku-4-5"),
-    )
-
-    /** Default: Mistral Medium 3.1 (EU-Anbieter, §4.1). */
-    val default: ModelOption = presets[1]
-
-    /** true, wenn [modelId] keinem Preset entspricht -> „Eigene Modell-ID" (§12.4 Nr. 3). */
-    fun isCustom(modelId: String): Boolean = presets.none { it.modelId == modelId }
+/** Die vier Anbieter, hinter denen die App dynamisch das aktuelle Flaggschiff auflöst (§4.1). */
+enum class ModelProvider(val key: String, val displayName: String) {
+    MISTRAL("mistral", "Mistral (Large)"),
+    CLAUDE("claude", "Claude (Opus)"),
+    GPT("gpt", "GPT"),
+    GEMINI("gemini", "Gemini (Pro)"),
 }
 
+/** Ein Eintrag im Modell-Dropdown (§12.4 Nr. 3): Anbieter, „Empfohlen" oder Freitext. */
+data class ModelChoiceEntry(val key: String, val label: String)
+
+object ModelChoices {
+    const val RECOMMENDED_KEY = "recommended"
+    const val CUSTOM_KEY = "custom"
+    const val RECOMMENDED_ID = "mammouth-recommended" // Mammouths eigene aktuelle Empfehlung
+    const val DEFAULT_KEY = "mistral"
+
+    val entries: List<ModelChoiceEntry> =
+        ModelProvider.entries.map { ModelChoiceEntry(it.key, it.displayName) } +
+            ModelChoiceEntry(RECOMMENDED_KEY, "Mammouth-Empfohlen") +
+            ModelChoiceEntry(CUSTOM_KEY, "Eigene Modell-ID…")
+}
+
+/**
+ * Modellauswahl: entweder ein [provider] (App löst zur Laufzeit das aktuelle Flaggschiff auf)
+ * oder eine feste [fixedModelId] („Empfohlen" bzw. Custom-ID). fixedModelId hat Vorrang.
+ */
 @Serializable
 data class MammouthConfig(
     val token: String,
-    val modelId: String = MammouthModels.default.modelId,
+    val provider: String? = ModelChoices.DEFAULT_KEY,
+    val fixedModelId: String? = null,
 )
 
 @Serializable

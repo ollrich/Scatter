@@ -9,7 +9,8 @@ import retrofit2.HttpException
 
 /**
  * Kapselt die KI-Generierung (§5.3): genau ein Call pro Generierung, strukturiertes JSON,
- * defensives Parsing, response_format-Fallback (§12.2 Nr. 5).
+ * defensives Parsing, response_format-/temperature-Fallback (§12.2 Nr. 5).
+ * Die Modell-ID wird aus der Auswahl aufgelöst (Anbieter → aktuelles Flaggschiff via /v1/models).
  */
 class MammouthRepository {
 
@@ -17,6 +18,10 @@ class MammouthRepository {
     private val api: MammouthApi =
         Network.retrofit(BASE_URL, Network.okHttp(readTimeoutSeconds = 90))
             .create(MammouthApi::class.java)
+
+    // Kurzlebiger Cache der Modell-Liste, damit nicht vor jeder Generierung neu geladen wird.
+    private var modelCache: List<String> = emptyList()
+    private var modelCacheAt = 0L
 
     /**
      * Generiert beide Post-Texte. [mastodonMaxChars] steuert das DE-Längenbudget (§12.2 Nr. 3).
@@ -28,8 +33,9 @@ class MammouthRepository {
         mastodonMaxChars: Int,
         blueskyUrl: String,
     ): GeneratedPosts {
+        val model = resolveModelId(config)
         val request = ChatRequest(
-            model = config.modelId,
+            model = model,
             messages = listOf(
                 ChatMessage("system", PromptBuilder.system),
                 ChatMessage(
@@ -49,9 +55,12 @@ class MammouthRepository {
         val content = try {
             api.chat(bearer(config.token), request).firstContent()
         } catch (e: HttpException) {
-            // Manche Anbieter hinter dem Proxy lehnen response_format ab -> einmal ohne wiederholen.
+            // Manche Anbieter/Modelle lehnen response_format oder temperature ab -> ohne beides erneut.
             if (e.code() == 400) {
-                api.chat(bearer(config.token), request.copy(responseFormat = null)).firstContent()
+                api.chat(
+                    bearer(config.token),
+                    request.copy(responseFormat = null, temperature = null),
+                ).firstContent()
             } else {
                 throw e
             }
@@ -60,15 +69,38 @@ class MammouthRepository {
         return AiResponseParser.parse(content)
     }
 
-    /** Optionale Token-/Modell-Validierung (§4.1): prüft, ob die Modell-ID vorhanden ist. */
+    /** Token-/Modell-Validierung (§4.1): prüft Erreichbarkeit; bei fester Custom-ID deren Existenz. */
     suspend fun validate(config: MammouthConfig): Boolean {
-        val ids = api.models(bearer(config.token)).data.map { it.id }
-        return config.modelId in ids
+        val ids = runCatching { fetchModels(config.token) }.getOrDefault(emptyList())
+        if (ids.isEmpty()) return false
+        val fixed = config.fixedModelId
+        return if (fixed != null && fixed != ModelResolver.RECOMMENDED_ID) fixed in ids else true
     }
+
+    private suspend fun resolveModelId(config: MammouthConfig): String {
+        config.fixedModelId?.let { return it }
+        val provider = config.provider ?: ModelResolver.DEFAULT_PROVIDER
+        return ModelResolver.resolve(provider, availableModels(config.token))
+    }
+
+    private suspend fun availableModels(token: String): List<String> {
+        val now = System.currentTimeMillis()
+        if (modelCache.isNotEmpty() && now - modelCacheAt < CACHE_TTL_MS) return modelCache
+        val ids = runCatching { fetchModels(token) }.getOrDefault(emptyList())
+        if (ids.isNotEmpty()) {
+            modelCache = ids
+            modelCacheAt = now
+        }
+        return ids
+    }
+
+    private suspend fun fetchModels(token: String): List<String> =
+        api.models(bearer(token)).data.map { it.id }
 
     private fun bearer(token: String) = "Bearer $token"
 
     private companion object {
         const val BASE_URL = "https://api.mammouth.ai/v1/"
+        const val CACHE_TTL_MS = 30 * 60 * 1000L
     }
 }

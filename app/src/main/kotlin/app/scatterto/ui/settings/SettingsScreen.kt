@@ -38,7 +38,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import app.scatterto.data.model.MammouthModels
+import app.scatterto.data.model.ModelChoices
 import app.scatterto.ui.AppViewModelProvider
 import app.scatterto.ui.components.NetworkHeader
 import app.scatterto.ui.theme.BlueskyBlue
@@ -105,8 +105,8 @@ private fun MammouthCard(state: SettingsUiState, viewModel: SettingsViewModel) {
             modifier = Modifier.fillMaxWidth(),
         )
 
-        val selectedLabel = MammouthModels.presets.firstOrNull { it.modelId == state.selectedModelId }
-            ?.displayName ?: "Eigene Modell-ID"
+        val selectedLabel = ModelChoices.entries.firstOrNull { it.key == state.modelChoiceKey }
+            ?.label ?: state.modelChoiceKey
 
         ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
             OutlinedTextField(
@@ -120,22 +120,15 @@ private fun MammouthCard(state: SettingsUiState, viewModel: SettingsViewModel) {
                     .menuAnchor(MenuAnchorType.PrimaryNotEditable),
             )
             ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                MammouthModels.presets.forEach { option ->
+                ModelChoices.entries.forEach { entry ->
                     DropdownMenuItem(
-                        text = { Text(option.displayName) },
+                        text = { Text(entry.label) },
                         onClick = {
-                            viewModel.onModelSelected(option.modelId)
+                            viewModel.onModelChoice(entry.key)
                             expanded = false
                         },
                     )
                 }
-                DropdownMenuItem(
-                    text = { Text("Eigene Modell-ID…") },
-                    onClick = {
-                        viewModel.onModelSelected(SettingsUiState.CUSTOM_SENTINEL)
-                        expanded = false
-                    },
-                )
             }
         }
 

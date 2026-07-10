@@ -7,10 +7,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.scatterto.data.AppContainer
 import app.scatterto.data.model.MammouthConfig
+import app.scatterto.data.model.ModelChoices
 import kotlinx.coroutines.launch
 
 /**
- * ViewModel für das Einstellungsmenü (§4): Mammouth-Token/Modell speichern, Accounts verbinden/trennen.
+ * ViewModel für das Einstellungsmenü (§4): Mammouth-Token/Modellauswahl speichern,
+ * Accounts verbinden/trennen.
  */
 class SettingsViewModel(private val container: AppContainer) : ViewModel() {
 
@@ -26,12 +28,18 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
         val mastodon = container.credentialStore.loadMastodon()
         val bluesky = container.credentialStore.loadBluesky()
 
+        val choiceKey = when {
+            mammouth == null -> ModelChoices.DEFAULT_KEY
+            mammouth.provider != null -> mammouth.provider
+            mammouth.fixedModelId == ModelChoices.RECOMMENDED_ID -> ModelChoices.RECOMMENDED_KEY
+            else -> ModelChoices.CUSTOM_KEY
+        }
+        val custom = if (choiceKey == ModelChoices.CUSTOM_KEY) mammouth?.fixedModelId.orEmpty() else ""
+
         uiState = uiState.copy(
             mammouthToken = mammouth?.token.orEmpty(),
-            selectedModelId = mammouth?.modelId ?: uiState.selectedModelId,
-            customModelId = mammouth?.modelId?.takeIf {
-                app.scatterto.data.model.MammouthModels.isCustom(it)
-            }.orEmpty(),
+            modelChoiceKey = choiceKey,
+            customModelId = custom,
             mastodonInstance = mastodon?.instanceUrl.orEmpty(),
             mastodonConnected = mastodon != null,
             mastodonHandle = mastodon?.handle,
@@ -47,15 +55,24 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     // --- Mammouth ---
 
     fun onMammouthTokenChange(value: String) { uiState = uiState.copy(mammouthToken = value) }
-    fun onModelSelected(modelId: String) { uiState = uiState.copy(selectedModelId = modelId) }
+    fun onModelChoice(key: String) { uiState = uiState.copy(modelChoiceKey = key) }
     fun onCustomModelChange(value: String) { uiState = uiState.copy(customModelId = value) }
 
     fun saveMammouth() {
-        val modelId = if (uiState.isCustomModel) uiState.customModelId.trim() else uiState.selectedModelId
-        if (uiState.mammouthToken.isBlank() || modelId.isBlank()) return
-        container.credentialStore.saveMammouth(MammouthConfig(uiState.mammouthToken.trim(), modelId))
+        if (uiState.mammouthToken.isBlank()) return
+        val token = uiState.mammouthToken.trim()
+        val config = when (uiState.modelChoiceKey) {
+            ModelChoices.RECOMMENDED_KEY ->
+                MammouthConfig(token, provider = null, fixedModelId = ModelChoices.RECOMMENDED_ID)
+            ModelChoices.CUSTOM_KEY -> {
+                if (uiState.customModelId.isBlank()) return
+                MammouthConfig(token, provider = null, fixedModelId = uiState.customModelId.trim())
+            }
+            else -> MammouthConfig(token, provider = uiState.modelChoiceKey, fixedModelId = null)
+        }
+        container.credentialStore.saveMammouth(config)
         // Optionale Validierung (§4.1): Fehlschlag hindert das Speichern nicht (offline-tolerant).
-        validateMammouth(MammouthConfig(uiState.mammouthToken.trim(), modelId))
+        validateMammouth(config)
     }
 
     private fun validateMammouth(config: MammouthConfig) {
@@ -65,7 +82,7 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
                 if (container.mammouthRepository.validate(config)) {
                     uiState.copy(mammouthValidation = ValidationState.Valid)
                 } else {
-                    uiState.copy(mammouthValidation = ValidationState.Invalid("Modell-ID nicht gefunden"))
+                    uiState.copy(mammouthValidation = ValidationState.Invalid("Token/Modell nicht prüfbar"))
                 }
             } catch (e: Exception) {
                 uiState.copy(mammouthValidation = ValidationState.Invalid("Nicht prüfbar (offline?)"))
