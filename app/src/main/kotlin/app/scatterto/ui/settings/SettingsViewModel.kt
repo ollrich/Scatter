@@ -33,7 +33,8 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
         val choiceKey = when {
             mammouth == null -> ModelChoices.DEFAULT_KEY
             mammouth.provider != null -> mammouth.provider
-            mammouth.fixedModelId == ModelChoices.RECOMMENDED_ID -> ModelChoices.RECOMMENDED_KEY
+            // Die alte Auswahl „Mammouth-Empfohlen" ist kein aufrufbares Modell -> auf Standard migrieren.
+            mammouth.fixedModelId == ModelChoices.LEGACY_RECOMMENDED_ID -> ModelChoices.DEFAULT_KEY
             else -> ModelChoices.CUSTOM_KEY
         }
         val custom = if (choiceKey == ModelChoices.CUSTOM_KEY) mammouth?.fixedModelId.orEmpty() else ""
@@ -64,8 +65,6 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
         if (uiState.mammouthToken.isBlank()) return
         val token = uiState.mammouthToken.trim()
         val config = when (uiState.modelChoiceKey) {
-            ModelChoices.RECOMMENDED_KEY ->
-                MammouthConfig(token, provider = null, fixedModelId = ModelChoices.RECOMMENDED_ID)
             ModelChoices.CUSTOM_KEY -> {
                 if (uiState.customModelId.isBlank()) return
                 MammouthConfig(token, provider = null, fixedModelId = uiState.customModelId.trim())

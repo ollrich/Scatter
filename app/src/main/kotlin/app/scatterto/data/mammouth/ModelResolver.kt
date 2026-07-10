@@ -8,7 +8,6 @@ package app.scatterto.data.mammouth
  */
 object ModelResolver {
 
-    const val RECOMMENDED_ID = "mammouth-recommended"
     const val DEFAULT_PROVIDER = "mistral"
 
     // Offline-Fallback (Stand des Katalogs 2026-07). Auto-Update passiert über die Live-Liste.
@@ -30,7 +29,7 @@ object ModelResolver {
     )
 
     fun resolve(provider: String, available: List<String>): String {
-        val fallback = FALLBACK[provider] ?: RECOMMENDED_ID
+        val fallback = FALLBACK[provider] ?: FALLBACK.getValue(DEFAULT_PROVIDER)
         val rule = RULES[provider] ?: return fallback
 
         val candidates = available.filter { id ->

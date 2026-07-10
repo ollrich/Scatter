@@ -48,6 +48,7 @@ import app.scatterto.ui.theme.MastodonViolet
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
+    onOpenLog: () -> Unit,
     viewModel: SettingsViewModel = viewModel(factory = AppViewModelProvider.Factory),
 ) {
     val state = viewModel.uiState
@@ -77,6 +78,10 @@ fun SettingsScreen(
             MastodonCard(state, viewModel)
             HorizontalDivider()
             BlueskyCard(state, viewModel)
+            HorizontalDivider()
+            OutlinedButton(onClick = onOpenLog, modifier = Modifier.fillMaxWidth()) {
+                Text("Protokoll anzeigen")
+            }
         }
     }
 }

@@ -33,6 +33,9 @@ class MainViewModel(
     var uiState by mutableStateOf(MainUiState())
         private set
 
+    // Protokoll für die Diagnose (§8: niemals Credentials hineinschreiben).
+    private val log = container.eventLog
+
     // Für die Bluesky-Link-Karte (§6) gemerkte Metadaten.
     private var cardTitle: String = ""
     private var cardDescription: String = ""
@@ -111,12 +114,15 @@ class MainViewModel(
     private fun loadMetadataThenGenerate() {
         uiState = uiState.copy(metadataPhase = MetadataPhase.Loading, generationPhase = GenerationPhase.Idle)
         viewModelScope.launch {
+            log.info("Metadaten laden: ${uiState.urlInput}")
             val metadata = runCatching { container.metadataFetcher.fetch(uiState.urlInput) }.getOrNull()
             if (metadata != null && metadata.isUsable) {
+                log.info("Metadaten ok (Medium: ${metadata.siteName ?: "?"})")
                 uiState = uiState.copy(metadataPhase = MetadataPhase.Ready)
                 generate(metadata)
             } else {
                 // Fallback: manuelle Felder anzeigen, NICHT automatisch generieren (§12.2 Nr. 2).
+                log.error("Metadaten unbrauchbar – manuelle Eingabe nötig")
                 uiState = uiState.copy(metadataPhase = MetadataPhase.NeedsManual)
             }
         }
@@ -153,8 +159,11 @@ class MainViewModel(
                     blueskyStatus = PostStatus.Idle,
                 )
             } catch (e: HttpException) {
-                uiState.copy(generationPhase = GenerationPhase.Error(e.readableMessage()))
+                val message = e.readableMessage()
+                log.error("KI: $message")
+                uiState.copy(generationPhase = GenerationPhase.Error(message))
             } catch (e: Exception) {
+                log.error("KI: ${e.message}")
                 uiState.copy(generationPhase = GenerationPhase.Error(e.message ?: "Generierung fehlgeschlagen"))
             }
         }
@@ -213,16 +222,22 @@ class MainViewModel(
     private suspend fun sendMastodon() {
         val account = container.credentialStore.loadMastodon() ?: return
         uiState = uiState.copy(mastodonStatus = PostStatus.Pending)
+        log.info("Mastodon: sende…")
         uiState = try {
             val post = composePost(uiState.mastodon.text, uiState.mastodon.extraHashtags, uiState.mastodon.url)
             val url = container.mastodonRepository.post(account, post, mastodonIdempotencyKey)
+            log.info("Mastodon: gepostet")
             uiState.copy(mastodonStatus = PostStatus.Success(url))
         } catch (e: SocketTimeoutException) {
             // Idempotency-Key macht den Retry sicher (§12.1 Nr. 5).
+            log.error("Mastodon: Zeitüberschreitung")
             uiState.copy(mastodonStatus = PostStatus.Failed("Zeitüberschreitung – erneut versuchen ist sicher"))
         } catch (e: HttpException) {
-            uiState.copy(mastodonStatus = PostStatus.Failed(e.readableMessage()))
+            val message = e.readableMessage()
+            log.error("Mastodon: $message")
+            uiState.copy(mastodonStatus = PostStatus.Failed(message))
         } catch (e: Exception) {
+            log.error("Mastodon: ${e.message}")
             uiState.copy(mastodonStatus = PostStatus.Failed(e.message ?: "Fehler beim Posten"))
         }
     }
@@ -230,6 +245,7 @@ class MainViewModel(
     private suspend fun sendBluesky() {
         val account = container.credentialStore.loadBluesky() ?: return
         uiState = uiState.copy(blueskyStatus = PostStatus.Pending)
+        log.info("Bluesky: sende…")
         uiState = try {
             val post = composePost(uiState.bluesky.text, uiState.bluesky.extraHashtags, uiState.bluesky.url)
             val facets = computeFacets(post, uiState.bluesky.url)
@@ -237,13 +253,18 @@ class MainViewModel(
                 LinkCard(uri = it, title = cardTitle, description = cardDescription, imageUrl = cardImageUrl)
             }
             val url = container.blueskyRepository.post(account, post, facets, card)
+            log.info("Bluesky: gepostet (${facets.size} Facets)")
             uiState.copy(blueskyStatus = PostStatus.Success(url))
         } catch (e: SocketTimeoutException) {
             // Kein Idempotenz-Mechanismus: unklarer Ausgang, nicht automatisch retryen (§12.1 Nr. 5).
+            log.error("Bluesky: Zeitüberschreitung – Ausgang unklar")
             uiState.copy(blueskyStatus = PostStatus.Uncertain("Unklar – bitte im Bluesky-Profil prüfen"))
         } catch (e: HttpException) {
-            uiState.copy(blueskyStatus = PostStatus.Failed(e.readableMessage()))
+            val message = e.readableMessage()
+            log.error("Bluesky: $message")
+            uiState.copy(blueskyStatus = PostStatus.Failed(message))
         } catch (e: Exception) {
+            log.error("Bluesky: ${e.message}")
             uiState.copy(blueskyStatus = PostStatus.Failed(e.message ?: "Fehler beim Posten"))
         }
     }

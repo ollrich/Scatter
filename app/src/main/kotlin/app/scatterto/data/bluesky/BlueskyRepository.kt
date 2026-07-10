@@ -2,8 +2,10 @@ package app.scatterto.data.bluesky
 
 import app.scatterto.core.Facet
 import app.scatterto.data.CredentialStore
+import app.scatterto.data.log.EventLog
 import app.scatterto.data.model.BlueskyAccount
 import app.scatterto.data.net.Network
+import app.scatterto.data.net.readableMessage
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
@@ -13,7 +15,10 @@ import java.time.Instant
  * Bluesky-Anbindung (§4.2, §6, §7, §12.1 Nr. 4). Session wird persistiert und bei 401 transparent
  * erneuert; scheitert der Refresh, wird aus dem gespeicherten App-Password eine neue Session erzeugt.
  */
-class BlueskyRepository(private val credentialStore: CredentialStore) {
+class BlueskyRepository(
+    private val credentialStore: CredentialStore,
+    private val log: EventLog,
+) {
 
     private val thumbnailer = ImageThumbnailer(Network.okHttp())
 
@@ -68,6 +73,8 @@ class BlueskyRepository(private val credentialStore: CredentialStore) {
                 val jpeg = thumbnailer.downloadAsJpeg(imageUrl) ?: return@runCatching null
                 val body = jpeg.toRequestBody("image/jpeg".toMediaType())
                 authed { auth -> api.uploadBlob(auth, body).blob }
+            }.onFailure {
+                log.info("Bluesky: Thumbnail-Upload fehlgeschlagen – Karte ohne Bild")
             }.getOrNull()
         }
 
@@ -90,6 +97,7 @@ class BlueskyRepository(private val credentialStore: CredentialStore) {
             // §6: Die Link-Karte darf das Posten nie blockieren — lehnt der Server das Embed ab,
             // denselben Post ohne Karte absetzen.
             if (e.code() == 400 && record.embed != null) {
+                log.error("Bluesky: Embed abgelehnt (${e.readableMessage()}) – sende ohne Karte")
                 authed { auth ->
                     api.createRecord(
                         auth,
@@ -105,9 +113,11 @@ class BlueskyRepository(private val credentialStore: CredentialStore) {
 
     /** Refresh über refreshJwt; scheitert das, neue Session aus dem App-Password (§12.1 Nr. 4). */
     private suspend fun refreshSession(api: BlueskyApi, account: BlueskyAccount): BlueskyAccount {
+        log.info("Bluesky: Session abgelaufen – erneuere")
         val session = runCatching {
             api.refreshSession("Bearer ${account.refreshJwt}")
         }.getOrElse {
+            log.info("Bluesky: Refresh fehlgeschlagen – neue Session aus App-Password")
             api.createSession(CreateSessionRequest(account.identifier, account.appPassword))
         }
         return account.copy(

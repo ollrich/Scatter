@@ -1,9 +1,11 @@
 package app.scatterto.data.mammouth
 
 import app.scatterto.core.domainOf
+import app.scatterto.data.log.EventLog
 import app.scatterto.data.metadata.PageMetadata
 import app.scatterto.data.model.GeneratedPosts
 import app.scatterto.data.model.MammouthConfig
+import app.scatterto.data.model.ModelChoices
 import app.scatterto.data.net.Network
 import retrofit2.HttpException
 
@@ -12,7 +14,7 @@ import retrofit2.HttpException
  * defensives Parsing, response_format-/temperature-Fallback (§12.2 Nr. 5).
  * Die Modell-ID wird aus der Auswahl aufgelöst (Anbieter → aktuelles Flaggschiff via /v1/models).
  */
-class MammouthRepository {
+class MammouthRepository(private val log: EventLog) {
 
     // Eigener Client mit langem Read-Timeout — LLM-Calls brauchen ≥ 60 s (§12.1 Nr. 6).
     private val api: MammouthApi =
@@ -23,10 +25,6 @@ class MammouthRepository {
     private var modelCache: List<String> = emptyList()
     private var modelCacheAt = 0L
 
-    /**
-     * Generiert beide Post-Texte. [mastodonMaxChars] steuert das DE-Längenbudget (§12.2 Nr. 3).
-     * @throws AiParseException bei unlesbarer Antwort (UI bietet Retry an).
-     */
     suspend fun generate(
         config: MammouthConfig,
         metadata: PageMetadata,
@@ -34,6 +32,8 @@ class MammouthRepository {
         blueskyUrl: String,
     ): GeneratedPosts {
         val model = resolveModelId(config)
+        log.info("KI: Modell $model")
+
         val request = ChatRequest(
             model = model,
             messages = listOf(
@@ -57,6 +57,7 @@ class MammouthRepository {
         } catch (e: HttpException) {
             // Manche Anbieter/Modelle lehnen response_format oder temperature ab -> ohne beides erneut.
             if (e.code() == 400) {
+                log.info("KI: HTTP 400 – Retry ohne response_format/temperature")
                 api.chat(
                     bearer(config.token),
                     request.copy(responseFormat = null, temperature = null),
@@ -73,12 +74,15 @@ class MammouthRepository {
     suspend fun validate(config: MammouthConfig): Boolean {
         val ids = runCatching { fetchModels(config.token) }.getOrDefault(emptyList())
         if (ids.isEmpty()) return false
-        val fixed = config.fixedModelId
-        return if (fixed != null && fixed != ModelResolver.RECOMMENDED_ID) fixed in ids else true
+        val fixed = config.fixedModelId?.takeIf { it != ModelChoices.LEGACY_RECOMMENDED_ID }
+        return fixed == null || fixed in ids
     }
 
     private suspend fun resolveModelId(config: MammouthConfig): String {
-        config.fixedModelId?.let { return it }
+        // Alte Einstellung auf das nicht aufrufbare Preset -> auf den Standard-Anbieter migrieren.
+        val fixed = config.fixedModelId?.takeIf { it != ModelChoices.LEGACY_RECOMMENDED_ID }
+        fixed?.let { return it }
+
         val provider = config.provider ?: ModelResolver.DEFAULT_PROVIDER
         return ModelResolver.resolve(provider, availableModels(config.token))
     }
@@ -86,7 +90,9 @@ class MammouthRepository {
     private suspend fun availableModels(token: String): List<String> {
         val now = System.currentTimeMillis()
         if (modelCache.isNotEmpty() && now - modelCacheAt < CACHE_TTL_MS) return modelCache
-        val ids = runCatching { fetchModels(token) }.getOrDefault(emptyList())
+        val ids = runCatching { fetchModels(token) }
+            .onFailure { log.info("KI: Modell-Liste nicht ladbar – nutze Fallback-Tabelle") }
+            .getOrDefault(emptyList())
         if (ids.isNotEmpty()) {
             modelCache = ids
             modelCacheAt = now

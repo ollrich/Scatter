@@ -20,14 +20,18 @@ enum class ModelProvider(val key: String, val displayName: String) {
 data class ModelChoiceEntry(val key: String, val label: String)
 
 object ModelChoices {
-    const val RECOMMENDED_KEY = "recommended"
     const val CUSTOM_KEY = "custom"
-    const val RECOMMENDED_ID = "mammouth-recommended" // Mammouths eigene aktuelle Empfehlung
     const val DEFAULT_KEY = "mistral"
+
+    /**
+     * `mammouth-recommended` steht zwar in /v1/models, ist aber kein aufrufbares Modell, sondern ein
+     * OpenRouter-Preset (404 „preset_not_found"). Daher kein Dropdown-Eintrag — die Konstante bleibt
+     * nur, um alte gespeicherte Einstellungen darauf zu migrieren.
+     */
+    const val LEGACY_RECOMMENDED_ID = "mammouth-recommended"
 
     val entries: List<ModelChoiceEntry> =
         ModelProvider.entries.map { ModelChoiceEntry(it.key, it.displayName) } +
-            ModelChoiceEntry(RECOMMENDED_KEY, "Mammouth-Empfohlen") +
             ModelChoiceEntry(CUSTOM_KEY, "Eigene Modell-ID…")
 }
 
