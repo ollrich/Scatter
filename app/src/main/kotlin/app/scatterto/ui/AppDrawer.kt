@@ -72,7 +72,7 @@ fun AppDrawerContent(state: MainUiState, onOpen: (String) -> Unit) {
 
             DrawerItem("Accounts") { onOpen(Routes.ACCOUNTS) }
             DrawerItem("Mammouth-KI") { onOpen(Routes.MAMMOUTH) }
-            DrawerItem("Display") { onOpen(Routes.DISPLAY) }
+            DrawerItem("Anzeige") { onOpen(Routes.DISPLAY) }
             DrawerItem("Logs") { onOpen(Routes.LOG) }
             DrawerItem("About") { onOpen(Routes.ABOUT) }
         }

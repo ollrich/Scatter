@@ -6,7 +6,7 @@ Offene Punkte, nach Aufwand und Priorität gruppiert. Die verbindliche Spezifika
 ## Später (Ausbau)
 
 - **Multi-Language (App-Oberfläche):** UI in Deutsch, Englisch, **Dänisch** — Sprachwahl unter
-  Display (oder eigener „Sprache"-Punkt). Kern der Arbeit: alle UI-Texte in String-Ressourcen
+  **Anzeige** (zusammen mit Dark Mode, kein eigener Menüpunkt). Kern der Arbeit: alle UI-Texte in String-Ressourcen
   auslagern (`values/` = Deutsch + `values-en/` + `values-da/`), da aktuell vieles in Compose
   hartcodiert ist. Dazu `localeConfig` im Manifest (System-Sprachpicker ab Android 13) + In-App-
   Picker via `LocaleManager.applicationLocales` (minSdk 34 nativ). Betrifft NICHT die Posting-

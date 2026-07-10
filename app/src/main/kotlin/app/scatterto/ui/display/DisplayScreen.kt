@@ -39,7 +39,7 @@ fun DisplayScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Display") },
+                title = { Text("Anzeige") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
