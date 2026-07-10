@@ -114,8 +114,13 @@ fun MainScreen(
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            // Panel bewusst NICHT schließen: so führt „Zurück" aus einer Unterseite wieder ins Menü.
-            AppDrawerContent(state) { route -> onOpen(route) }
+            // Panel bewusst NICHT schließen beim Navigieren: so führt „Zurück" aus einer Unterseite
+            // wieder ins Menü. Zum Verlassen dient das X im Kopf (onClose).
+            AppDrawerContent(
+                state = state,
+                onClose = { scope.launch { drawerState.close() } },
+                onOpen = { route -> onOpen(route) },
+            )
         },
     ) {
         Scaffold(

@@ -10,7 +10,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.NavigationDrawerItem
@@ -31,19 +35,31 @@ import app.scatterto.ui.theme.MastodonViolet
 
 /** Inhalt des Slide-Panels: Account-Kopf + Menüpunkte (§3). [onOpen] navigiert per Route. */
 @Composable
-fun AppDrawerContent(state: MainUiState, onOpen: (String) -> Unit) {
+fun AppDrawerContent(state: MainUiState, onClose: () -> Unit, onOpen: (String) -> Unit) {
     ModalDrawerSheet {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 Image(
                     painter = painterResource(R.drawable.ic_logo),
                     contentDescription = null,
                     modifier = Modifier.size(32.dp).clip(RoundedCornerShape(8.dp)),
                 )
-                Text("ScatterTo", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Text(
+                    "ScatterTo",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f),
+                )
+                IconButton(onClick = onClose) {
+                    Icon(Icons.Filled.Close, contentDescription = "Menü schließen")
+                }
             }
 
             Spacer(Modifier.height(8.dp))

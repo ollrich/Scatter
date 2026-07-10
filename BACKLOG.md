@@ -5,6 +5,16 @@ Offene Punkte, nach Aufwand und Priorität gruppiert. Die verbindliche Spezifika
 
 ## Später (Ausbau)
 
+- **Englische Bluesky-Link-Karte:** Das KI-Modell liefert im selben Call zusätzlich einen
+  englischen Titel + Beschreibung fürs `app.bsky.embed.external` (URL bleibt die deutsche Quelle).
+  **Dazu ein Hinweis, dass der verlinkte Artikel auf Deutsch ist** (z. B. „(Artikel auf Deutsch)"
+  im Text oder in der Karte). Kein externer Übersetzer nötig — datenschutzmäßig sauber (kein
+  weiterer Dritter), siehe unten.
+- **Translation-Service (später bewerten):** Für einen *Link* auf eine übersetzte Fassung bräuchte
+  es einen Ganzseiten-Übersetzer wie Google Translate. Datenschutzfreundliche Optionen
+  (LibreTranslate self-hosted, Lingva/SimplyTranslate) sind für Ganzseiten unzuverlässig
+  (Community-Instanzen offline/rate-limited). Erst bei Bedarf neu bewerten.
+
 - **Multi-Language (App-Oberfläche):** UI in Deutsch, Englisch, **Dänisch** — Sprachwahl unter
   **Anzeige** (zusammen mit Dark Mode, kein eigener Menüpunkt). Kern der Arbeit: alle UI-Texte in String-Ressourcen
   auslagern (`values/` = Deutsch + `values-en/` + `values-da/`), da aktuell vieles in Compose
