@@ -1,9 +1,11 @@
 package app.scatterto.ui.main
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -37,8 +39,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.scatterto.core.blueskyLength
@@ -103,39 +110,39 @@ fun MainScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            Button(
-                onClick = viewModel::onGenerateClick,
-                enabled = state.canGenerate && !state.isGenerating,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text("Generieren")
+            if (!state.isDone) {
+                Button(
+                    onClick = viewModel::onGenerateClick,
+                    enabled = state.canGenerate && !state.isGenerating,
+                    modifier = Modifier.fillMaxWidth(),
+                ) { Text("Generieren") }
             }
 
             if (state.isGenerating) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
             }
 
-            if (state.metadataPhase == MetadataPhase.NeedsManual) {
-                ManualMetadata(state, viewModel)
+            // Metadaten sind immer editierbar — sie speisen KI-Prompt und Bluesky-Link-Karte.
+            if (state.metadataPhase != MetadataPhase.Idle) {
+                MetadataCard(state, viewModel)
             }
 
             (state.generationPhase as? GenerationPhase.Error)?.let {
                 Text(it.message, color = MaterialTheme.colorScheme.error)
             }
 
-            if (state.generationPhase is GenerationPhase.Done) {
-                val mastodonCount = mastodonLength(
-                    composePost(state.mastodon.text, state.mastodon.extraHashtags, state.mastodon.url),
-                )
-                val blueskyCount = blueskyLength(
-                    composePost(state.bluesky.text, state.bluesky.extraHashtags, state.bluesky.url),
-                )
+            if (state.isDone) {
+                val mastodonPost = composePost(state.mastodon.text, state.mastodon.extraHashtags, state.mastodon.url)
+                val blueskyPost = composePost(state.bluesky.text, state.bluesky.extraHashtags, state.bluesky.url)
+                val mastodonCount = mastodonLength(mastodonPost)
+                val blueskyCount = blueskyLength(blueskyPost)
 
                 if (state.mastodonConnected) {
                     NetworkPostSection(
                         name = "Mastodon",
                         color = MastodonViolet,
                         post = state.mastodon,
+                        composedPost = mastodonPost,
                         count = mastodonCount,
                         limit = state.mastodonMaxChars,
                         status = state.mastodonStatus,
@@ -151,6 +158,7 @@ fun MainScreen(
                         name = "Bluesky",
                         color = BlueskyBlue,
                         post = state.bluesky,
+                        composedPost = blueskyPost,
                         count = blueskyCount,
                         limit = 300,
                         status = state.blueskyStatus,
@@ -162,34 +170,76 @@ fun MainScreen(
                     )
                 }
 
+                SendTargets(state)
+
                 val mastoOver = state.mastodonConnected && mastodonCount > state.mastodonMaxChars
                 val blueskyOver = state.blueskyConnected && blueskyCount > 300
-                Button(
-                    onClick = viewModel::onSendClick,
-                    enabled = state.hasAnyConnection && !mastoOver && !blueskyOver,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text("An verbundene Netzwerke senden")
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(
+                        onClick = viewModel::regenerate,
+                        enabled = !state.isGenerating,
+                        modifier = Modifier.weight(1f),
+                    ) { Text("Neu generieren") }
+                    Button(
+                        onClick = viewModel::onSendClick,
+                        enabled = state.hasAnyConnection && !mastoOver && !blueskyOver,
+                        modifier = Modifier.weight(1f),
+                    ) { Text("Senden") }
                 }
             }
         }
     }
 }
 
+/** Zeigt, an welche Accounts gesendet wird (§4.2-Farben). */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ManualMetadata(state: MainUiState, viewModel: MainViewModel) {
+private fun SendTargets(state: MainUiState) {
+    if (!state.hasAnyConnection) return
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text("Sendet an", style = MaterialTheme.typography.labelMedium)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            if (state.mastodonConnected) {
+                TargetLabel("Mastodon", state.mastodonHandle, MastodonViolet)
+            }
+            if (state.blueskyConnected) {
+                TargetLabel("Bluesky", state.blueskyHandle, BlueskyBlue)
+            }
+        }
+    }
+}
+
+@Composable
+private fun TargetLabel(network: String, handle: String?, color: Color) {
+    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(network, color = color, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
+        if (!handle.isNullOrBlank()) {
+            Text("@$handle", style = MaterialTheme.typography.bodyMedium)
+        }
+    }
+}
+
+@Composable
+private fun MetadataCard(state: MainUiState, viewModel: MainViewModel) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Keine Metadaten gefunden – bitte manuell ergänzen:")
+            if (state.metadataPhase == MetadataPhase.NeedsManual) {
+                Text(
+                    "Keine Metadaten gefunden – bitte manuell ergänzen:",
+                    color = MaterialTheme.colorScheme.error,
+                )
+            } else {
+                Text("Metadaten (Grundlage für KI und Link-Karte)", style = MaterialTheme.typography.labelMedium)
+            }
             OutlinedTextField(
-                value = state.manualTitle,
-                onValueChange = viewModel::onManualTitleChange,
+                value = state.metaTitle,
+                onValueChange = viewModel::onMetaTitleChange,
                 label = { Text("Titel") },
                 modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
-                value = state.manualDescription,
-                onValueChange = viewModel::onManualDescriptionChange,
+                value = state.metaDescription,
+                onValueChange = viewModel::onMetaDescriptionChange,
                 label = { Text("Beschreibung") },
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -202,6 +252,7 @@ private fun NetworkPostSection(
     name: String,
     color: Color,
     post: NetworkPost,
+    composedPost: String,
     count: Int,
     limit: Int,
     status: PostStatus,
@@ -211,6 +262,8 @@ private fun NetworkPostSection(
     onUrl: (String) -> Unit,
     onRetry: () -> Unit,
 ) {
+    val clipboard = LocalClipboardManager.current
+
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             NetworkHeader(name, color, avatarUrl = null)
@@ -220,7 +273,6 @@ private fun NetworkPostSection(
                 label = { Text("Text") },
                 modifier = Modifier.fillMaxWidth(),
             )
-            HashtagPills(post.extraHashtags, onAddTag, onRemoveTag)
             OutlinedTextField(
                 value = post.url,
                 onValueChange = onUrl,
@@ -228,6 +280,8 @@ private fun NetworkPostSection(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
+            HashtagPills(post.extraHashtags, onAddTag, onRemoveTag)
+
             val over = count > limit
             Text(
                 text = "$count / $limit",
@@ -235,6 +289,12 @@ private fun NetworkPostSection(
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.End,
             )
+
+            OutlinedButton(
+                onClick = { clipboard.setText(AnnotatedString(composedPost)) },
+                modifier = Modifier.fillMaxWidth(),
+            ) { Text("Post kopieren") }
+
             StatusRow(status, onRetry)
         }
     }
@@ -257,9 +317,7 @@ private fun HashtagPills(
                         selected = false,
                         onClick = { onRemoveTag(tag) },
                         label = { Text(tag) },
-                        trailingIcon = {
-                            Icon(Icons.Filled.Close, contentDescription = "entfernen")
-                        },
+                        trailingIcon = { Icon(Icons.Filled.Close, contentDescription = "entfernen") },
                     )
                 }
             }
@@ -283,10 +341,21 @@ private fun HashtagPills(
 
 @Composable
 private fun StatusRow(status: PostStatus, onRetry: () -> Unit) {
+    val uriHandler = LocalUriHandler.current
     when (status) {
         PostStatus.Idle -> {}
         PostStatus.Pending -> Text("Sende…")
-        is PostStatus.Success -> Text("Gepostet ✓" + (status.url?.let { "  ($it)" } ?: ""))
+        is PostStatus.Success -> {
+            Text("Gepostet ✓")
+            status.url?.let { url ->
+                Text(
+                    text = url,
+                    color = MaterialTheme.colorScheme.primary,
+                    textDecoration = TextDecoration.Underline,
+                    modifier = Modifier.clickable { uriHandler.openUri(url) },
+                )
+            }
+        }
         is PostStatus.Failed -> {
             Text(status.reason, color = MaterialTheme.colorScheme.error)
             OutlinedButton(onClick = onRetry) { Text("Erneut versuchen") }

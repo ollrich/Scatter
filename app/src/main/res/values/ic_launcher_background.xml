@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Weiß wie im Quellbild; der PNG-Vordergrund enthält weiße Flächen, die nahtlos übergehen. -->
-    <color name="ic_launcher_background">#FFFFFF</color>
+    <!-- Blau des Quell-Icons (design/icon-source.svg); der Vordergrund ist das freigestellte Motiv. -->
+    <color name="ic_launcher_background">#0C82B3</color>
 </resources>

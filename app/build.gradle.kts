@@ -19,8 +19,8 @@ android {
         applicationId = "app.scatterto"
         minSdk = 34
         targetSdk = 35
-        versionCode = 7
-        versionName = "0.2.4"
+        versionCode = 8
+        versionName = "0.3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

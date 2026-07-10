@@ -5,9 +5,9 @@ import org.junit.Test
 
 class PostComposerTest {
 
-    @Test fun composesTextExtraHashtagsUrl() {
+    @Test fun ordersTextThenUrlThenHashtags() {
         assertEquals(
-            "Bei #NDR über #klima. Kurzer Satz.\n\n#moor https://a.de/x",
+            "Bei #NDR über #klima. Kurzer Satz.\n\nhttps://a.de/x\n\n#moor",
             composePost("Bei #NDR über #klima. Kurzer Satz.", listOf("#moor"), "https://a.de/x"),
         )
     }
@@ -21,14 +21,14 @@ class PostComposerTest {
 
     @Test fun joinsMultipleExtraHashtags() {
         assertEquals(
-            "Text\n\n#a #b https://a.de",
+            "Text\n\nhttps://a.de\n\n#a #b",
             composePost("Text", listOf("#a", "#b"), "https://a.de"),
         )
     }
 
     @Test fun trimsSurroundingWhitespace() {
         assertEquals(
-            "Text\n\n#Tag https://a.de",
+            "Text\n\nhttps://a.de\n\n#Tag",
             composePost("  Text  ", listOf(" #Tag "), " https://a.de "),
         )
     }

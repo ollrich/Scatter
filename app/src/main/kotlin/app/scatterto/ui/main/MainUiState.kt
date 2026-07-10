@@ -27,13 +27,16 @@ data class MainUiState(
     val isFromShare: Boolean = false,
 
     val metadataPhase: MetadataPhase = MetadataPhase.Idle,
-    val manualTitle: String = "",
-    val manualDescription: String = "",
+    /** Titel/Beschreibung sind IMMER editierbar — sie sind der Input für die KI und die Link-Karte. */
+    val metaTitle: String = "",
+    val metaDescription: String = "",
 
     val generationPhase: GenerationPhase = GenerationPhase.Idle,
 
     val mastodonConnected: Boolean = false,
     val blueskyConnected: Boolean = false,
+    val mastodonHandle: String? = null,
+    val blueskyHandle: String? = null,
     val mastodonMaxChars: Int = 500,
 
     val mastodon: NetworkPost = NetworkPost(),
@@ -46,7 +49,13 @@ data class MainUiState(
     val mammouthMissing: Boolean = false,
 ) {
     val hasAnyConnection: Boolean get() = mastodonConnected || blueskyConnected
-    val canGenerate: Boolean get() = !mammouthMissing && urlInput.isNotBlank()
+    val hasMetadata: Boolean get() = metaTitle.isNotBlank() || metaDescription.isNotBlank()
     val isGenerating: Boolean get() = generationPhase is GenerationPhase.Generating ||
         metadataPhase == MetadataPhase.Loading
+
+    /** Ohne Metadaten hat die KI keine Grundlage — im Fallback erst nach manueller Eingabe (§12.2 Nr. 2). */
+    val canGenerate: Boolean get() = !mammouthMissing && urlInput.isNotBlank() &&
+        (metadataPhase != MetadataPhase.NeedsManual || hasMetadata)
+
+    val isDone: Boolean get() = generationPhase is GenerationPhase.Done
 }

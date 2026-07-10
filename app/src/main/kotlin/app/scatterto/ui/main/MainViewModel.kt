@@ -6,8 +6,8 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.scatterto.core.computeFacets
 import app.scatterto.core.composePost
+import app.scatterto.core.computeFacets
 import app.scatterto.core.extractUrl
 import app.scatterto.core.normalizeHashtag
 import app.scatterto.core.stripTrackingParams
@@ -23,7 +23,8 @@ import java.util.UUID
 
 /**
  * Orchestriert die Hauptseite (§5) und das getrennte Sende-/Retry-Handling (§7).
- * Der übergebene [savedStateHandle] rettet URL und generierte Inhalte über Process-Death (§12.3 Nr. 4).
+ * Der übergebene [savedStateHandle] rettet URL, Metadaten und generierte Inhalte über
+ * Process-Death (§12.3 Nr. 4).
  */
 class MainViewModel(
     private val container: AppContainer,
@@ -36,10 +37,10 @@ class MainViewModel(
     // Protokoll für die Diagnose (§8: niemals Credentials hineinschreiben).
     private val log = container.eventLog
 
-    // Für die Bluesky-Link-Karte (§6) gemerkte Metadaten.
-    private var cardTitle: String = ""
-    private var cardDescription: String = ""
-    private var cardImageUrl: String? = null
+    // Aus den Seiten-Metadaten gemerkt; Titel/Beschreibung leben editierbar im UI-State.
+    private var siteName: String? = null
+    private var imageUrl: String? = null
+    private var lastFetchedUrl: String? = null
 
     // Stabiler Idempotency-Key für Mastodon pro Generierung (§12.1 Nr. 5).
     private var mastodonIdempotencyKey: String = UUID.randomUUID().toString()
@@ -55,6 +56,8 @@ class MainViewModel(
         uiState = uiState.copy(
             mastodonConnected = mastodon != null,
             blueskyConnected = bluesky != null,
+            mastodonHandle = mastodon?.handle,
+            blueskyHandle = bluesky?.handle,
             mastodonMaxChars = mastodon?.maxCharacters ?: 500,
             mammouthMissing = container.credentialStore.loadMammouth() == null,
         )
@@ -63,6 +66,8 @@ class MainViewModel(
     private fun restore(url: String) {
         uiState = uiState.copy(
             urlInput = url,
+            metaTitle = savedStateHandle[KEY_META_TITLE] ?: "",
+            metaDescription = savedStateHandle[KEY_META_DESC] ?: "",
             mastodon = NetworkPost(
                 text = savedStateHandle[KEY_M_TEXT] ?: "",
                 extraHashtags = savedStateHandle.get<String>(KEY_M_TAGS)?.toTagList() ?: emptyList(),
@@ -83,10 +88,13 @@ class MainViewModel(
         refreshConnections()
         val url = extractUrl(sharedText)?.let(::stripTrackingParams)
         if (url == null) {
-            uiState = uiState.copy(isFromShare = true, generationPhase = GenerationPhase.Error("Kein Link im geteilten Text gefunden."))
+            uiState = uiState.copy(
+                isFromShare = true,
+                generationPhase = GenerationPhase.Error("Kein Link im geteilten Text gefunden."),
+            )
             return
         }
-        uiState = uiState.copy(urlInput = url, isFromShare = true, manualTitle = subject.orEmpty())
+        uiState = uiState.copy(urlInput = url, isFromShare = true, metaTitle = subject.orEmpty())
         savedStateHandle[KEY_URL] = url
         loadMetadataThenGenerate()
     }
@@ -95,31 +103,50 @@ class MainViewModel(
         uiState = uiState.copy(urlInput = value)
     }
 
-    /** Manueller „Generieren"-Klick (§5.1). */
+    /** „Generieren"-Klick: Metadaten nur laden, wenn die URL neu ist (§5.1). */
     fun onGenerateClick() {
         if (!uiState.canGenerate) return
         val url = stripTrackingParams(uiState.urlInput.trim())
         uiState = uiState.copy(urlInput = url)
         savedStateHandle[KEY_URL] = url
-        if (uiState.metadataPhase == MetadataPhase.NeedsManual) {
-            generate(PageMetadata(uiState.manualTitle, uiState.manualDescription, cardImageUrl))
-        } else {
-            loadMetadataThenGenerate()
-        }
+
+        if (url != lastFetchedUrl) loadMetadataThenGenerate() else generate()
     }
 
-    fun onManualTitleChange(value: String) { uiState = uiState.copy(manualTitle = value) }
-    fun onManualDescriptionChange(value: String) { uiState = uiState.copy(manualDescription = value) }
+    /** „Neu generieren": nutzt die vorhandenen (ggf. editierten) Metadaten, ohne erneuten OG-Abruf. */
+    fun regenerate() {
+        if (!uiState.canGenerate || uiState.isGenerating) return
+        generate()
+    }
+
+    fun onMetaTitleChange(value: String) {
+        uiState = uiState.copy(metaTitle = value)
+        savedStateHandle[KEY_META_TITLE] = value
+    }
+
+    fun onMetaDescriptionChange(value: String) {
+        uiState = uiState.copy(metaDescription = value)
+        savedStateHandle[KEY_META_DESC] = value
+    }
 
     private fun loadMetadataThenGenerate() {
         uiState = uiState.copy(metadataPhase = MetadataPhase.Loading, generationPhase = GenerationPhase.Idle)
         viewModelScope.launch {
             log.info("Metadaten laden: ${uiState.urlInput}")
             val metadata = runCatching { container.metadataFetcher.fetch(uiState.urlInput) }.getOrNull()
+            lastFetchedUrl = uiState.urlInput
+            siteName = metadata?.siteName
+            imageUrl = metadata?.imageUrl
+
             if (metadata != null && metadata.isUsable) {
                 log.info("Metadaten ok (og:site_name: ${metadata.siteName ?: "fehlt – nutze Domain"})")
-                uiState = uiState.copy(metadataPhase = MetadataPhase.Ready)
-                generate(metadata)
+                uiState = uiState.copy(
+                    metadataPhase = MetadataPhase.Ready,
+                    metaTitle = metadata.title ?: uiState.metaTitle,
+                    metaDescription = metadata.description.orEmpty(),
+                )
+                persistMeta()
+                generate()
             } else {
                 // Fallback: manuelle Felder anzeigen, NICHT automatisch generieren (§12.2 Nr. 2).
                 log.error("Metadaten unbrauchbar – manuelle Eingabe nötig")
@@ -128,19 +155,25 @@ class MainViewModel(
         }
     }
 
-    private fun generate(metadata: PageMetadata) {
+    private fun generate() {
         val config = container.credentialStore.loadMammouth()
         if (config == null) {
-            uiState = uiState.copy(mammouthMissing = true, generationPhase = GenerationPhase.Error("Kein Mammouth-Token gespeichert."))
+            uiState = uiState.copy(
+                mammouthMissing = true,
+                generationPhase = GenerationPhase.Error("Kein Mammouth-Token gespeichert."),
+            )
             return
         }
-        cardTitle = metadata.title.orEmpty()
-        cardDescription = metadata.description.orEmpty()
-        cardImageUrl = metadata.imageUrl
 
         uiState = uiState.copy(generationPhase = GenerationPhase.Generating)
         viewModelScope.launch {
             uiState = try {
+                val metadata = PageMetadata(
+                    title = uiState.metaTitle.ifBlank { null },
+                    description = uiState.metaDescription.ifBlank { null },
+                    imageUrl = imageUrl,
+                    siteName = siteName,
+                )
                 val posts = container.mammouthRepository.generate(
                     config = config,
                     metadata = metadata,
@@ -150,7 +183,7 @@ class MainViewModel(
                 mastodonIdempotencyKey = UUID.randomUUID().toString()
                 val mastodon = NetworkPost(posts.de.text, posts.de.extraHashtags, uiState.urlInput)
                 val bluesky = NetworkPost(posts.en.text, posts.en.extraHashtags, uiState.urlInput)
-                persist(mastodon, bluesky)
+                persistPosts(mastodon, bluesky)
                 uiState.copy(
                     generationPhase = GenerationPhase.Done,
                     mastodon = mastodon,
@@ -250,7 +283,12 @@ class MainViewModel(
             val post = composePost(uiState.bluesky.text, uiState.bluesky.extraHashtags, uiState.bluesky.url)
             val facets = computeFacets(post, uiState.bluesky.url)
             val card = uiState.bluesky.url.takeIf { it.isNotBlank() }?.let {
-                LinkCard(uri = it, title = cardTitle, description = cardDescription, imageUrl = cardImageUrl)
+                LinkCard(
+                    uri = it,
+                    title = uiState.metaTitle,
+                    description = uiState.metaDescription,
+                    imageUrl = imageUrl,
+                )
             }
             val url = container.blueskyRepository.post(account, post, facets, card)
             log.info("Bluesky: gepostet (${facets.size} Facets)")
@@ -269,7 +307,12 @@ class MainViewModel(
         }
     }
 
-    private fun persist(mastodon: NetworkPost, bluesky: NetworkPost) {
+    private fun persistMeta() {
+        savedStateHandle[KEY_META_TITLE] = uiState.metaTitle
+        savedStateHandle[KEY_META_DESC] = uiState.metaDescription
+    }
+
+    private fun persistPosts(mastodon: NetworkPost, bluesky: NetworkPost) {
         savedStateHandle[KEY_M_TEXT] = mastodon.text
         savedStateHandle[KEY_M_TAGS] = mastodon.extraHashtags.toTagString()
         savedStateHandle[KEY_B_TEXT] = bluesky.text
@@ -281,6 +324,8 @@ class MainViewModel(
 
     private companion object {
         const val KEY_URL = "url"
+        const val KEY_META_TITLE = "meta_title"
+        const val KEY_META_DESC = "meta_desc"
         const val KEY_M_TEXT = "m_text"
         const val KEY_M_TAGS = "m_tags"
         const val KEY_B_TEXT = "b_text"
