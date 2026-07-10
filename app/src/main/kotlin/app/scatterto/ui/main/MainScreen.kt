@@ -1,5 +1,6 @@
 package app.scatterto.ui.main
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -88,6 +89,11 @@ fun MainScreen(
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
+    // Zurück schließt zuerst das offene Panel (statt die App zu verlassen).
+    BackHandler(enabled = drawerState.isOpen) {
+        scope.launch { drawerState.close() }
+    }
+
     LaunchedEffect(sharedText) {
         if (sharedText != null) {
             viewModel.onSharedText(sharedText, sharedSubject)
@@ -108,10 +114,8 @@ fun MainScreen(
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            AppDrawerContent(state) { route ->
-                scope.launch { drawerState.close() }
-                onOpen(route)
-            }
+            // Panel bewusst NICHT schließen: so führt „Zurück" aus einer Unterseite wieder ins Menü.
+            AppDrawerContent(state) { route -> onOpen(route) }
         },
     ) {
         Scaffold(
