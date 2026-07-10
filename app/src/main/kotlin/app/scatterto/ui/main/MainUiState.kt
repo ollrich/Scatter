@@ -35,6 +35,9 @@ data class MainUiState(
 
     val mastodonConnected: Boolean = false,
     val blueskyConnected: Boolean = false,
+    // Pro-Post-Auswahl (§5): standardmäßig beide an, einzeln abwählbar.
+    val mastodonEnabled: Boolean = true,
+    val blueskyEnabled: Boolean = true,
     val mastodonHandle: String? = null,
     val blueskyHandle: String? = null,
     val mastodonMaxChars: Int = 500,
@@ -49,12 +52,21 @@ data class MainUiState(
     val mammouthMissing: Boolean = false,
 ) {
     val hasAnyConnection: Boolean get() = mastodonConnected || blueskyConnected
+
+    /** Ein Netzwerk ist Ziel, wenn verbunden UND ausgewählt. */
+    val activeMastodon: Boolean get() = mastodonConnected && mastodonEnabled
+    val activeBluesky: Boolean get() = blueskyConnected && blueskyEnabled
+    val hasActiveTarget: Boolean get() = activeMastodon || activeBluesky
+
+    /** Auswahl-Chips nur zeigen, wenn es überhaupt etwas zu wählen gibt (beide verbunden). */
+    val showNetworkSelection: Boolean get() = mastodonConnected && blueskyConnected
+
     val hasMetadata: Boolean get() = metaTitle.isNotBlank() || metaDescription.isNotBlank()
     val isGenerating: Boolean get() = generationPhase is GenerationPhase.Generating ||
         metadataPhase == MetadataPhase.Loading
 
     /** Ohne Metadaten hat die KI keine Grundlage — im Fallback erst nach manueller Eingabe (§12.2 Nr. 2). */
-    val canGenerate: Boolean get() = !mammouthMissing && urlInput.isNotBlank() &&
+    val canGenerate: Boolean get() = !mammouthMissing && urlInput.isNotBlank() && hasActiveTarget &&
         (metadataPhase != MetadataPhase.NeedsManual || hasMetadata)
 
     val isDone: Boolean get() = generationPhase is GenerationPhase.Done

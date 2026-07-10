@@ -30,23 +30,25 @@ class MammouthRepository(private val log: EventLog) {
         metadata: PageMetadata,
         mastodonMaxChars: Int,
         blueskyUrl: String,
+        wantDe: Boolean,
+        wantEn: Boolean,
     ): GeneratedPosts {
         val model = resolveModelId(config)
         val medium = metadata.siteName ?: mediumNameFrom(blueskyUrl)
-        log.info("KI: Modell $model, Medium ${medium ?: "unbekannt"}")
+        log.info("KI: Modell $model, Medium ${medium ?: "unbekannt"} (${if (wantDe) "DE" else ""}${if (wantDe && wantEn) "+" else ""}${if (wantEn) "EN" else ""})")
 
         val request = ChatRequest(
             model = model,
             messages = listOf(
-                ChatMessage("system", PromptBuilder.system),
+                ChatMessage("system", PromptBuilder.system(wantDe, wantEn)),
                 ChatMessage(
                     "user",
                     PromptBuilder.user(
                         medium = medium,
                         title = metadata.title,
                         description = metadata.description,
-                        deBudget = PromptBuilder.mastodonTextBudget(mastodonMaxChars),
-                        enBudget = PromptBuilder.blueskyTextBudget(blueskyUrl),
+                        deBudget = if (wantDe) PromptBuilder.mastodonTextBudget(mastodonMaxChars) else null,
+                        enBudget = if (wantEn) PromptBuilder.blueskyTextBudget(blueskyUrl) else null,
                     ),
                 ),
             ),
@@ -68,7 +70,7 @@ class MammouthRepository(private val log: EventLog) {
             }
         }
 
-        return AiResponseParser.parse(content)
+        return AiResponseParser.parse(content, wantDe, wantEn)
     }
 
     /** Token-/Modell-Validierung (§4.1): prüft Erreichbarkeit; bei fester Custom-ID deren Existenz. */

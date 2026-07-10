@@ -15,7 +15,10 @@ class AiParseException(message: String, cause: Throwable? = null) : Exception(me
  */
 object AiResponseParser {
 
-    fun parse(content: String?): GeneratedPosts {
+    /**
+     * @param wantDe / [wantEn] welche Sprachen angefordert wurden — nur diese müssen vorhanden sein.
+     */
+    fun parse(content: String?, wantDe: Boolean = true, wantEn: Boolean = true): GeneratedPosts {
         if (content.isNullOrBlank()) throw AiParseException("Leere KI-Antwort")
 
         val jsonObject = extractJsonObject(content)
@@ -25,15 +28,17 @@ object AiResponseParser {
             throw AiParseException("Antwort nicht im erwarteten JSON-Format", e)
         }
 
-        if (raw.de.text.isBlank() || raw.en.text.isBlank()) {
+        if ((wantDe && raw.de.text.isBlank()) || (wantEn && raw.en.text.isBlank())) {
             throw AiParseException("KI-Antwort ohne Post-Text")
         }
 
         return GeneratedPosts(
-            de = GeneratedPost(raw.de.text.trim(), cleanTags(raw.de.extraHashtags)),
-            en = GeneratedPost(raw.en.text.trim(), cleanTags(raw.en.extraHashtags)),
+            de = if (wantDe) GeneratedPost(raw.de.text.trim(), cleanTags(raw.de.extraHashtags)) else EMPTY,
+            en = if (wantEn) GeneratedPost(raw.en.text.trim(), cleanTags(raw.en.extraHashtags)) else EMPTY,
         )
     }
+
+    private val EMPTY = GeneratedPost("", emptyList())
 
     // Ergänzende Hashtags normalisieren (# sicherstellen, Leerzeichen raus), Schreibweise bleibt.
     private fun cleanTags(tags: List<String>): List<String> =

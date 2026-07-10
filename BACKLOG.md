@@ -26,6 +26,10 @@ Offene Punkte, nach Aufwand und Priorität gruppiert. Die verbindliche Spezifika
 
 ## Erledigt
 
+- **Netzwerkauswahl je Post:** Chips (Mastodon/Bluesky) unter der URL, einzeln abwählbar
+  (mind. eins bleibt aktiv). Ein abgewähltes Netzwerk wird nicht generiert und nicht gesendet —
+  die KI erzeugt dann nur die aktive Sprache. Beim Teilen kein Auto-Start mehr: erst auswählen,
+  dann „Generieren" (gilt für Share und manuelles Einfügen gleich).
 - **Post-Aufbau:** Text ⏎⏎ URL ⏎⏎ Hashtags.
 - **Post-URL im Erfolgs-Status klickbar** (öffnet den Post im Browser).
 - **App-Icon** aus `design/icon-source.svg` (Motiv freigestellt, Blau als Hintergrundebene,

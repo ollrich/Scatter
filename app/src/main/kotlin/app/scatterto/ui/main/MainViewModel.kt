@@ -94,13 +94,24 @@ class MainViewModel(
             )
             return
         }
+        // Kein Auto-Start: erst Netzwerkauswahl treffen, dann „Generieren" (Nutzer-Entscheidung).
         uiState = uiState.copy(urlInput = url, isFromShare = true, metaTitle = subject.orEmpty())
         savedStateHandle[KEY_URL] = url
-        loadMetadataThenGenerate()
     }
 
     fun onUrlChange(value: String) {
         uiState = uiState.copy(urlInput = value)
+    }
+
+    fun toggleMastodon() {
+        // Mindestens ein aktives Ziel muss bleiben.
+        if (uiState.mastodonEnabled && !uiState.activeBluesky) return
+        uiState = uiState.copy(mastodonEnabled = !uiState.mastodonEnabled)
+    }
+
+    fun toggleBluesky() {
+        if (uiState.blueskyEnabled && !uiState.activeMastodon) return
+        uiState = uiState.copy(blueskyEnabled = !uiState.blueskyEnabled)
     }
 
     /** „Generieren"-Klick: Metadaten nur laden, wenn die URL neu ist (§5.1). */
@@ -179,6 +190,8 @@ class MainViewModel(
                     metadata = metadata,
                     mastodonMaxChars = uiState.mastodonMaxChars,
                     blueskyUrl = uiState.urlInput,
+                    wantDe = uiState.activeMastodon,
+                    wantEn = uiState.activeBluesky,
                 )
                 mastodonIdempotencyKey = UUID.randomUUID().toString()
                 val mastodon = NetworkPost(posts.de.text, posts.de.extraHashtags, uiState.urlInput)
@@ -237,8 +250,8 @@ class MainViewModel(
 
     fun onSendClick() {
         viewModelScope.launch {
-            if (uiState.mastodonConnected && uiState.mastodonStatus !is PostStatus.Success) sendMastodon()
-            if (uiState.blueskyConnected && uiState.blueskyStatus !is PostStatus.Success) sendBluesky()
+            if (uiState.activeMastodon && uiState.mastodonStatus !is PostStatus.Success) sendMastodon()
+            if (uiState.activeBluesky && uiState.blueskyStatus !is PostStatus.Success) sendBluesky()
         }
     }
 

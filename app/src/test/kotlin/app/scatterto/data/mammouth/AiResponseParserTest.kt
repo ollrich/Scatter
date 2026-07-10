@@ -35,6 +35,14 @@ class AiResponseParserTest {
         assertThrows(AiParseException::class.java) { AiResponseParser.parse(json) }
     }
 
+    @Test fun singleLanguageIgnoresTheOther() {
+        // Nur DE angefordert: fehlendes/leeres en ist kein Fehler.
+        val json = """{"de":{"text":"Bei #NDR über #klima. Satz.","extra_hashtags":[]}}"""
+        val posts = AiResponseParser.parse(json, wantDe = true, wantEn = false)
+        assertEquals("Bei #NDR über #klima. Satz.", posts.de.text)
+        assertEquals("", posts.en.text)
+    }
+
     @Test fun throwsOnGarbage() {
         assertThrows(AiParseException::class.java) { AiResponseParser.parse("kein json hier") }
     }

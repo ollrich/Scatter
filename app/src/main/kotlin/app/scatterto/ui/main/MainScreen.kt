@@ -21,6 +21,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
@@ -110,6 +111,10 @@ fun MainScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
 
+            if (state.showNetworkSelection) {
+                NetworkSelection(state, viewModel)
+            }
+
             if (!state.isDone) {
                 Button(
                     onClick = viewModel::onGenerateClick,
@@ -137,7 +142,7 @@ fun MainScreen(
                 val mastodonCount = mastodonLength(mastodonPost)
                 val blueskyCount = blueskyLength(blueskyPost)
 
-                if (state.mastodonConnected) {
+                if (state.activeMastodon) {
                     NetworkPostSection(
                         name = "Mastodon",
                         color = MastodonViolet,
@@ -153,7 +158,7 @@ fun MainScreen(
                         onRetry = viewModel::retryMastodon,
                     )
                 }
-                if (state.blueskyConnected) {
+                if (state.activeBluesky) {
                     NetworkPostSection(
                         name = "Bluesky",
                         color = BlueskyBlue,
@@ -172,8 +177,8 @@ fun MainScreen(
 
                 SendTargets(state)
 
-                val mastoOver = state.mastodonConnected && mastodonCount > state.mastodonMaxChars
-                val blueskyOver = state.blueskyConnected && blueskyCount > 300
+                val mastoOver = state.activeMastodon && mastodonCount > state.mastodonMaxChars
+                val blueskyOver = state.activeBluesky && blueskyCount > 300
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(
                         onClick = viewModel::regenerate,
@@ -182,7 +187,7 @@ fun MainScreen(
                     ) { Text("Neu generieren") }
                     Button(
                         onClick = viewModel::onSendClick,
-                        enabled = state.hasAnyConnection && !mastoOver && !blueskyOver,
+                        enabled = state.hasActiveTarget && !mastoOver && !blueskyOver,
                         modifier = Modifier.weight(1f),
                     ) { Text("Senden") }
                 }
@@ -191,18 +196,39 @@ fun MainScreen(
     }
 }
 
-/** Zeigt, an welche Accounts gesendet wird (§4.2-Farben). */
+/** Auswahl, welche verbundenen Netzwerke bespielt werden (§5). Mindestens eins bleibt aktiv. */
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@Composable
+private fun NetworkSelection(state: MainUiState, viewModel: MainViewModel) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text("Netzwerke", style = MaterialTheme.typography.labelMedium)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(
+                selected = state.mastodonEnabled,
+                onClick = viewModel::toggleMastodon,
+                label = { Text("Mastodon") },
+            )
+            FilterChip(
+                selected = state.blueskyEnabled,
+                onClick = viewModel::toggleBluesky,
+                label = { Text("Bluesky") },
+            )
+        }
+    }
+}
+
+/** Zeigt vor dem Absenden, an welche Accounts gesendet wird (§4.2-Farben). */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SendTargets(state: MainUiState) {
-    if (!state.hasAnyConnection) return
+    if (!state.hasActiveTarget) return
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text("Sendet an", style = MaterialTheme.typography.labelMedium)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            if (state.mastodonConnected) {
+            if (state.activeMastodon) {
                 TargetLabel("Mastodon", state.mastodonHandle, MastodonViolet)
             }
-            if (state.blueskyConnected) {
+            if (state.activeBluesky) {
                 TargetLabel("Bluesky", state.blueskyHandle, BlueskyBlue)
             }
         }
