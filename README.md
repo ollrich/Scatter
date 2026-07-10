@@ -18,8 +18,6 @@ ScatterTo ist eine native Android-App für Leute, die denselben Artikel auf **Ma
 
 Es ist ein **persönlicher Ein-Nutzer-Client**: Token-basierte Anmeldung (kein OAuth), keine Telemetrie, Zugangsdaten nur verschlüsselt auf dem Gerät.
 
-Ein privates Projekt von **[Olli](https://eichhof.me)**.
-
 ### Funktionen
 
 - **Share-Intent:** Link aus einer beliebigen App teilen — die URL landet direkt in ScatterTo.
@@ -82,8 +80,6 @@ Ein GitHub-Actions-Workflow baut bei jedem `v*`-Tag eine **signierte** Release-A
 ScatterTo is a native Android app for people who share the same article on **Mastodon** (German) and **Bluesky** (English). Instead of typing twice: share a link → the app fetches the page metadata, an AI model writes one short, factual post per network → you review, tweak and send.
 
 It is a **personal single-user client**: token-based sign-in (no OAuth), no telemetry, credentials stored encrypted on the device only.
-
-A personal project by **[Olli](https://eichhof.me)**.
 
 ### Features
 
