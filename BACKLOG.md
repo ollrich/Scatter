@@ -5,8 +5,11 @@ Offene Punkte, nach Aufwand und Priorität gruppiert. Die verbindliche Spezifika
 
 ## Später (Ausbau)
 
+- **Multi-Language:** Zielsprachen Deutsch, Englisch, **Dänisch**. Aktuell fest DE=Mastodon /
+  EN=Bluesky; das wird zur konfigurierbaren Sprachzuweisung (hängt mit der Account-Sprachwahl aus
+  dem Multi-Account-Thema zusammen). Prompt + `langs`/`language`-Attribut entsprechend erweitern.
 - **Display → dynamische Farben abschaltbar** + feste Akzentfarbe (sekundäres Farbschema).
-  Aktuell ist Material You (Dynamic Color) immer an.
+  Aktuell ist Material You (Dynamic Color) immer an. *(vorerst zurückgestellt)*
 
 ## Feinschliff
 

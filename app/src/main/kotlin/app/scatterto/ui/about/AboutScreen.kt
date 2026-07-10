@@ -26,7 +26,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import app.scatterto.BuildConfig
 import app.scatterto.R
@@ -73,10 +79,18 @@ fun AboutScreen(onBack: () -> Unit) {
                     "Mastodon (Deutsch) und Bluesky (Englisch) — prüfen, anpassen, absenden.",
                 style = MaterialTheme.typography.bodyMedium,
             )
-            Text(
-                "Ein privates Projekt von ollrich.",
-                style = MaterialTheme.typography.bodyMedium,
-            )
+            val author = buildAnnotatedString {
+                append("Ein privates Projekt von ")
+                withLink(LinkAnnotation.Url("https://eichhof.me")) {
+                    withStyle(
+                        SpanStyle(
+                            color = MaterialTheme.colorScheme.primary,
+                            textDecoration = TextDecoration.Underline,
+                        ),
+                    ) { append("Olli") }
+                }
+            }
+            Text(author, style = MaterialTheme.typography.bodyMedium)
             Text(
                 "Keine Telemetrie, keine Weitergabe an Dritte außer den genutzten APIs. " +
                     "Zugangsdaten liegen ausschließlich verschlüsselt auf dem Gerät.",
