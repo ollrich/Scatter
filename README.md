@@ -41,7 +41,7 @@ Verteilung über [Obtainium](https://github.com/ImranR98/Obtainium):
 
 Alternativ die `scatterto-vX.Y.Z.apk` aus den [Releases](https://github.com/ollrich/ScatterTo/releases) laden und per Sideload installieren.
 
-> **Play Protect** zeigt beim Installieren evtl. „App scan recommended" — das ist harmlos (Google kennt den APK-Hash noch nicht), kein Malware-Fund. Auf „Scan app" tippen oder in den Play-Protect-Einstellungen abschalten.
+> **Play Protect** zeigt beim Installieren evtl. „App scan recommended" — das ist harmlos (Google kennt den APK-Hash noch nicht), kein Malware-Fund. Auf „Scan app" tippen.
 
 ### Einrichtung
 
@@ -106,7 +106,7 @@ Distributed via [Obtainium](https://github.com/ImranR98/Obtainium):
 
 Or download `scatterto-vX.Y.Z.apk` from the [Releases](https://github.com/ollrich/ScatterTo/releases) and sideload it.
 
-> **Play Protect** may show “App scan recommended” on install — this is harmless (Google hasn’t seen the APK hash yet), not a malware finding. Tap “Scan app” or disable it in Play Protect settings.
+> **Play Protect** may show “App scan recommended” on install — this is harmless (Google hasn’t seen the APK hash yet), not a malware finding. Tap “Scan app”.
 
 ### Setup
 
