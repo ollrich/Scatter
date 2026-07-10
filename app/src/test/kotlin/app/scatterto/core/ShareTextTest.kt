@@ -41,4 +41,24 @@ class ShareTextTest {
     @Test fun leavesCleanUrlUntouched() {
         assertEquals("https://a.de/x", stripTrackingParams("https://a.de/x"))
     }
+
+    @Test fun derivesMediumNameWithoutTld() {
+        assertEquals("testspiel", mediumNameFrom("https://www.testspiel.de/artikel/1"))
+        assertEquals("ndr", mediumNameFrom("https://www.ndr.de/nachrichten"))
+        assertEquals("theguardian", mediumNameFrom("https://theguardian.com/x"))
+    }
+
+    @Test fun handlesCompoundCountryTld() {
+        assertEquals("bbc", mediumNameFrom("https://news.bbc.co.uk/story"))
+        assertEquals("abc", mediumNameFrom("https://abc.net.au/news"))
+    }
+
+    @Test fun keepsSubdomainNameWhenTldIsSingle() {
+        // „example" ist hier der eigentliche Name, „sub" nur eine Subdomain.
+        assertEquals("example", mediumNameFrom("https://sub.example.com/x"))
+    }
+
+    @Test fun returnsNullWithoutHost() {
+        assertNull(mediumNameFrom("kein link"))
+    }
 }

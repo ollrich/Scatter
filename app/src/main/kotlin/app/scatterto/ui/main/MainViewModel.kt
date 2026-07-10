@@ -117,7 +117,7 @@ class MainViewModel(
             log.info("Metadaten laden: ${uiState.urlInput}")
             val metadata = runCatching { container.metadataFetcher.fetch(uiState.urlInput) }.getOrNull()
             if (metadata != null && metadata.isUsable) {
-                log.info("Metadaten ok (Medium: ${metadata.siteName ?: "?"})")
+                log.info("Metadaten ok (og:site_name: ${metadata.siteName ?: "fehlt – nutze Domain"})")
                 uiState = uiState.copy(metadataPhase = MetadataPhase.Ready)
                 generate(metadata)
             } else {

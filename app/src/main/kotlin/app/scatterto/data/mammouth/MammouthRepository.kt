@@ -1,6 +1,6 @@
 package app.scatterto.data.mammouth
 
-import app.scatterto.core.domainOf
+import app.scatterto.core.mediumNameFrom
 import app.scatterto.data.log.EventLog
 import app.scatterto.data.metadata.PageMetadata
 import app.scatterto.data.model.GeneratedPosts
@@ -32,7 +32,8 @@ class MammouthRepository(private val log: EventLog) {
         blueskyUrl: String,
     ): GeneratedPosts {
         val model = resolveModelId(config)
-        log.info("KI: Modell $model")
+        val medium = metadata.siteName ?: mediumNameFrom(blueskyUrl)
+        log.info("KI: Modell $model, Medium ${medium ?: "unbekannt"}")
 
         val request = ChatRequest(
             model = model,
@@ -41,7 +42,7 @@ class MammouthRepository(private val log: EventLog) {
                 ChatMessage(
                     "user",
                     PromptBuilder.user(
-                        medium = metadata.siteName ?: domainOf(blueskyUrl),
+                        medium = medium,
                         title = metadata.title,
                         description = metadata.description,
                         deBudget = PromptBuilder.mastodonTextBudget(mastodonMaxChars),

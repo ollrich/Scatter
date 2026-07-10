@@ -8,10 +8,25 @@ package app.scatterto.core
 /** Findet die erste http(s)-URL in einem String; matcht bis zum ersten Whitespace/Klammer-Ende. */
 val URL_REGEX = Regex("""https?://[^\s<>"']+""")
 
-/** Extrahiert den Host einer URL ohne „www." — als Fallback-Hinweis für den Medien-Hashtag. */
+/** Extrahiert den Host einer URL ohne „www.". */
 fun domainOf(url: String): String? {
     val host = Regex("""https?://([^/\s?#]+)""").find(url)?.groupValues?.get(1) ?: return null
     return host.removePrefix("www.").ifBlank { null }
+}
+
+/**
+ * Leitet einen brauchbaren Medien-Namen aus der URL ab, wenn `og:site_name` fehlt:
+ * der eigentliche Name ohne TLD („testspiel.de" → „testspiel", „news.bbc.co.uk" → „bbc").
+ * Dient als Hinweis für den Medien-Hashtag im Prompt (§5.3).
+ */
+fun mediumNameFrom(url: String): String? {
+    val labels = domainOf(url)?.split(".")?.filter { it.isNotEmpty() } ?: return null
+    if (labels.size < 2) return labels.firstOrNull()
+
+    // Zusammengesetzte Länder-TLDs berücksichtigen (.co.uk, .com.au, .net.au …).
+    val secondLevel = labels[labels.size - 2]
+    val compoundTld = labels.size >= 3 && secondLevel.length <= 3 && labels.last().length == 2
+    return if (compoundTld) labels[labels.size - 3] else secondLevel
 }
 
 /** Am Ende häufige Satzzeichen, die nicht zur URL gehören (z. B. „…/artikel." am Satzende). */
