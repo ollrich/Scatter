@@ -73,6 +73,9 @@ def main() -> None:
     layer(glyph, target, (255, 255, 255)).save(RES / "ic_launcher_foreground.png")
     layer(glyph, target, (0, 0, 0)).save(RES / "ic_launcher_monochrome.png")
 
+    # Kleines Voll-Logo (Hintergrund + Motiv) für die App-Leiste; runde Ecken macht die App.
+    img.resize((192, 192), Image.LANCZOS).save(RES / "ic_logo.png")
+
     print("BLAU  = #%02X%02X%02X" % bg)
     print("Motiv = %.0f%% der Leinwand -> %dpx auf %dpx" % (ratio * 100, target, CANVAS))
     print("Geschrieben:", RES / "ic_launcher_foreground.png", "+ ic_launcher_monochrome.png")

@@ -40,6 +40,8 @@ data class MainUiState(
     val blueskyEnabled: Boolean = true,
     val mastodonHandle: String? = null,
     val blueskyHandle: String? = null,
+    val mastodonAvatarUrl: String? = null,
+    val blueskyAvatarUrl: String? = null,
     val mastodonMaxChars: Int = 500,
 
     val mastodon: NetworkPost = NetworkPost(),

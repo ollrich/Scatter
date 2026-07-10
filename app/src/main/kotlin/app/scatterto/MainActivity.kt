@@ -5,9 +5,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.scatterto.data.ThemeMode
 import app.scatterto.ui.ScatterToApp
 import app.scatterto.ui.theme.ScatterToTheme
 
@@ -22,8 +25,15 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge() // §12.2 Nr. 9
         super.onCreate(savedInstanceState)
         shared = intent?.toSharePayload()
+        val themePreferences = (application as ScatterToApplication).container.themePreferences
         setContent {
-            ScatterToTheme {
+            val mode by themePreferences.mode.collectAsStateWithLifecycle()
+            val darkTheme = when (mode) {
+                ThemeMode.SYSTEM -> isSystemInDarkTheme()
+                ThemeMode.LIGHT -> false
+                ThemeMode.DARK -> true
+            }
+            ScatterToTheme(darkTheme = darkTheme) {
                 ScatterToApp(
                     sharedText = shared?.text,
                     sharedSubject = shared?.subject,

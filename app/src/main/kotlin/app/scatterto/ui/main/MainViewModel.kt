@@ -50,7 +50,8 @@ class MainViewModel(
         savedStateHandle.get<String>(KEY_URL)?.let { restore(it) }
     }
 
-    private fun refreshConnections() {
+    /** Öffentlich, damit die Hauptseite nach Rückkehr aus den Einstellungen neu laden kann. */
+    fun refreshConnections() {
         val mastodon = container.credentialStore.loadMastodon()
         val bluesky = container.credentialStore.loadBluesky()
         uiState = uiState.copy(
@@ -58,6 +59,8 @@ class MainViewModel(
             blueskyConnected = bluesky != null,
             mastodonHandle = mastodon?.handle,
             blueskyHandle = bluesky?.handle,
+            mastodonAvatarUrl = mastodon?.avatarUrl,
+            blueskyAvatarUrl = bluesky?.avatarUrl,
             mastodonMaxChars = mastodon?.maxCharacters ?: 500,
             mammouthMissing = container.credentialStore.loadMammouth() == null,
         )

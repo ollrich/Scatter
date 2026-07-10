@@ -13,6 +13,7 @@ import app.scatterto.data.metadata.OgMetadataFetcher
  */
 class AppContainer(context: Context) {
     val eventLog = EventLog()
+    val themePreferences = ThemePreferences(context)
     val credentialStore = CredentialStore(context.applicationContext)
     val metadataFetcher = OgMetadataFetcher()
     val mammouthRepository = MammouthRepository(eventLog)

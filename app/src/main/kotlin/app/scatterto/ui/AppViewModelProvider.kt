@@ -6,6 +6,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import app.scatterto.ScatterToApplication
+import app.scatterto.ui.display.DisplayViewModel
 import app.scatterto.ui.log.LogViewModel
 import app.scatterto.ui.main.MainViewModel
 import app.scatterto.ui.settings.SettingsViewModel
@@ -19,6 +20,7 @@ object AppViewModelProvider {
         initializer { SettingsViewModel(app().container) }
         initializer { MainViewModel(app().container, createSavedStateHandle()) }
         initializer { LogViewModel(app().container) }
+        initializer { DisplayViewModel(app().container) }
     }
 }
 

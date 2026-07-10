@@ -1,5 +1,6 @@
 package app.scatterto.ui.main
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,54 +10,70 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
+import app.scatterto.R
 import app.scatterto.core.blueskyLength
 import app.scatterto.core.composePost
 import app.scatterto.core.mastodonLength
+import app.scatterto.ui.AppDrawerContent
 import app.scatterto.ui.AppViewModelProvider
 import app.scatterto.ui.PostStatus
+import app.scatterto.ui.Routes
 import app.scatterto.ui.components.NetworkHeader
 import app.scatterto.ui.theme.BlueskyBlue
 import app.scatterto.ui.theme.MastodonViolet
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,10 +81,12 @@ fun MainScreen(
     sharedText: String?,
     sharedSubject: String?,
     onSharedConsumed: () -> Unit,
-    onOpenSettings: () -> Unit,
+    onOpen: (String) -> Unit,
     viewModel: MainViewModel = viewModel(factory = AppViewModelProvider.Factory),
 ) {
     val state = viewModel.uiState
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(sharedText) {
         if (sharedText != null) {
@@ -76,18 +95,46 @@ fun MainScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("ScatterTo") },
-                actions = {
-                    IconButton(onClick = onOpenSettings) {
-                        Icon(Icons.Filled.Settings, contentDescription = "Einstellungen")
-                    }
-                },
-            )
+    // Verbindungen nach Rückkehr aus den Einstellungen neu laden (Panel-Kopf + Auswahl aktuell halten).
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) viewModel.refreshConnections()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            AppDrawerContent(state) { route ->
+                scope.launch { drawerState.close() }
+                onOpen(route)
+            }
         },
-    ) { padding ->
+    ) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Image(
+                                painter = painterResource(R.drawable.ic_logo),
+                                contentDescription = null,
+                                modifier = Modifier.size(28.dp).clip(RoundedCornerShape(7.dp)),
+                            )
+                            Text("ScatterTo")
+                        }
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                            Icon(Icons.Filled.Menu, contentDescription = "Menü")
+                        }
+                    },
+                )
+            },
+        ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -97,10 +144,14 @@ fun MainScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             if (state.mammouthMissing) {
-                InfoBanner("Kein Mammouth-Token gespeichert. Bitte in den Einstellungen hinterlegen.", onOpenSettings)
+                InfoBanner("Kein Mammouth-Token gespeichert. Bitte in den Einstellungen hinterlegen.") {
+                    onOpen(Routes.MAMMOUTH)
+                }
             }
             if (!state.hasAnyConnection) {
-                InfoBanner("Kein Netzwerk verbunden. Bitte in den Einstellungen verbinden.", onOpenSettings)
+                InfoBanner("Kein Netzwerk verbunden. Bitte in den Einstellungen verbinden.") {
+                    onOpen(Routes.ACCOUNTS)
+                }
             }
 
             OutlinedTextField(
@@ -192,6 +243,7 @@ fun MainScreen(
                     ) { Text("Senden") }
                 }
             }
+        }
         }
     }
 }
@@ -394,11 +446,11 @@ private fun StatusRow(status: PostStatus, onRetry: () -> Unit) {
 }
 
 @Composable
-private fun InfoBanner(message: String, onOpenSettings: () -> Unit) {
+private fun InfoBanner(message: String, onAction: () -> Unit) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(message)
-            OutlinedButton(onClick = onOpenSettings) { Text("Zu den Einstellungen") }
+            OutlinedButton(onClick = onAction) { Text("Zu den Einstellungen") }
         }
     }
 }
