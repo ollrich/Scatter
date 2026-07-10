@@ -5,10 +5,12 @@ Offene Punkte, nach Aufwand und Priorität gruppiert. Die verbindliche Spezifika
 
 ## Später (Ausbau)
 
-- **Multi-Language:** Zielsprachen Deutsch, Englisch, **Dänisch**. Aktuell fest DE=Mastodon /
-  EN=Bluesky. Die Sprache gehört zum Account → Zuweisung unter **Accounts** (nicht Display, das
-  ist rein visuell). Betrifft Prompt + `langs`/`language`-Attribut; hängt mit der Account-Sprachwahl
-  aus dem Multi-Account-Thema zusammen.
+- **Multi-Language (App-Oberfläche):** UI in Deutsch, Englisch, **Dänisch** — Sprachwahl unter
+  Display (oder eigener „Sprache"-Punkt). Kern der Arbeit: alle UI-Texte in String-Ressourcen
+  auslagern (`values/` = Deutsch + `values-en/` + `values-da/`), da aktuell vieles in Compose
+  hartcodiert ist. Dazu `localeConfig` im Manifest (System-Sprachpicker ab Android 13) + In-App-
+  Picker via `LocaleManager.applicationLocales` (minSdk 34 nativ). Betrifft NICHT die Posting-
+  Sprachen — die erzeugt das KI-Modell.
 - **Display → dynamische Farben abschaltbar** + feste Akzentfarbe (sekundäres Farbschema).
   Aktuell ist Material You (Dynamic Color) immer an. *(vorerst zurückgestellt)*
 
