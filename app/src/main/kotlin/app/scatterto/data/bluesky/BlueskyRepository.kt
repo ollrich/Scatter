@@ -4,8 +4,9 @@ import app.scatterto.core.Facet
 import app.scatterto.data.CredentialStore
 import app.scatterto.data.log.EventLog
 import app.scatterto.data.model.BlueskyAccount
+import app.scatterto.data.net.ApiException
 import app.scatterto.data.net.Network
-import app.scatterto.data.net.readableMessage
+import app.scatterto.data.net.toApiError
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
@@ -58,14 +59,20 @@ class BlueskyRepository(
         val api = api(account.pdsUrl)
         var current = account
 
-        // 401-Retry mit transparentem Session-Refresh; aktualisiert & persistiert bei Bedarf.
+        // Transparenter Session-Refresh. Wichtig: atproto meldet abgelaufene Access-Token als
+        // 400/ExpiredToken, nicht als 401 — beides muss den Refresh auslösen (§12.1 Nr. 4).
         suspend fun <T> authed(call: suspend (String) -> T): T = try {
             call("Bearer ${current.accessJwt}")
         } catch (e: HttpException) {
-            if (e.code() != 401) throw e
+            val error = e.toApiError()
+            if (!error.isAuthExpired) throw ApiException(error)
             current = refreshSession(api, current)
             credentialStore.saveBluesky(current)
-            call("Bearer ${current.accessJwt}")
+            try {
+                call("Bearer ${current.accessJwt}")
+            } catch (retry: HttpException) {
+                throw ApiException(retry.toApiError())
+            }
         }
 
         val thumbBlob = card?.imageUrl?.let { imageUrl ->
@@ -93,11 +100,11 @@ class BlueskyRepository(
             authed { auth ->
                 api.createRecord(auth, CreateRecordRequest(repo = current.did!!, record = record))
             }
-        } catch (e: HttpException) {
+        } catch (e: ApiException) {
             // §6: Die Link-Karte darf das Posten nie blockieren — lehnt der Server das Embed ab,
-            // denselben Post ohne Karte absetzen.
-            if (e.code() == 400 && record.embed != null) {
-                log.error("Bluesky: Embed abgelehnt (${e.readableMessage()}) – sende ohne Karte")
+            // denselben Post ohne Karte absetzen. Auth-Fehler sind hier bereits behandelt.
+            if (e.error.status == 400 && record.embed != null) {
+                log.error("Bluesky: Embed abgelehnt (${e.error.readable}) – sende ohne Karte")
                 authed { auth ->
                     api.createRecord(
                         auth,
@@ -113,7 +120,7 @@ class BlueskyRepository(
 
     /** Refresh über refreshJwt; scheitert das, neue Session aus dem App-Password (§12.1 Nr. 4). */
     private suspend fun refreshSession(api: BlueskyApi, account: BlueskyAccount): BlueskyAccount {
-        log.info("Bluesky: Session abgelaufen – erneuere")
+        log.info("Bluesky: Zugriffstoken abgelaufen – erneuere Session automatisch")
         val session = runCatching {
             api.refreshSession("Bearer ${account.refreshJwt}")
         }.getOrElse {
