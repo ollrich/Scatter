@@ -1,4 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">ScatterTo</string>
+
+    <!-- Neue Texte gemäß Konvention hier statt hartcodiert (Vorbereitung Lokalisierung). -->
+    <string name="start_hint">Teile einen Artikel aus einer beliebigen App – oder füge unten eine URL ein.</string>
+    <string name="paste_from_clipboard">URL aus Zwischenablage</string>
+    <string name="clipboard_no_url">Keine URL in der Zwischenablage</string>
+    <string name="generating_with">%1$s schreibt …</string>
+    <string name="new_article">Neuer Artikel</string>
+    <string name="open_post">Post öffnen</string>
+    <string name="edit_url">URL bearbeiten</string>
+    <string name="add_hashtag">Hashtag hinzufügen</string>
+    <string name="copy_post">Post kopieren</string>
+    <string name="metadata_title">Metadaten</string>
+    <string name="regen_confirm_title">Bearbeitete Texte verwerfen?</string>
+    <string name="regen_confirm_text">Du hast die Post-Texte bearbeitet. „Neu generieren“ ersetzt sie durch neue KI-Texte.</string>
+    <string name="regen_confirm_ok">Neu generieren</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="menu_accounts">Accounts</string>
+    <string name="menu_mammouth">Mammouth-KI</string>
+    <string name="menu_display">Anzeige</string>
+    <string name="menu_log">Protokoll</string>
+    <string name="menu_about">Über</string>
 </resources>

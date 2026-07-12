@@ -2,40 +2,34 @@ package app.scatterto.ui.main
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
@@ -49,15 +43,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -71,7 +59,6 @@ import app.scatterto.ui.AppDrawerContent
 import app.scatterto.ui.AppViewModelProvider
 import app.scatterto.ui.PostStatus
 import app.scatterto.ui.Routes
-import app.scatterto.ui.components.NetworkHeader
 import app.scatterto.ui.theme.BlueskyBlue
 import app.scatterto.ui.theme.MastodonViolet
 import kotlinx.coroutines.launch
@@ -88,6 +75,7 @@ fun MainScreen(
     val state = viewModel.uiState
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    var confirmRegenerate by remember { mutableStateOf(false) }
 
     // Zurück schließt zuerst das offene Panel (statt die App zu verlassen).
     BackHandler(enabled = drawerState.isOpen) {
@@ -110,6 +98,15 @@ fun MainScreen(
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
+
+    // Zusammengesetzte Posts + Limits einmal berechnen (Sektionen + Bottom-Bar nutzen sie).
+    val mastodonPost = composePost(state.mastodon.text, state.mastodon.extraHashtags, state.mastodon.url)
+    val blueskyPost = composePost(state.bluesky.text, state.bluesky.extraHashtags, state.bluesky.url)
+    val mastodonCount = mastodonLength(mastodonPost)
+    val blueskyCount = blueskyLength(blueskyPost)
+    val mastoOver = state.mastodonSendable && mastodonCount > state.mastodonMaxChars
+    val blueskyOver = state.blueskySendable && blueskyCount > 300
+    val canSend = state.hasSendableTarget && !mastoOver && !blueskyOver
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -143,342 +140,193 @@ fun MainScreen(
                     },
                 )
             },
-        ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            if (state.mammouthMissing) {
-                InfoBanner("Kein Mammouth-Token gespeichert. Bitte in den Einstellungen hinterlegen.") {
-                    onOpen(Routes.MAMMOUTH)
-                }
-            }
-            if (!state.hasAnyConnection) {
-                InfoBanner("Kein Netzwerk verbunden. Bitte in den Einstellungen verbinden.") {
-                    onOpen(Routes.ACCOUNTS)
-                }
-            }
-
-            OutlinedTextField(
-                value = state.urlInput,
-                onValueChange = viewModel::onUrlChange,
-                label = { Text("Artikel-URL") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            if (state.showNetworkSelection) {
-                NetworkSelection(state, viewModel)
-            }
-
-            if (!state.isDone) {
-                Button(
-                    onClick = viewModel::onGenerateClick,
-                    enabled = state.canGenerate && !state.isGenerating,
-                    modifier = Modifier.fillMaxWidth(),
-                ) { Text("Generieren") }
-            }
-
-            if (state.isGenerating) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-            }
-
-            // Metadaten sind immer editierbar — sie speisen KI-Prompt und Bluesky-Link-Karte.
-            if (state.metadataPhase != MetadataPhase.Idle) {
-                MetadataCard(state, viewModel)
-            }
-
-            (state.generationPhase as? GenerationPhase.Error)?.let {
-                Text(it.message, color = MaterialTheme.colorScheme.error)
-            }
-
-            if (state.isDone) {
-                val mastodonPost = composePost(state.mastodon.text, state.mastodon.extraHashtags, state.mastodon.url)
-                val blueskyPost = composePost(state.bluesky.text, state.bluesky.extraHashtags, state.bluesky.url)
-                val mastodonCount = mastodonLength(mastodonPost)
-                val blueskyCount = blueskyLength(blueskyPost)
-
-                if (state.mastodonSendable) {
-                    NetworkPostSection(
-                        name = "Mastodon",
-                        color = MastodonViolet,
-                        avatarUrl = state.mastodonAvatarUrl,
-                        post = state.mastodon,
-                        composedPost = mastodonPost,
-                        count = mastodonCount,
-                        limit = state.mastodonMaxChars,
-                        status = state.mastodonStatus,
-                        onText = viewModel::onMastodonTextChange,
-                        onAddTag = viewModel::addMastodonHashtag,
-                        onRemoveTag = viewModel::removeMastodonHashtag,
-                        onUrl = viewModel::onMastodonUrlChange,
-                        onRetry = viewModel::retryMastodon,
+            bottomBar = {
+                // Primäraktionen immer erreichbar — kein Scrollen bis ans Listenende (UX-Audit).
+                if (state.isDone) {
+                    MainBottomBar(
+                        allSent = state.allSent,
+                        canSend = canSend,
+                        isGenerating = state.isGenerating,
+                        onRegenerate = {
+                            if (state.postsEdited) confirmRegenerate = true else viewModel.regenerate()
+                        },
+                        onSend = viewModel::onSendClick,
+                        onNewArticle = viewModel::startNew,
                     )
-                } else if (state.activeMastodon) {
-                    MissingTextHint("Mastodon")
-                }
-                if (state.blueskySendable) {
-                    NetworkPostSection(
-                        name = "Bluesky",
-                        color = BlueskyBlue,
-                        avatarUrl = state.blueskyAvatarUrl,
-                        post = state.bluesky,
-                        composedPost = blueskyPost,
-                        count = blueskyCount,
-                        limit = 300,
-                        status = state.blueskyStatus,
-                        onText = viewModel::onBlueskyTextChange,
-                        onAddTag = viewModel::addBlueskyHashtag,
-                        onRemoveTag = viewModel::removeBlueskyHashtag,
-                        onUrl = viewModel::onBlueskyUrlChange,
-                        onRetry = viewModel::retryBluesky,
-                    )
-                } else if (state.activeBluesky) {
-                    MissingTextHint("Bluesky")
-                }
-
-                SendTargets(state)
-
-                val mastoOver = state.mastodonSendable && mastodonCount > state.mastodonMaxChars
-                val blueskyOver = state.blueskySendable && blueskyCount > 300
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(
-                        onClick = viewModel::regenerate,
-                        enabled = !state.isGenerating,
-                        modifier = Modifier.weight(1f),
-                    ) { Text("Neu generieren") }
-                    Button(
-                        onClick = viewModel::onSendClick,
-                        enabled = state.hasSendableTarget && !mastoOver && !blueskyOver,
-                        modifier = Modifier.weight(1f),
-                    ) { Text("Senden") }
-                }
-            }
-        }
-        }
-    }
-}
-
-/** Auswahl, welche verbundenen Netzwerke bespielt werden (§5). Mindestens eins bleibt aktiv. */
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
-@Composable
-private fun NetworkSelection(state: MainUiState, viewModel: MainViewModel) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text("Netzwerke", style = MaterialTheme.typography.labelMedium)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(
-                selected = state.mastodonEnabled,
-                onClick = viewModel::toggleMastodon,
-                label = { Text("Mastodon") },
-            )
-            FilterChip(
-                selected = state.blueskyEnabled,
-                onClick = viewModel::toggleBluesky,
-                label = { Text("Bluesky") },
-            )
-        }
-    }
-}
-
-/** Zeigt vor dem Absenden, an welche Accounts gesendet wird (§4.2-Farben). */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun SendTargets(state: MainUiState) {
-    if (!state.hasSendableTarget) return
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text("Sendet an", style = MaterialTheme.typography.labelMedium)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            if (state.mastodonSendable) {
-                TargetLabel("Mastodon", state.mastodonHandle, MastodonViolet)
-            }
-            if (state.blueskySendable) {
-                TargetLabel("Bluesky", state.blueskyHandle, BlueskyBlue)
-            }
-        }
-    }
-}
-
-/** Netzwerk wurde nach der Generierung aktiviert — es gibt dafür noch keinen Text. */
-@Composable
-private fun MissingTextHint(network: String) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            "Für $network wurde noch kein Text generiert – „Neu generieren“ erzeugt ihn.",
-            modifier = Modifier.padding(16.dp),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun TargetLabel(network: String, handle: String?, color: Color) {
-    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(network, color = color, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
-        if (!handle.isNullOrBlank()) {
-            Text("@$handle", style = MaterialTheme.typography.bodyMedium)
-        }
-    }
-}
-
-@Composable
-private fun MetadataCard(state: MainUiState, viewModel: MainViewModel) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            if (state.metadataPhase == MetadataPhase.NeedsManual) {
-                Text(
-                    "Keine Metadaten gefunden – bitte manuell ergänzen:",
-                    color = MaterialTheme.colorScheme.error,
-                )
-            } else {
-                Text("Metadaten (Grundlage für KI und Link-Karte)", style = MaterialTheme.typography.labelMedium)
-            }
-            OutlinedTextField(
-                value = state.metaTitle,
-                onValueChange = viewModel::onMetaTitleChange,
-                label = { Text("Titel") },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            OutlinedTextField(
-                value = state.metaDescription,
-                onValueChange = viewModel::onMetaDescriptionChange,
-                label = { Text("Beschreibung") },
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
-    }
-}
-
-@Composable
-private fun NetworkPostSection(
-    name: String,
-    color: Color,
-    avatarUrl: String?,
-    post: NetworkPost,
-    composedPost: String,
-    count: Int,
-    limit: Int,
-    status: PostStatus,
-    onText: (String) -> Unit,
-    onAddTag: (String) -> Unit,
-    onRemoveTag: (String) -> Unit,
-    onUrl: (String) -> Unit,
-    onRetry: () -> Unit,
-) {
-    val clipboard = LocalClipboardManager.current
-
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            NetworkHeader(name, color, avatarUrl = avatarUrl)
-            OutlinedTextField(
-                value = post.text,
-                onValueChange = onText,
-                label = { Text("Text") },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            OutlinedTextField(
-                value = post.url,
-                onValueChange = onUrl,
-                label = { Text("URL") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            HashtagPills(post.extraHashtags, onAddTag, onRemoveTag)
-
-            val over = count > limit
-            Text(
-                text = "$count / $limit",
-                color = if (over) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.End,
-            )
-
-            OutlinedButton(
-                onClick = { clipboard.setText(AnnotatedString(composedPost)) },
-                modifier = Modifier.fillMaxWidth(),
-            ) { Text("Post kopieren") }
-
-            StatusRow(status, onRetry)
-        }
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
-@Composable
-private fun HashtagPills(
-    tags: List<String>,
-    onAddTag: (String) -> Unit,
-    onRemoveTag: (String) -> Unit,
-) {
-    var input by remember { mutableStateOf("") }
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text("Ergänzende Hashtags", style = MaterialTheme.typography.labelMedium)
-        if (tags.isNotEmpty()) {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                tags.forEach { tag ->
-                    InputChip(
-                        selected = false,
-                        onClick = { onRemoveTag(tag) },
-                        label = { Text(tag) },
-                        trailingIcon = { Icon(Icons.Filled.Close, contentDescription = "entfernen") },
-                    )
-                }
-            }
-        }
-        OutlinedTextField(
-            value = input,
-            onValueChange = { input = it },
-            label = { Text("Hashtag hinzufügen") },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(onDone = { onAddTag(input); input = "" }),
-            trailingIcon = {
-                IconButton(onClick = { onAddTag(input); input = "" }) {
-                    Icon(Icons.Filled.Add, contentDescription = "hinzufügen")
                 }
             },
-            modifier = Modifier.fillMaxWidth(),
+        ) { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                if (state.mammouthMissing) {
+                    InfoBanner("Kein Mammouth-Token gespeichert. Bitte in den Einstellungen hinterlegen.") {
+                        onOpen(Routes.MAMMOUTH)
+                    }
+                }
+                if (!state.hasAnyConnection) {
+                    InfoBanner("Kein Netzwerk verbunden. Bitte in den Einstellungen verbinden.") {
+                        onOpen(Routes.ACCOUNTS)
+                    }
+                }
+
+                if (state.urlInput.isBlank() && !state.isDone) {
+                    Text(
+                        stringResource(R.string.start_hint),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+
+                OutlinedTextField(
+                    value = state.urlInput,
+                    onValueChange = viewModel::onUrlChange,
+                    label = { Text("Artikel-URL") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                if (state.urlInput.isBlank()) {
+                    ClipboardSuggestion(onUrlFound = viewModel::onUrlChange)
+                }
+
+                if (state.showNetworkSelection) {
+                    NetworkSelection(state, viewModel)
+                }
+
+                // Sichtbar bis zur ersten Generierung — und danach wieder, sobald eine NEUE URL
+                // im Feld steht (sonst gäbe es keinen Weg zum nächsten Artikel; „Neu generieren"
+                // würde mit den alten Metadaten arbeiten).
+                if (!state.isDone || state.urlChanged) {
+                    Button(
+                        onClick = viewModel::onGenerateClick,
+                        enabled = state.canGenerate && !state.isGenerating,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text("Generieren") }
+                }
+
+                if (state.isGenerating) {
+                    GeneratingIndicator(state.generatingWith)
+                }
+
+                if (state.metadataPhase != MetadataPhase.Idle) {
+                    MetadataCard(state, viewModel)
+                }
+
+                (state.generationPhase as? GenerationPhase.Error)?.let {
+                    Text(it.message, color = MaterialTheme.colorScheme.error)
+                }
+
+                if (state.isDone) {
+                    val mastodonSuccess = state.mastodonStatus as? PostStatus.Success
+                    when {
+                        state.activeMastodon && mastodonSuccess != null ->
+                            SuccessCard("Mastodon", MastodonViolet, state.mastodonAvatarUrl, mastodonSuccess.url)
+                        state.mastodonSendable -> NetworkPostSection(
+                            name = "Mastodon",
+                            color = MastodonViolet,
+                            avatarUrl = state.mastodonAvatarUrl,
+                            post = state.mastodon,
+                            composedPost = mastodonPost,
+                            count = mastodonCount,
+                            limit = state.mastodonMaxChars,
+                            status = state.mastodonStatus,
+                            onText = viewModel::onMastodonTextChange,
+                            onAddTag = viewModel::addMastodonHashtag,
+                            onRemoveTag = viewModel::removeMastodonHashtag,
+                            onUrl = viewModel::onMastodonUrlChange,
+                            onRetry = viewModel::retryMastodon,
+                        )
+                        state.activeMastodon -> MissingTextHint("Mastodon")
+                    }
+
+                    val blueskySuccess = state.blueskyStatus as? PostStatus.Success
+                    when {
+                        state.activeBluesky && blueskySuccess != null ->
+                            SuccessCard("Bluesky", BlueskyBlue, state.blueskyAvatarUrl, blueskySuccess.url)
+                        state.blueskySendable -> NetworkPostSection(
+                            name = "Bluesky",
+                            color = BlueskyBlue,
+                            avatarUrl = state.blueskyAvatarUrl,
+                            post = state.bluesky,
+                            composedPost = blueskyPost,
+                            count = blueskyCount,
+                            limit = 300,
+                            status = state.blueskyStatus,
+                            onText = viewModel::onBlueskyTextChange,
+                            onAddTag = viewModel::addBlueskyHashtag,
+                            onRemoveTag = viewModel::removeBlueskyHashtag,
+                            onUrl = viewModel::onBlueskyUrlChange,
+                            onRetry = viewModel::retryBluesky,
+                        )
+                        state.activeBluesky -> MissingTextHint("Bluesky")
+                    }
+
+                    if (!state.allSent) {
+                        SendTargets(state)
+                    }
+                }
+            }
+        }
+    }
+
+    if (confirmRegenerate) {
+        AlertDialog(
+            onDismissRequest = { confirmRegenerate = false },
+            title = { Text(stringResource(R.string.regen_confirm_title)) },
+            text = { Text(stringResource(R.string.regen_confirm_text)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmRegenerate = false
+                    viewModel.regenerate()
+                }) { Text(stringResource(R.string.regen_confirm_ok)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmRegenerate = false }) { Text(stringResource(R.string.cancel)) }
+            },
         )
     }
 }
 
+/** Fixe Aktionsleiste nach der Generierung: Senden dominant; nach Komplett-Erfolg „Neuer Artikel". */
 @Composable
-private fun StatusRow(status: PostStatus, onRetry: () -> Unit) {
-    val uriHandler = LocalUriHandler.current
-    when (status) {
-        PostStatus.Idle -> {}
-        PostStatus.Pending -> Text("Sende…")
-        is PostStatus.Success -> {
-            Text("Gepostet ✓")
-            status.url?.let { url ->
-                Text(
-                    text = url,
-                    color = MaterialTheme.colorScheme.primary,
-                    textDecoration = TextDecoration.Underline,
-                    modifier = Modifier.clickable { uriHandler.openUri(url) },
-                )
+private fun MainBottomBar(
+    allSent: Boolean,
+    canSend: Boolean,
+    isGenerating: Boolean,
+    onRegenerate: () -> Unit,
+    onSend: () -> Unit,
+    onNewArticle: () -> Unit,
+) {
+    Surface(tonalElevation = 3.dp) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            if (allSent) {
+                Button(onClick = onNewArticle, modifier = Modifier.weight(1f)) {
+                    Text(stringResource(R.string.new_article))
+                }
+            } else {
+                OutlinedButton(
+                    onClick = onRegenerate,
+                    enabled = !isGenerating,
+                    modifier = Modifier.weight(1f),
+                ) { Text("Neu generieren") }
+                Button(
+                    onClick = onSend,
+                    enabled = canSend,
+                    modifier = Modifier.weight(1.4f),
+                ) { Text("Senden") }
             }
-        }
-        is PostStatus.Failed -> {
-            Text(status.reason, color = MaterialTheme.colorScheme.error)
-            OutlinedButton(onClick = onRetry) { Text("Erneut versuchen") }
-        }
-        is PostStatus.Uncertain -> {
-            Text(status.message, color = MaterialTheme.colorScheme.error)
-            OutlinedButton(onClick = onRetry) { Text("Trotzdem erneut senden") }
-        }
-    }
-}
-
-@Composable
-private fun InfoBanner(message: String, onAction: () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(message)
-            OutlinedButton(onClick = onAction) { Text("Zu den Einstellungen") }
         }
     }
 }

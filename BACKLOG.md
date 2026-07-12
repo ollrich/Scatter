@@ -42,6 +42,17 @@ Offene Punkte, nach Aufwand und Priorität gruppiert. Die verbindliche Spezifika
 
 ## Erledigt
 
+- **UX-Release v0.7.0** (2026-07-12): „Generieren" erscheint wieder bei neuer URL (vorher kein Weg
+  zum nächsten Artikel ohne Share); fixe Bottom-Bar mit dominantem „Senden"; nach Komplett-Erfolg
+  kompakte Erfolgskarten + „Neuer Artikel"; Rückfrage vor „Neu generieren", wenn Texte bearbeitet
+  wurden; Metadaten-Karte einklappbar (auf im manuellen Fallback); Pro-Netzwerk-URL als kompakte
+  Zeile mit Stift statt drittem Feld; Kopieren als Icon im Sektions-Kopf; Hashtag-Eingabe hinter
+  „+"-Chip; farbige Kante je Netzwerk-Sektion; „<Modell> schreibt …"-Feedback;
+  Zwischenablage-Chip; Uri-Tastatur; Start-Hinweis; „Post öffnen" statt langer URL;
+  Menü mit Icons und durchgängig deutschen Labels (Protokoll, Über). MainScreen in drei Dateien
+  gesplittet (MainScreen/PostSection/MainComponents); neue Strings in `strings.xml`.
+  *Aufgeschoben bis Multi-Account:* Netzwerk-Paare im ViewModel zu einer Ziel-Liste verallgemeinern.
+
 - **Code-Audit v0.6.0** (2026-07-12): Share-Intent-Replay nach Rotation/Recreate behoben; neuer
   Share ersetzt jetzt den kompletten Zustand; Wikipedia-URLs mit Klammern bleiben intakt;
   Process-Death-Restore zeigt gerettete Texte wieder an (inkl. Karte/Thumbnail); leerer Post über

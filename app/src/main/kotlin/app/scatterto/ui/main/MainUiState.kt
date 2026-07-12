@@ -24,6 +24,12 @@ sealed interface GenerationPhase {
 /** Gesamter UI-Zustand der Hauptseite (§5). */
 data class MainUiState(
     val urlInput: String = "",
+    /** URL, deren Metadaten (zuletzt) geladen wurden — Basis für „Generieren bei neuer URL". */
+    val fetchedUrl: String? = null,
+    /** true, sobald der Nutzer generierte Post-Texte bearbeitet hat (Warnung vor Neu-Generieren). */
+    val postsEdited: Boolean = false,
+    /** Anzeigename des Modells während der Generierung (z. B. „Claude (Opus)"). */
+    val generatingWith: String? = null,
 
     val metadataPhase: MetadataPhase = MetadataPhase.Idle,
     /** Titel/Beschreibung sind IMMER editierbar — sie sind der Input für die KI und die Link-Karte. */
@@ -66,6 +72,14 @@ data class MainUiState(
     val mastodonSendable: Boolean get() = activeMastodon && mastodon.text.isNotBlank()
     val blueskySendable: Boolean get() = activeBluesky && bluesky.text.isNotBlank()
     val hasSendableTarget: Boolean get() = mastodonSendable || blueskySendable
+
+    /** URL im Feld weicht von der zuletzt geladenen ab → „Generieren" wieder anbieten. */
+    val urlChanged: Boolean get() = urlInput.isNotBlank() && urlInput.trim() != fetchedUrl
+
+    /** Alle sendbaren Ziele erfolgreich → Abschluss-Zustand (Neuer-Artikel-Aktion). */
+    val allSent: Boolean get() = hasSendableTarget &&
+        (!mastodonSendable || mastodonStatus is PostStatus.Success) &&
+        (!blueskySendable || blueskyStatus is PostStatus.Success)
 
     /** Auswahl-Chips nur zeigen, wenn es überhaupt etwas zu wählen gibt (beide verbunden). */
     val showNetworkSelection: Boolean get() = mastodonConnected && blueskyConnected

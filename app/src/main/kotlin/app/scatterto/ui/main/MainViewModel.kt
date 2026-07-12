@@ -14,6 +14,7 @@ import app.scatterto.core.stripTrackingParams
 import app.scatterto.data.AppContainer
 import app.scatterto.data.bluesky.LinkCard
 import app.scatterto.data.metadata.PageMetadata
+import app.scatterto.data.model.ModelChoices
 import app.scatterto.data.net.ApiException
 import app.scatterto.ui.PostStatus
 import kotlinx.coroutines.launch
@@ -39,7 +40,6 @@ class MainViewModel(
     // Aus den Seiten-Metadaten gemerkt; Titel/Beschreibung leben editierbar im UI-State.
     private var siteName: String? = null
     private var imageUrl: String? = null
-    private var lastFetchedUrl: String? = null
 
     // Stabiler Idempotency-Key für Mastodon pro Generierung (§12.1 Nr. 5).
     private var mastodonIdempotencyKey: String = UUID.randomUUID().toString()
@@ -86,10 +86,10 @@ class MainViewModel(
         // aber unsichtbar — und der nächste Klick würde den bezahlten KI-Call wiederholen.
         val hasPosts = mastodon.text.isNotBlank() || bluesky.text.isNotBlank()
         val hasMeta = metaTitle.isNotBlank() || metaDescription.isNotBlank()
-        if (hasMeta) lastFetchedUrl = url
 
         uiState = uiState.copy(
             urlInput = url,
+            fetchedUrl = if (hasMeta) url else null,
             metaTitle = metaTitle,
             metaDescription = metaDescription,
             metadataPhase = if (hasMeta) MetadataPhase.Ready else MetadataPhase.Idle,
@@ -116,10 +116,11 @@ class MainViewModel(
         // generierten Texte des VORHERIGEN Artikels stehen und wären sendbar.
         siteName = null
         imageUrl = null
-        lastFetchedUrl = null
         val empty = NetworkPost()
         uiState = uiState.copy(
             urlInput = url,
+            fetchedUrl = null,
+            postsEdited = false,
             metaTitle = subject.orEmpty(),
             metaDescription = "",
             metadataPhase = MetadataPhase.Idle,
@@ -158,7 +159,32 @@ class MainViewModel(
         uiState = uiState.copy(urlInput = url)
         savedStateHandle[KEY_URL] = url
 
-        if (url != lastFetchedUrl) loadMetadataThenGenerate() else generate()
+        if (url != uiState.fetchedUrl) loadMetadataThenGenerate() else generate()
+    }
+
+    /** Setzt alles für einen neuen Artikel zurück (Abschluss-Aktion nach erfolgreichem Senden). */
+    fun startNew() {
+        siteName = null
+        imageUrl = null
+        val empty = NetworkPost()
+        uiState = uiState.copy(
+            urlInput = "",
+            fetchedUrl = null,
+            postsEdited = false,
+            generatingWith = null,
+            metaTitle = "",
+            metaDescription = "",
+            metadataPhase = MetadataPhase.Idle,
+            generationPhase = GenerationPhase.Idle,
+            mastodon = empty,
+            bluesky = empty,
+            mastodonStatus = PostStatus.Idle,
+            blueskyStatus = PostStatus.Idle,
+        )
+        listOf(
+            KEY_URL, KEY_META_TITLE, KEY_META_DESC, KEY_SITE, KEY_IMAGE,
+            KEY_M_TEXT, KEY_M_TAGS, KEY_B_TEXT, KEY_B_TAGS,
+        ).forEach { savedStateHandle[it] = null }
     }
 
     /** „Neu generieren": nutzt die vorhandenen (ggf. editierten) Metadaten, ohne erneuten OG-Abruf. */
@@ -182,7 +208,7 @@ class MainViewModel(
         viewModelScope.launch {
             log.info("Metadaten laden: ${uiState.urlInput}")
             val metadata = runCatching { container.metadataFetcher.fetch(uiState.urlInput) }.getOrNull()
-            lastFetchedUrl = uiState.urlInput
+            uiState = uiState.copy(fetchedUrl = uiState.urlInput)
             siteName = metadata?.siteName
             imageUrl = metadata?.imageUrl
             savedStateHandle[KEY_SITE] = siteName
@@ -215,7 +241,11 @@ class MainViewModel(
             return
         }
 
-        uiState = uiState.copy(generationPhase = GenerationPhase.Generating)
+        // Anzeigename fürs „… schreibt"-Feedback: Anbieter-Label bzw. die feste Modell-ID.
+        val modelLabel = config.fixedModelId
+            ?: ModelChoices.entries.firstOrNull { it.key == config.provider }?.label
+            ?: "KI"
+        uiState = uiState.copy(generationPhase = GenerationPhase.Generating, generatingWith = modelLabel)
         viewModelScope.launch {
             uiState = try {
                 val metadata = PageMetadata(
@@ -238,6 +268,8 @@ class MainViewModel(
                 persistPosts(mastodon, bluesky)
                 uiState.copy(
                     generationPhase = GenerationPhase.Done,
+                    generatingWith = null,
+                    postsEdited = false,
                     // Manuell eingegebene Metadaten haben funktioniert -> Warnhinweis auflösen.
                     metadataPhase = if (uiState.metadataPhase == MetadataPhase.NeedsManual) {
                         MetadataPhase.Ready
@@ -251,10 +283,13 @@ class MainViewModel(
                 )
             } catch (e: ApiException) {
                 log.error("KI: ${e.error.readable}")
-                uiState.copy(generationPhase = GenerationPhase.Error(e.error.readable))
+                uiState.copy(generationPhase = GenerationPhase.Error(e.error.readable), generatingWith = null)
             } catch (e: Exception) {
                 log.error("KI: ${e.message}")
-                uiState.copy(generationPhase = GenerationPhase.Error(e.message ?: "Generierung fehlgeschlagen"))
+                uiState.copy(
+                    generationPhase = GenerationPhase.Error(e.message ?: "Generierung fehlgeschlagen"),
+                    generatingWith = null,
+                )
             }
         }
     }
@@ -278,20 +313,22 @@ class MainViewModel(
 
     private fun updateMastodon(block: (NetworkPost) -> NetworkPost) {
         val updated = block(uiState.mastodon)
+        val changed = updated != uiState.mastodon
         // Geänderter Inhalt = neuer Post -> neuer Idempotency-Key. Nur der Retry DESSELBEN
         // Inhalts (z. B. nach Timeout) behält den Key, sonst käme nach einem Edit der alte
         // Post als vermeintlicher Erfolg zurück (§12.1 Nr. 5).
-        if (updated != uiState.mastodon) {
+        if (changed) {
             mastodonIdempotencyKey = UUID.randomUUID().toString()
         }
-        uiState = uiState.copy(mastodon = updated)
+        uiState = uiState.copy(mastodon = updated, postsEdited = uiState.postsEdited || changed)
         savedStateHandle[KEY_M_TEXT] = updated.text
         savedStateHandle[KEY_M_TAGS] = updated.extraHashtags.toTagString()
     }
 
     private fun updateBluesky(block: (NetworkPost) -> NetworkPost) {
         val updated = block(uiState.bluesky)
-        uiState = uiState.copy(bluesky = updated)
+        val changed = updated != uiState.bluesky
+        uiState = uiState.copy(bluesky = updated, postsEdited = uiState.postsEdited || changed)
         savedStateHandle[KEY_B_TEXT] = updated.text
         savedStateHandle[KEY_B_TAGS] = updated.extraHashtags.toTagString()
     }

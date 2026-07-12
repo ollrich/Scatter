@@ -11,7 +11,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -23,7 +28,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.Image
@@ -86,19 +93,20 @@ fun AppDrawerContent(state: MainUiState, onClose: () -> Unit, onOpen: (String) -
 
             HorizontalDivider()
 
-            DrawerItem("Accounts") { onOpen(Routes.ACCOUNTS) }
-            DrawerItem("Mammouth-KI") { onOpen(Routes.MAMMOUTH) }
-            DrawerItem("Anzeige") { onOpen(Routes.DISPLAY) }
-            DrawerItem("Logs") { onOpen(Routes.LOG) }
-            DrawerItem("About") { onOpen(Routes.ABOUT) }
+            DrawerItem(stringResource(R.string.menu_accounts), Icons.Filled.AccountCircle) { onOpen(Routes.ACCOUNTS) }
+            DrawerItem(stringResource(R.string.menu_mammouth), Icons.Filled.SmartToy) { onOpen(Routes.MAMMOUTH) }
+            DrawerItem(stringResource(R.string.menu_display), Icons.Filled.Palette) { onOpen(Routes.DISPLAY) }
+            DrawerItem(stringResource(R.string.menu_log), Icons.Filled.History) { onOpen(Routes.LOG) }
+            DrawerItem(stringResource(R.string.menu_about), Icons.Filled.Info) { onOpen(Routes.ABOUT) }
         }
     }
 }
 
 @Composable
-private fun DrawerItem(label: String, onClick: () -> Unit) {
+private fun DrawerItem(label: String, icon: ImageVector, onClick: () -> Unit) {
     NavigationDrawerItem(
         label = { Text(label) },
+        icon = { Icon(icon, contentDescription = null) },
         selected = false,
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
