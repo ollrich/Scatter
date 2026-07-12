@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ScatterTo</string>
+
+    <!-- Menu -->
+    <string name="menu_accounts">Konti</string>
+    <string name="menu_ai">AI</string>
+    <string name="menu_display">Visning</string>
+    <string name="menu_log">Log</string>
+    <string name="menu_about">Om</string>
+    <string name="menu_close">Luk menu</string>
+    <string name="menu_open">Menu</string>
+    <string name="no_account_hint">Ingen konto forbundet – tryk for at forbinde.</string>
+
+    <!-- Hovedskærm -->
+    <string name="start_hint">Del en artikel fra en hvilken som helst app – eller indsæt en URL nedenfor.</string>
+    <string name="paste_from_clipboard">Indsæt URL fra udklipsholder</string>
+    <string name="clipboard_no_url">Ingen URL i udklipsholderen</string>
+    <string name="article_url">Artikel-URL</string>
+    <string name="networks">Netværk</string>
+    <string name="generate">Generér</string>
+    <string name="regenerate">Generér igen</string>
+    <string name="send">Send</string>
+    <string name="sends_to">Sender til</string>
+    <string name="new_article">Ny artikel</string>
+    <string name="generating_with">%1$s skriver …</string>
+    <string name="missing_text_hint">Der er endnu ikke genereret tekst til %1$s – “Generér igen” opretter den.</string>
+    <string name="to_settings">Åbn indstillinger</string>
+    <string name="banner_no_ai">Ingen AI-token gemt. Tilføj en i indstillingerne.</string>
+    <string name="banner_no_network">Intet netværk forbundet. Forbind et i indstillingerne.</string>
+
+    <!-- Opslags-sektion -->
+    <string name="label_text">Tekst</string>
+    <string name="label_url">URL</string>
+    <string name="edit_url">Rediger URL</string>
+    <string name="add_hashtag">Tilføj hashtag</string>
+    <string name="copy_post">Kopiér opslag</string>
+    <string name="open_post">Åbn opslag</string>
+    <string name="posted">Slået op ✓</string>
+    <string name="sending">Sender …</string>
+    <string name="retry">Prøv igen</string>
+    <string name="retry_uncertain">Send igen alligevel</string>
+
+    <!-- Metadata -->
+    <string name="metadata_title">Metadata</string>
+    <string name="metadata_missing">Ingen metadata fundet – udfyld venligst manuelt:</string>
+    <string name="label_meta_title">Titel</string>
+    <string name="label_meta_description">Beskrivelse</string>
+
+    <!-- Generér igen -->
+    <string name="regen_confirm_title">Kassér redigerede tekster?</string>
+    <string name="regen_confirm_text">Du har redigeret opslagsteksterne. “Generér igen” erstatter dem med nye AI-tekster.</string>
+
+    <!-- Konti -->
+    <string name="disconnect">Afbryd</string>
+    <string name="disconnect_confirm_title">Afbryd konto?</string>
+    <string name="disconnect_confirm_text">De gemte loginoplysninger fjernes. For at forbinde igen skal du indtaste dem på ny.</string>
+    <string name="connect">Forbind</string>
+    <string name="connecting">Forbinder …</string>
+    <string name="masto_instance_label">Instans-URL (f.eks. https://mastodon.example)</string>
+    <string name="masto_token_label">Adgangstoken</string>
+    <string name="bsky_handle_label">Handle (f.eks. alice.bsky.social)</string>
+    <string name="bsky_apppw_label">App-adgangskode</string>
+    <string name="bsky_pds_label">PDS (standard: https://bsky.social)</string>
+    <string name="server_instance">Instans</string>
+    <string name="server_pds">PDS</string>
+    <string name="followers">Følgere</string>
+    <string name="member_since">Medlem siden</string>
+    <string name="last_post">Seneste opslag</string>
+    <string name="open_profile">Åbn profil</string>
+    <string name="details_loading">Indlæser detaljer …</string>
+
+    <!-- AI-indstillinger -->
+    <string name="ai_token_label">API-token</string>
+    <string name="ai_token_show">Vis token</string>
+    <string name="model_label">Model</string>
+    <string name="custom_model_label">Egen model-ID</string>
+    <string name="save">Gem</string>
+    <string name="validate_checking">Kontrollerer token …</string>
+    <string name="validate_valid">Token gyldig ✓</string>
+    <string name="validate_invalid">Token/model kan ikke bekræftes</string>
+    <string name="validate_offline">Kan ikke bekræftes (offline?)</string>
+
+    <!-- Visning -->
+    <string name="theme_heading">Tema</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Lyst</string>
+    <string name="theme_dark">Mørkt</string>
+    <string name="language_heading">Sprog</string>
+    <string name="language_system">Systemsprog</string>
+
+    <!-- Om -->
+    <string name="version">Version %1$s</string>
+    <string name="about_description">Del et artikel-link, og ScatterTo opretter et kort AI-opslag til hver af Mastodon (tysk) og Bluesky (engelsk) – gennemse, tilpas, send.</string>
+    <string name="about_privacy">Ingen telemetri, ingen deling med tredjeparter ud over de anvendte API\'er. Loginoplysninger gemmes udelukkende krypteret på enheden.</string>
+    <string name="about_source">Kildekode på GitHub</string>
+    <string name="about_author_prefix">Et privat projekt af </string>
+
+    <!-- Log -->
+    <string name="log_copy">Kopiér til udklipsholder</string>
+    <string name="log_clear">Ryd log</string>
+    <string name="log_empty">Ingen poster endnu.</string>
+
+    <!-- Handlinger / a11y -->
+    <string name="back">Tilbage</string>
+    <string name="cancel">Annullér</string>
+    <string name="cd_remove">fjern</string>
+    <string name="cd_add">tilføj</string>
+    <string name="cd_done">færdig</string>
+
+    <!-- Brugervendte fejl -->
+    <string name="error_no_link">Der blev ikke fundet noget link i den delte tekst.</string>
+    <string name="error_no_ai_token">Ingen AI-token gemt.</string>
+    <string name="error_generation_failed">Generering mislykkedes</string>
+    <string name="error_post_failed">Fejl ved opslag</string>
+    <string name="error_connect_failed">Forbindelse mislykkedes</string>
+    <string name="status_timeout_safe">Timeout – det er sikkert at prøve igen</string>
+    <string name="status_uncertain">Uklart – tjek venligst din Bluesky-profil</string>
+</resources>

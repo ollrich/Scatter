@@ -65,7 +65,7 @@ fun AppDrawerContent(state: MainUiState, onClose: () -> Unit, onOpen: (String) -
                     modifier = Modifier.weight(1f),
                 )
                 IconButton(onClick = onClose) {
-                    Icon(Icons.Filled.Close, contentDescription = "Menü schließen")
+                    Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.menu_close))
                 }
             }
 
@@ -87,15 +87,15 @@ fun AppDrawerContent(state: MainUiState, onClose: () -> Unit, onOpen: (String) -
                     NetworkHeader("Bluesky", BlueskyBlue, state.blueskyAvatarUrl, state.blueskyHandle)
                 }
                 if (!state.hasAnyConnection) {
-                    Text("Kein Account verbunden – tippen zum Verbinden.")
+                    Text(stringResource(R.string.no_account_hint))
                 }
             }
 
             HorizontalDivider()
 
             DrawerItem(stringResource(R.string.menu_accounts), Icons.Filled.AccountCircle) { onOpen(Routes.ACCOUNTS) }
-            DrawerItem(stringResource(R.string.menu_mammouth), Icons.Filled.SmartToy) { onOpen(Routes.MAMMOUTH) }
             DrawerItem(stringResource(R.string.menu_display), Icons.Filled.Palette) { onOpen(Routes.DISPLAY) }
+            DrawerItem(stringResource(R.string.menu_ai), Icons.Filled.SmartToy) { onOpen(Routes.MAMMOUTH) }
             DrawerItem(stringResource(R.string.menu_log), Icons.Filled.History) { onOpen(Routes.LOG) }
             DrawerItem(stringResource(R.string.menu_about), Icons.Filled.Info) { onOpen(Routes.ABOUT) }
         }

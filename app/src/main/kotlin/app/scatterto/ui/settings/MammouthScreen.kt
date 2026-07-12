@@ -29,10 +29,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import app.scatterto.R
 import app.scatterto.data.model.ModelChoices
 import app.scatterto.ui.AppViewModelProvider
 
@@ -50,10 +52,10 @@ fun MammouthScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Mammouth-KI") },
+                title = { Text(stringResource(R.string.menu_ai)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
             )
@@ -70,14 +72,14 @@ fun MammouthScreen(
             OutlinedTextField(
                 value = state.mammouthToken,
                 onValueChange = viewModel::onMammouthTokenChange,
-                label = { Text("API-Token") },
+                label = { Text(stringResource(R.string.ai_token_label)) },
                 singleLine = true,
                 visualTransformation = if (tokenVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
                     IconButton(onClick = { tokenVisible = !tokenVisible }) {
                         Icon(
                             if (tokenVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                            contentDescription = "Token anzeigen",
+                            contentDescription = stringResource(R.string.ai_token_show),
                         )
                     }
                 },
@@ -92,7 +94,7 @@ fun MammouthScreen(
                     value = selectedLabel,
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Modell") },
+                    label = { Text(stringResource(R.string.model_label)) },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -115,19 +117,19 @@ fun MammouthScreen(
                 OutlinedTextField(
                     value = state.customModelId,
                     onValueChange = viewModel::onCustomModelChange,
-                    label = { Text("Eigene Modell-ID") },
+                    label = { Text(stringResource(R.string.custom_model_label)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
 
             Button(onClick = viewModel::saveMammouth, modifier = Modifier.fillMaxWidth()) {
-                Text("Speichern")
+                Text(stringResource(R.string.save))
             }
 
             when (val v = state.mammouthValidation) {
-                is ValidationState.Validating -> Text("Prüfe Token…")
-                is ValidationState.Valid -> Text("Token gültig ✓")
+                is ValidationState.Validating -> Text(stringResource(R.string.validate_checking))
+                is ValidationState.Valid -> Text(stringResource(R.string.validate_valid))
                 is ValidationState.Invalid -> Text(v.message)
                 ValidationState.None -> {}
             }

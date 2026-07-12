@@ -20,11 +20,13 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import app.scatterto.R
 import app.scatterto.data.log.EventLog
 import app.scatterto.data.log.LogLevel
 import app.scatterto.ui.AppViewModelProvider
@@ -45,10 +47,10 @@ fun LogScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Protokoll") },
+                title = { Text(stringResource(R.string.menu_log)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
             )
@@ -68,15 +70,15 @@ fun LogScreen(
                 OutlinedButton(
                     onClick = { clipboard.setText(AnnotatedString(viewModel.formatted())) },
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text("In Zwischenablage kopieren") }
+                ) { Text(stringResource(R.string.log_copy)) }
                 OutlinedButton(
                     onClick = viewModel::clear,
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text("Protokoll leeren") }
+                ) { Text(stringResource(R.string.log_clear)) }
             }
 
             if (entries.isEmpty()) {
-                Text("Noch keine Einträge.")
+                Text(stringResource(R.string.log_empty))
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     items(entries) { entry ->

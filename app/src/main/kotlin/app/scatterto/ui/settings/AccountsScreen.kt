@@ -73,7 +73,7 @@ fun AccountsScreen(
                 title = { Text(stringResource(R.string.menu_accounts)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
             )
@@ -96,16 +96,16 @@ fun AccountsScreen(
     confirmDisconnect?.let { which ->
         AlertDialog(
             onDismissRequest = { confirmDisconnect = null },
-            title = { Text("Account trennen?") },
-            text = { Text("Der gespeicherte Zugang wird entfernt. Zum Wiederverbinden musst du ihn neu eingeben.") },
+            title = { Text(stringResource(R.string.disconnect_confirm_title)) },
+            text = { Text(stringResource(R.string.disconnect_confirm_text)) },
             confirmButton = {
                 TextButton(onClick = {
                     if (which == "mastodon") viewModel.disconnectMastodon() else viewModel.disconnectBluesky()
                     confirmDisconnect = null
-                }) { Text("Trennen") }
+                }) { Text(stringResource(R.string.disconnect)) }
             },
             dismissButton = {
-                TextButton(onClick = { confirmDisconnect = null }) { Text("Abbrechen") }
+                TextButton(onClick = { confirmDisconnect = null }) { Text(stringResource(R.string.cancel)) }
             },
         )
     }
@@ -116,20 +116,20 @@ private fun MastodonCard(state: SettingsUiState, viewModel: SettingsViewModel, o
     SectionCard {
         NetworkHeader("Mastodon", MastodonViolet, state.mastodonAvatarUrl, state.mastodonHandle?.takeIf { state.mastodonConnected })
         if (state.mastodonConnected) {
-            AccountDetails("Instanz", state.mastodonInfo, state.accountInfoLoading)
-            OutlinedButton(onClick = onDisconnect, modifier = Modifier.fillMaxWidth()) { Text("Trennen") }
+            AccountDetails(stringResource(R.string.server_instance), state.mastodonInfo, state.accountInfoLoading)
+            OutlinedButton(onClick = onDisconnect, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.disconnect)) }
         } else {
             OutlinedTextField(
                 value = state.mastodonInstance,
                 onValueChange = viewModel::onMastodonInstanceChange,
-                label = { Text("Instanz-URL (z. B. https://mastodon.example)") },
+                label = { Text(stringResource(R.string.masto_instance_label)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
                 value = state.mastodonToken,
                 onValueChange = viewModel::onMastodonTokenChange,
-                label = { Text("Access Token") },
+                label = { Text(stringResource(R.string.masto_token_label)) },
                 singleLine = true,
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
@@ -138,7 +138,7 @@ private fun MastodonCard(state: SettingsUiState, viewModel: SettingsViewModel, o
                 onClick = viewModel::connectMastodon,
                 enabled = !state.mastodonConnecting,
                 modifier = Modifier.fillMaxWidth(),
-            ) { Text(if (state.mastodonConnecting) "Verbinde…" else "Verbinden") }
+            ) { Text(stringResource(if (state.mastodonConnecting) R.string.connecting else R.string.connect)) }
             state.mastodonError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         }
     }
@@ -149,20 +149,20 @@ private fun BlueskyCard(state: SettingsUiState, viewModel: SettingsViewModel, on
     SectionCard {
         NetworkHeader("Bluesky", BlueskyBlue, state.blueskyAvatarUrl, state.blueskyHandle?.takeIf { state.blueskyConnected })
         if (state.blueskyConnected) {
-            AccountDetails("PDS", state.blueskyInfo, state.accountInfoLoading)
-            OutlinedButton(onClick = onDisconnect, modifier = Modifier.fillMaxWidth()) { Text("Trennen") }
+            AccountDetails(stringResource(R.string.server_pds), state.blueskyInfo, state.accountInfoLoading)
+            OutlinedButton(onClick = onDisconnect, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.disconnect)) }
         } else {
             OutlinedTextField(
                 value = state.blueskyIdentifier,
                 onValueChange = viewModel::onBlueskyIdentifierChange,
-                label = { Text("Handle (z. B. alice.bsky.social)") },
+                label = { Text(stringResource(R.string.bsky_handle_label)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
                 value = state.blueskyAppPassword,
                 onValueChange = viewModel::onBlueskyPasswordChange,
-                label = { Text("App Password") },
+                label = { Text(stringResource(R.string.bsky_apppw_label)) },
                 singleLine = true,
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -171,7 +171,7 @@ private fun BlueskyCard(state: SettingsUiState, viewModel: SettingsViewModel, on
             OutlinedTextField(
                 value = state.blueskyPds,
                 onValueChange = viewModel::onBlueskyPdsChange,
-                label = { Text("PDS (Standard: https://bsky.social)") },
+                label = { Text(stringResource(R.string.bsky_pds_label)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -179,7 +179,7 @@ private fun BlueskyCard(state: SettingsUiState, viewModel: SettingsViewModel, on
                 onClick = viewModel::connectBluesky,
                 enabled = !state.blueskyConnecting,
                 modifier = Modifier.fillMaxWidth(),
-            ) { Text(if (state.blueskyConnecting) "Verbinde…" else "Verbinden") }
+            ) { Text(stringResource(if (state.blueskyConnecting) R.string.connecting else R.string.connect)) }
             state.blueskyError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         }
     }
@@ -193,19 +193,19 @@ private fun AccountDetails(serverLabel: String, info: AccountInfo?, loading: Boo
         info != null -> Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             DetailRow(serverLabel, info.server)
             info.followersCount?.let {
-                DetailRow("Follower", NumberFormat.getInstance(Locale.GERMAN).format(it))
+                DetailRow(stringResource(R.string.followers), NumberFormat.getInstance(Locale.getDefault()).format(it))
             }
-            info.memberSince?.let { DetailRow("Mitglied seit", it) }
-            info.lastPost?.let { DetailRow("Letztes Posting", it) }
+            info.memberSince?.let { DetailRow(stringResource(R.string.member_since), it) }
+            info.lastPost?.let { DetailRow(stringResource(R.string.last_post), it) }
             Text(
-                text = "Profil öffnen",
+                text = stringResource(R.string.open_profile),
                 color = MaterialTheme.colorScheme.primary,
                 textDecoration = TextDecoration.Underline,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.clickable { uriHandler.openUri(info.profileUrl) },
             )
         }
-        loading -> Text("Details werden geladen …", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        loading -> Text(stringResource(R.string.details_loading), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

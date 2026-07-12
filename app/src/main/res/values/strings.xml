@@ -2,24 +2,118 @@
 <resources>
     <string name="app_name">ScatterTo</string>
 
-    <!-- Neue Texte gemäß Konvention hier statt hartcodiert (Vorbereitung Lokalisierung). -->
-    <string name="start_hint">Teile einen Artikel aus einer beliebigen App – oder füge unten eine URL ein.</string>
-    <string name="paste_from_clipboard">URL aus Zwischenablage</string>
-    <string name="clipboard_no_url">Keine URL in der Zwischenablage</string>
-    <string name="generating_with">%1$s schreibt …</string>
-    <string name="new_article">Neuer Artikel</string>
-    <string name="open_post">Post öffnen</string>
-    <string name="edit_url">URL bearbeiten</string>
-    <string name="add_hashtag">Hashtag hinzufügen</string>
-    <string name="copy_post">Post kopieren</string>
-    <string name="metadata_title">Metadaten</string>
-    <string name="regen_confirm_title">Bearbeitete Texte verwerfen?</string>
-    <string name="regen_confirm_text">Du hast die Post-Texte bearbeitet. „Neu generieren“ ersetzt sie durch neue KI-Texte.</string>
-    <string name="regen_confirm_ok">Neu generieren</string>
-    <string name="cancel">Abbrechen</string>
+    <!-- Menü -->
     <string name="menu_accounts">Konten</string>
-    <string name="menu_mammouth">Mammouth-KI</string>
+    <string name="menu_ai">KI</string>
     <string name="menu_display">Anzeige</string>
     <string name="menu_log">Protokoll</string>
     <string name="menu_about">Über</string>
+    <string name="menu_close">Menü schließen</string>
+    <string name="menu_open">Menü</string>
+    <string name="no_account_hint">Kein Konto verbunden – tippen zum Verbinden.</string>
+
+    <!-- Hauptseite -->
+    <string name="start_hint">Teile einen Artikel aus einer beliebigen App – oder füge unten eine URL ein.</string>
+    <string name="paste_from_clipboard">URL aus Zwischenablage</string>
+    <string name="clipboard_no_url">Keine URL in der Zwischenablage</string>
+    <string name="article_url">Artikel-URL</string>
+    <string name="networks">Netzwerke</string>
+    <string name="generate">Generieren</string>
+    <string name="regenerate">Neu generieren</string>
+    <string name="send">Senden</string>
+    <string name="sends_to">Sendet an</string>
+    <string name="new_article">Neuer Artikel</string>
+    <string name="generating_with">%1$s schreibt …</string>
+    <string name="missing_text_hint">Für %1$s wurde noch kein Text generiert – „Neu generieren“ erzeugt ihn.</string>
+    <string name="to_settings">Zu den Einstellungen</string>
+    <string name="banner_no_ai">Kein KI-Token gespeichert. Bitte in den Einstellungen hinterlegen.</string>
+    <string name="banner_no_network">Kein Netzwerk verbunden. Bitte in den Einstellungen verbinden.</string>
+
+    <!-- Post-Sektion -->
+    <string name="label_text">Text</string>
+    <string name="label_url">URL</string>
+    <string name="edit_url">URL bearbeiten</string>
+    <string name="add_hashtag">Hashtag hinzufügen</string>
+    <string name="copy_post">Post kopieren</string>
+    <string name="open_post">Post öffnen</string>
+    <string name="posted">Gepostet ✓</string>
+    <string name="sending">Sende …</string>
+    <string name="retry">Erneut versuchen</string>
+    <string name="retry_uncertain">Trotzdem erneut senden</string>
+
+    <!-- Metadaten -->
+    <string name="metadata_title">Metadaten</string>
+    <string name="metadata_missing">Keine Metadaten gefunden – bitte manuell ergänzen:</string>
+    <string name="label_meta_title">Titel</string>
+    <string name="label_meta_description">Beschreibung</string>
+
+    <!-- Neu generieren -->
+    <string name="regen_confirm_title">Bearbeitete Texte verwerfen?</string>
+    <string name="regen_confirm_text">Du hast die Post-Texte bearbeitet. „Neu generieren“ ersetzt sie durch neue KI-Texte.</string>
+
+    <!-- Konten -->
+    <string name="disconnect">Trennen</string>
+    <string name="disconnect_confirm_title">Konto trennen?</string>
+    <string name="disconnect_confirm_text">Der gespeicherte Zugang wird entfernt. Zum Wiederverbinden musst du ihn neu eingeben.</string>
+    <string name="connect">Verbinden</string>
+    <string name="connecting">Verbinde …</string>
+    <string name="masto_instance_label">Instanz-URL (z. B. https://mastodon.example)</string>
+    <string name="masto_token_label">Access Token</string>
+    <string name="bsky_handle_label">Handle (z. B. alice.bsky.social)</string>
+    <string name="bsky_apppw_label">App Password</string>
+    <string name="bsky_pds_label">PDS (Standard: https://bsky.social)</string>
+    <string name="server_instance">Instanz</string>
+    <string name="server_pds">PDS</string>
+    <string name="followers">Follower</string>
+    <string name="member_since">Mitglied seit</string>
+    <string name="last_post">Letztes Posting</string>
+    <string name="open_profile">Profil öffnen</string>
+    <string name="details_loading">Details werden geladen …</string>
+
+    <!-- KI-Einstellungen -->
+    <string name="ai_token_label">API-Token</string>
+    <string name="ai_token_show">Token anzeigen</string>
+    <string name="model_label">Modell</string>
+    <string name="custom_model_label">Eigene Modell-ID</string>
+    <string name="save">Speichern</string>
+    <string name="validate_checking">Prüfe Token …</string>
+    <string name="validate_valid">Token gültig ✓</string>
+    <string name="validate_invalid">Token/Modell nicht prüfbar</string>
+    <string name="validate_offline">Nicht prüfbar (offline?)</string>
+
+    <!-- Anzeige -->
+    <string name="theme_heading">Design</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Hell</string>
+    <string name="theme_dark">Dunkel</string>
+    <string name="language_heading">Sprache</string>
+    <string name="language_system">Systemsprache</string>
+
+    <!-- Über -->
+    <string name="version">Version %1$s</string>
+    <string name="about_description">Teile einen Artikel-Link und ScatterTo erstellt per KI je einen kurzen Post für Mastodon (Deutsch) und Bluesky (Englisch) – prüfen, anpassen, absenden.</string>
+    <string name="about_privacy">Keine Telemetrie, keine Weitergabe an Dritte außer den genutzten APIs. Zugangsdaten liegen ausschließlich verschlüsselt auf dem Gerät.</string>
+    <string name="about_source">Quellcode auf GitHub</string>
+    <string name="about_author_prefix">Ein privates Projekt von </string>
+
+    <!-- Protokoll -->
+    <string name="log_copy">In Zwischenablage kopieren</string>
+    <string name="log_clear">Protokoll leeren</string>
+    <string name="log_empty">Noch keine Einträge.</string>
+
+    <!-- Aktionen / A11y -->
+    <string name="back">Zurück</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="cd_remove">entfernen</string>
+    <string name="cd_add">hinzufügen</string>
+    <string name="cd_done">fertig</string>
+
+    <!-- Fehlermeldungen (nutzersichtbar) -->
+    <string name="error_no_link">Kein Link im geteilten Text gefunden.</string>
+    <string name="error_no_ai_token">Kein KI-Token gespeichert.</string>
+    <string name="error_generation_failed">Generierung fehlgeschlagen</string>
+    <string name="error_post_failed">Fehler beim Posten</string>
+    <string name="error_connect_failed">Verbindung fehlgeschlagen</string>
+    <string name="status_timeout_safe">Zeitüberschreitung – erneut versuchen ist sicher</string>
+    <string name="status_uncertain">Unklar – bitte im Bluesky-Profil prüfen</string>
 </resources>

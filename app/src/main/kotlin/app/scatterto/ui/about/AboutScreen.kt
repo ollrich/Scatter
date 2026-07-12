@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -48,10 +49,10 @@ fun AboutScreen(onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Über") },
+                title = { Text(stringResource(R.string.menu_about)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
             )
@@ -72,15 +73,11 @@ fun AboutScreen(onBack: () -> Unit) {
                 modifier = Modifier.size(72.dp).clip(RoundedCornerShape(16.dp)),
             )
             Text("ScatterTo", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            Text("Version ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.version, BuildConfig.VERSION_NAME), style = MaterialTheme.typography.bodyMedium)
 
-            Text(
-                "Teile einen Artikel-Link und ScatterTo erstellt per KI je einen kurzen Post für " +
-                    "Mastodon (Deutsch) und Bluesky (Englisch) — prüfen, anpassen, absenden.",
-                style = MaterialTheme.typography.bodyMedium,
-            )
+            Text(stringResource(R.string.about_description), style = MaterialTheme.typography.bodyMedium)
             val author = buildAnnotatedString {
-                append("Ein privates Projekt von ")
+                append(stringResource(R.string.about_author_prefix))
                 withLink(LinkAnnotation.Url("https://eichhof.me")) {
                     withStyle(
                         SpanStyle(
@@ -92,8 +89,7 @@ fun AboutScreen(onBack: () -> Unit) {
             }
             Text(author, style = MaterialTheme.typography.bodyMedium)
             Text(
-                "Keine Telemetrie, keine Weitergabe an Dritte außer den genutzten APIs. " +
-                    "Zugangsdaten liegen ausschließlich verschlüsselt auf dem Gerät.",
+                stringResource(R.string.about_privacy),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -101,7 +97,7 @@ fun AboutScreen(onBack: () -> Unit) {
             OutlinedButton(
                 onClick = { uriHandler.openUri(GITHUB_URL) },
                 modifier = Modifier.fillMaxWidth(),
-            ) { Text("Quellcode auf GitHub") }
+            ) { Text(stringResource(R.string.about_source)) }
         }
     }
 }

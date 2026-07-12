@@ -12,6 +12,8 @@ import app.scatterto.data.metadata.OgMetadataFetcher
  * das Protokoll und die Repositories hält. Wird von [app.scatterto.ScatterToApplication] erzeugt.
  */
 class AppContainer(context: Context) {
+    /** Für nutzersichtbare Strings in ViewModels (via getString). */
+    val appContext: Context = context.applicationContext
     val eventLog = EventLog()
     val themePreferences = ThemePreferences(context)
     val credentialStore = CredentialStore(context.applicationContext)

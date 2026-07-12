@@ -13,6 +13,7 @@ import app.scatterto.core.normalizeHashtag
 import app.scatterto.core.stripTrackingParams
 import app.scatterto.data.AppContainer
 import app.scatterto.data.bluesky.LinkCard
+import app.scatterto.R
 import app.scatterto.data.metadata.PageMetadata
 import app.scatterto.data.model.ModelChoices
 import app.scatterto.data.net.ApiException
@@ -36,6 +37,8 @@ class MainViewModel(
 
     // Protokoll für die Diagnose (§8: niemals Credentials hineinschreiben).
     private val log = container.eventLog
+
+    private fun str(id: Int): String = container.appContext.getString(id)
 
     // Aus den Seiten-Metadaten gemerkt; Titel/Beschreibung leben editierbar im UI-State.
     private var siteName: String? = null
@@ -107,7 +110,7 @@ class MainViewModel(
         val url = extractUrl(sharedText)?.let(::stripTrackingParams)
         if (url == null) {
             uiState = uiState.copy(
-                generationPhase = GenerationPhase.Error("Kein Link im geteilten Text gefunden."),
+                generationPhase = GenerationPhase.Error(str(R.string.error_no_link)),
             )
             return
         }
@@ -236,7 +239,7 @@ class MainViewModel(
         if (config == null) {
             uiState = uiState.copy(
                 mammouthMissing = true,
-                generationPhase = GenerationPhase.Error("Kein Mammouth-Token gespeichert."),
+                generationPhase = GenerationPhase.Error(str(R.string.error_no_ai_token)),
             )
             return
         }
@@ -287,7 +290,7 @@ class MainViewModel(
             } catch (e: Exception) {
                 log.error("KI: ${e.message}")
                 uiState.copy(
-                    generationPhase = GenerationPhase.Error(e.message ?: "Generierung fehlgeschlagen"),
+                    generationPhase = GenerationPhase.Error(e.message ?: str(R.string.error_generation_failed)),
                     generatingWith = null,
                 )
             }
@@ -367,13 +370,13 @@ class MainViewModel(
         } catch (e: SocketTimeoutException) {
             // Idempotency-Key macht den Retry sicher (§12.1 Nr. 5).
             log.error("Mastodon: Zeitüberschreitung")
-            uiState.copy(mastodonStatus = PostStatus.Failed("Zeitüberschreitung – erneut versuchen ist sicher"))
+            uiState.copy(mastodonStatus = PostStatus.Failed(str(R.string.status_timeout_safe)))
         } catch (e: ApiException) {
             log.error("Mastodon: ${e.error.readable}")
             uiState.copy(mastodonStatus = PostStatus.Failed(e.error.readable))
         } catch (e: Exception) {
             log.error("Mastodon: ${e.message}")
-            uiState.copy(mastodonStatus = PostStatus.Failed(e.message ?: "Fehler beim Posten"))
+            uiState.copy(mastodonStatus = PostStatus.Failed(e.message ?: str(R.string.error_post_failed)))
         }
     }
 
@@ -399,13 +402,13 @@ class MainViewModel(
         } catch (e: SocketTimeoutException) {
             // Kein Idempotenz-Mechanismus: unklarer Ausgang, nicht automatisch retryen (§12.1 Nr. 5).
             log.error("Bluesky: Zeitüberschreitung – Ausgang unklar")
-            uiState.copy(blueskyStatus = PostStatus.Uncertain("Unklar – bitte im Bluesky-Profil prüfen"))
+            uiState.copy(blueskyStatus = PostStatus.Uncertain(str(R.string.status_uncertain)))
         } catch (e: ApiException) {
             log.error("Bluesky: ${e.error.readable}")
             uiState.copy(blueskyStatus = PostStatus.Failed(e.error.readable))
         } catch (e: Exception) {
             log.error("Bluesky: ${e.message}")
-            uiState.copy(blueskyStatus = PostStatus.Failed(e.message ?: "Fehler beim Posten"))
+            uiState.copy(blueskyStatus = PostStatus.Failed(e.message ?: str(R.string.error_post_failed)))
         }
     }
 

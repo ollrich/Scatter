@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Unterstützte App-Sprachen (Android 13+ System-Sprachpicker + In-App-Auswahl). -->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="de" />
+    <locale android:name="en" />
+    <locale android:name="da" />
+</locale-config>

@@ -83,7 +83,7 @@ internal fun NetworkPostSection(
         OutlinedTextField(
             value = post.text,
             onValueChange = onText,
-            label = { Text("Text") },
+            label = { Text(stringResource(R.string.label_text)) },
             modifier = Modifier.fillMaxWidth(),
         )
 
@@ -109,7 +109,7 @@ internal fun SuccessCard(name: String, color: Color, avatarUrl: String?, postUrl
     AccentCard(color) {
         NetworkHeader(name, color, avatarUrl)
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("Gepostet ✓")
+            Text(stringResource(R.string.posted))
             postUrl?.let { url ->
                 Text(
                     text = stringResource(R.string.open_post),
@@ -127,7 +127,7 @@ internal fun SuccessCard(name: String, color: Color, avatarUrl: String?, postUrl
 internal fun MissingTextHint(network: String) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Text(
-            "Für $network wurde noch kein Text generiert – „Neu generieren“ erzeugt ihn.",
+            stringResource(R.string.missing_text_hint, network),
             modifier = Modifier.padding(16.dp),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -159,13 +159,13 @@ private fun UrlRow(url: String, onUrl: (String) -> Unit) {
         OutlinedTextField(
             value = url,
             onValueChange = onUrl,
-            label = { Text("URL") },
+            label = { Text(stringResource(R.string.label_url)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { editing = false }),
             trailingIcon = {
                 IconButton(onClick = { editing = false }) {
-                    Icon(Icons.Filled.Check, contentDescription = "fertig")
+                    Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.cd_done))
                 }
             },
             modifier = Modifier.fillMaxWidth(),
@@ -205,12 +205,12 @@ private fun HashtagPills(
                     selected = false,
                     onClick = { onRemoveTag(tag) },
                     label = { Text(tag) },
-                    trailingIcon = { Icon(Icons.Filled.Close, contentDescription = "entfernen") },
+                    trailingIcon = { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.cd_remove)) },
                 )
             }
             AssistChip(
                 onClick = { adding = true },
-                label = { Text("+ #") },
+                label = { Text("#+") },
                 leadingIcon = { Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.add_hashtag)) },
             )
         }
@@ -224,7 +224,7 @@ private fun HashtagPills(
                 keyboardActions = KeyboardActions(onDone = { onAddTag(input); input = ""; adding = false }),
                 trailingIcon = {
                     IconButton(onClick = { onAddTag(input); input = ""; adding = false }) {
-                        Icon(Icons.Filled.Check, contentDescription = "hinzufügen")
+                        Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.cd_add))
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -237,15 +237,15 @@ private fun HashtagPills(
 private fun StatusRow(status: PostStatus, onRetry: () -> Unit) {
     when (status) {
         PostStatus.Idle -> {}
-        PostStatus.Pending -> Text("Sende…")
-        is PostStatus.Success -> Text("Gepostet ✓") // i. d. R. ersetzt SuccessCard die Sektion
+        PostStatus.Pending -> Text(stringResource(R.string.sending))
+        is PostStatus.Success -> Text(stringResource(R.string.posted)) // i. d. R. ersetzt SuccessCard die Sektion
         is PostStatus.Failed -> {
             Text(status.reason, color = MaterialTheme.colorScheme.error)
-            OutlinedButton(onClick = onRetry) { Text("Erneut versuchen") }
+            OutlinedButton(onClick = onRetry) { Text(stringResource(R.string.retry)) }
         }
         is PostStatus.Uncertain -> {
             Text(status.message, color = MaterialTheme.colorScheme.error)
-            OutlinedButton(onClick = onRetry) { Text("Trotzdem erneut senden") }
+            OutlinedButton(onClick = onRetry) { Text(stringResource(R.string.retry_uncertain)) }
         }
     }
 }

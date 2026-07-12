@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.scatterto.data.AppContainer
+import app.scatterto.R
 import app.scatterto.data.model.MammouthConfig
 import app.scatterto.data.model.ModelChoices
 import app.scatterto.data.net.ApiException
@@ -19,6 +20,8 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
 
     var uiState by mutableStateOf(SettingsUiState())
         private set
+
+    private fun str(id: Int): String = container.appContext.getString(id)
 
     init {
         load()
@@ -82,10 +85,10 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
                 if (container.mammouthRepository.validate(config)) {
                     uiState.copy(mammouthValidation = ValidationState.Valid)
                 } else {
-                    uiState.copy(mammouthValidation = ValidationState.Invalid("Token/Modell nicht prüfbar"))
+                    uiState.copy(mammouthValidation = ValidationState.Invalid(str(R.string.validate_invalid)))
                 }
             } catch (e: Exception) {
-                uiState.copy(mammouthValidation = ValidationState.Invalid("Nicht prüfbar (offline?)"))
+                uiState.copy(mammouthValidation = ValidationState.Invalid(str(R.string.validate_offline)))
             }
         }
     }
@@ -113,7 +116,7 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
             } catch (e: ApiException) {
                 uiState.copy(mastodonConnecting = false, mastodonError = e.error.readable)
             } catch (e: Exception) {
-                uiState.copy(mastodonConnecting = false, mastodonError = e.message ?: "Verbindung fehlgeschlagen")
+                uiState.copy(mastodonConnecting = false, mastodonError = e.message ?: str(R.string.error_connect_failed))
             }
         }
     }
@@ -176,7 +179,7 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
             } catch (e: ApiException) {
                 uiState.copy(blueskyConnecting = false, blueskyError = e.error.readable)
             } catch (e: Exception) {
-                uiState.copy(blueskyConnecting = false, blueskyError = e.message ?: "Verbindung fehlgeschlagen")
+                uiState.copy(blueskyConnecting = false, blueskyError = e.message ?: str(R.string.error_connect_failed))
             }
         }
     }

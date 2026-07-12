@@ -135,7 +135,7 @@ fun MainScreen(
                     },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(Icons.Filled.Menu, contentDescription = "Menü")
+                            Icon(Icons.Filled.Menu, contentDescription = stringResource(R.string.menu_open))
                         }
                     },
                 )
@@ -165,14 +165,10 @@ fun MainScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 if (state.mammouthMissing) {
-                    InfoBanner("Kein Mammouth-Token gespeichert. Bitte in den Einstellungen hinterlegen.") {
-                        onOpen(Routes.MAMMOUTH)
-                    }
+                    InfoBanner(stringResource(R.string.banner_no_ai)) { onOpen(Routes.MAMMOUTH) }
                 }
                 if (!state.hasAnyConnection) {
-                    InfoBanner("Kein Netzwerk verbunden. Bitte in den Einstellungen verbinden.") {
-                        onOpen(Routes.ACCOUNTS)
-                    }
+                    InfoBanner(stringResource(R.string.banner_no_network)) { onOpen(Routes.ACCOUNTS) }
                 }
 
                 if (state.urlInput.isBlank() && !state.isDone) {
@@ -185,7 +181,7 @@ fun MainScreen(
                 OutlinedTextField(
                     value = state.urlInput,
                     onValueChange = viewModel::onUrlChange,
-                    label = { Text("Artikel-URL") },
+                    label = { Text(stringResource(R.string.article_url)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
                     modifier = Modifier.fillMaxWidth(),
@@ -207,7 +203,7 @@ fun MainScreen(
                         onClick = viewModel::onGenerateClick,
                         enabled = state.canGenerate && !state.isGenerating,
                         modifier = Modifier.fillMaxWidth(),
-                    ) { Text("Generieren") }
+                    ) { Text(stringResource(R.string.generate)) }
                 }
 
                 if (state.isGenerating) {
@@ -284,7 +280,7 @@ fun MainScreen(
                 TextButton(onClick = {
                     confirmRegenerate = false
                     viewModel.regenerate()
-                }) { Text(stringResource(R.string.regen_confirm_ok)) }
+                }) { Text(stringResource(R.string.regenerate)) }
             },
             dismissButton = {
                 TextButton(onClick = { confirmRegenerate = false }) { Text(stringResource(R.string.cancel)) }
@@ -320,12 +316,12 @@ private fun MainBottomBar(
                     onClick = onRegenerate,
                     enabled = !isGenerating,
                     modifier = Modifier.weight(1f),
-                ) { Text("Neu generieren") }
+                ) { Text(stringResource(R.string.regenerate)) }
                 Button(
                     onClick = onSend,
                     enabled = canSend,
                     modifier = Modifier.weight(1.4f),
-                ) { Text("Senden") }
+                ) { Text(stringResource(R.string.send)) }
             }
         }
     }

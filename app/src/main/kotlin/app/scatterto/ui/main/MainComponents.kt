@@ -48,7 +48,7 @@ import app.scatterto.ui.theme.MastodonViolet
 @Composable
 internal fun NetworkSelection(state: MainUiState, viewModel: MainViewModel) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text("Netzwerke", style = MaterialTheme.typography.labelMedium)
+        Text(stringResource(R.string.networks), style = MaterialTheme.typography.labelMedium)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilterChip(
                 selected = state.mastodonEnabled,
@@ -70,7 +70,7 @@ internal fun NetworkSelection(state: MainUiState, viewModel: MainViewModel) {
 internal fun SendTargets(state: MainUiState) {
     if (!state.hasSendableTarget) return
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text("Sendet an", style = MaterialTheme.typography.labelMedium)
+        Text(stringResource(R.string.sends_to), style = MaterialTheme.typography.labelMedium)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             if (state.mastodonSendable) TargetLabel("Mastodon", state.mastodonHandle, MastodonViolet)
             if (state.blueskySendable) TargetLabel("Bluesky", state.blueskyHandle, BlueskyBlue)
@@ -108,7 +108,7 @@ internal fun MetadataCard(state: MainUiState, viewModel: MainViewModel) {
                 Column(Modifier.weight(1f)) {
                     if (state.metadataPhase == MetadataPhase.NeedsManual) {
                         Text(
-                            "Keine Metadaten gefunden – bitte manuell ergänzen:",
+                            stringResource(R.string.metadata_missing),
                             color = MaterialTheme.colorScheme.error,
                         )
                     } else {
@@ -134,13 +134,13 @@ internal fun MetadataCard(state: MainUiState, viewModel: MainViewModel) {
                 OutlinedTextField(
                     value = state.metaTitle,
                     onValueChange = viewModel::onMetaTitleChange,
-                    label = { Text("Titel") },
+                    label = { Text(stringResource(R.string.label_meta_title)) },
                     modifier = Modifier.fillMaxWidth(),
                 )
                 OutlinedTextField(
                     value = state.metaDescription,
                     onValueChange = viewModel::onMetaDescriptionChange,
-                    label = { Text("Beschreibung") },
+                    label = { Text(stringResource(R.string.label_meta_description)) },
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
@@ -190,7 +190,7 @@ internal fun InfoBanner(message: String, onAction: () -> Unit) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(message)
-            OutlinedButton(onClick = onAction) { Text("Zu den Einstellungen") }
+            OutlinedButton(onClick = onAction) { Text(stringResource(R.string.to_settings)) }
         }
     }
 }
