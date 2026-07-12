@@ -1,13 +1,16 @@
 package app.scatterto.data.bluesky
 
 import app.scatterto.core.Facet
+import app.scatterto.core.domainOf
 import app.scatterto.data.CredentialStore
 import app.scatterto.data.log.EventLog
+import app.scatterto.data.model.AccountInfo
 import app.scatterto.data.model.BlueskyAccount
 import app.scatterto.data.net.ApiException
 import app.scatterto.data.net.Network
 import app.scatterto.data.net.apiCall
 import app.scatterto.data.net.toApiError
+import app.scatterto.data.util.DateDisplay
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
@@ -124,6 +127,36 @@ class BlueskyRepository(
             }
         }
         return atUriToWebUrl(result.uri, current.handle ?: current.did!!)
+    }
+
+    /** Live-Detailinfos fürs Konten-Menü. Erneuert bei Bedarf die Session (§12.1 Nr. 4). */
+    suspend fun accountInfo(account: BlueskyAccount): AccountInfo {
+        val api = api(account.pdsUrl)
+        var current = account
+
+        suspend fun <T> authed(call: suspend (String) -> T): T = try {
+            apiCall { call("Bearer ${current.accessJwt}") }
+        } catch (e: ApiException) {
+            if (!e.error.isAuthExpired) throw e
+            current = refreshSession(api, current)
+            credentialStore.saveBluesky(current)
+            apiCall { call("Bearer ${current.accessJwt}") }
+        }
+
+        val did = current.did ?: error("Bluesky-Account ohne DID")
+        val profile = authed { auth -> api.getProfile(auth, did) }
+        // Letztes Posting best-effort — schlägt es fehl, bleibt das Feld leer.
+        val lastPost = runCatching {
+            authed { auth -> api.getAuthorFeed(auth, did, 1) }.feed.firstOrNull()?.post?.indexedAt
+        }.getOrNull()
+
+        return AccountInfo(
+            server = domainOf(current.pdsUrl) ?: current.pdsUrl,
+            profileUrl = "https://bsky.app/profile/${current.handle ?: did}",
+            followersCount = profile.followersCount,
+            memberSince = DateDisplay.monthYear(profile.createdAt),
+            lastPost = DateDisplay.date(lastPost),
+        )
     }
 
     /** Refresh über refreshJwt; scheitert das, neue Session aus dem App-Password (§12.1 Nr. 4). */

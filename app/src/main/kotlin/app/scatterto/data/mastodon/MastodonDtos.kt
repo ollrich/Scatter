@@ -11,6 +11,9 @@ data class MastodonAccountDto(
     val acct: String = "",
     val avatar: String? = null,
     val url: String? = null,
+    @SerialName("followers_count") val followersCount: Int? = null,
+    @SerialName("created_at") val createdAt: String? = null,
+    @SerialName("last_status_at") val lastStatusAt: String? = null,
 )
 
 @Serializable

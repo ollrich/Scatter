@@ -17,7 +17,7 @@
     <string name="regen_confirm_text">Du hast die Post-Texte bearbeitet. „Neu generieren“ ersetzt sie durch neue KI-Texte.</string>
     <string name="regen_confirm_ok">Neu generieren</string>
     <string name="cancel">Abbrechen</string>
-    <string name="menu_accounts">Accounts</string>
+    <string name="menu_accounts">Konten</string>
     <string name="menu_mammouth">Mammouth-KI</string>
     <string name="menu_display">Anzeige</string>
     <string name="menu_log">Protokoll</string>

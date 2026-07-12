@@ -23,7 +23,18 @@ data class ProfileResponse(
     val did: String,
     val handle: String,
     val avatar: String? = null,
+    val followersCount: Int? = null,
+    val createdAt: String? = null,
 )
+
+@Serializable
+data class AuthorFeedResponse(val feed: List<FeedItem> = emptyList())
+
+@Serializable
+data class FeedItem(val post: FeedPost)
+
+@Serializable
+data class FeedPost(val indexedAt: String? = null)
 
 /** Blob wird opak durchgereicht: uploadBlob liefert ein Lexicon-Blob-Objekt, das der Post-Record 1:1 einbettet. */
 @Serializable

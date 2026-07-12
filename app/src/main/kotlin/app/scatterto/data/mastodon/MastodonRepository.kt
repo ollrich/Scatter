@@ -1,8 +1,11 @@
 package app.scatterto.data.mastodon
 
+import app.scatterto.core.domainOf
+import app.scatterto.data.model.AccountInfo
 import app.scatterto.data.model.MastodonAccount
 import app.scatterto.data.net.Network
 import app.scatterto.data.net.apiCall
+import app.scatterto.data.util.DateDisplay
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -54,6 +57,18 @@ class MastodonRepository {
             idempotencyKey = idempotencyKey,
             body = StatusRequest(status = text, language = language),
         ).url
+    }
+
+    /** Live-Detailinfos fürs Konten-Menü (Follower, Mitglied seit, letztes Posting, Profil-Link). */
+    suspend fun accountInfo(account: MastodonAccount): AccountInfo = apiCall {
+        val dto = api(account.instanceUrl).verifyCredentials(bearer(account.accessToken))
+        AccountInfo(
+            server = domainOf(account.instanceUrl) ?: account.instanceUrl,
+            profileUrl = dto.url ?: account.instanceUrl,
+            followersCount = dto.followersCount,
+            memberSince = DateDisplay.monthYear(dto.createdAt),
+            lastPost = DateDisplay.date(dto.lastStatusAt),
+        )
     }
 
     private fun bearer(token: String) = "Bearer $token"

@@ -22,6 +22,13 @@ interface BlueskyApi {
         @Query("actor") actor: String,
     ): ProfileResponse
 
+    @GET("xrpc/app.bsky.feed.getAuthorFeed")
+    suspend fun getAuthorFeed(
+        @Header("Authorization") authorization: String,
+        @Query("actor") actor: String,
+        @Query("limit") limit: Int,
+    ): AuthorFeedResponse
+
     /** Rohe Bild-Bytes; der Content-Type ergibt sich aus dem [RequestBody]. */
     @POST("xrpc/com.atproto.repo.uploadBlob")
     suspend fun uploadBlob(

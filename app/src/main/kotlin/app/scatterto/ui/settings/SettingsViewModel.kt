@@ -120,7 +120,33 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
 
     fun disconnectMastodon() {
         container.credentialStore.clearMastodon()
-        uiState = uiState.copy(mastodonConnected = false, mastodonHandle = null, mastodonAvatarUrl = null)
+        uiState = uiState.copy(
+            mastodonConnected = false,
+            mastodonHandle = null,
+            mastodonAvatarUrl = null,
+            mastodonInfo = null,
+        )
+    }
+
+    /** Lädt Live-Detailinfos beider verbundener Konten (Follower, Mitglied seit, letztes Posting). */
+    fun loadAccountInfo() {
+        val mastodon = container.credentialStore.loadMastodon()
+        val bluesky = container.credentialStore.loadBluesky()
+        if (mastodon == null && bluesky == null) return
+        uiState = uiState.copy(accountInfoLoading = true)
+        viewModelScope.launch {
+            val mInfo = mastodon?.let {
+                runCatching { container.mastodonRepository.accountInfo(it) }.getOrNull()
+            }
+            val bInfo = bluesky?.let {
+                runCatching { container.blueskyRepository.accountInfo(it) }.getOrNull()
+            }
+            uiState = uiState.copy(
+                mastodonInfo = mInfo,
+                blueskyInfo = bInfo,
+                accountInfoLoading = false,
+            )
+        }
     }
 
     // --- Bluesky ---
@@ -157,6 +183,11 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
 
     fun disconnectBluesky() {
         container.credentialStore.clearBluesky()
-        uiState = uiState.copy(blueskyConnected = false, blueskyHandle = null, blueskyAvatarUrl = null)
+        uiState = uiState.copy(
+            blueskyConnected = false,
+            blueskyHandle = null,
+            blueskyAvatarUrl = null,
+            blueskyInfo = null,
+        )
     }
 }

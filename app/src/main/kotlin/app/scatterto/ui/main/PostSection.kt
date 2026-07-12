@@ -1,19 +1,14 @@
 package app.scatterto.ui.main
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -39,6 +34,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalUriHandler
@@ -137,24 +134,20 @@ internal fun MissingTextHint(network: String) {
     }
 }
 
-/** Card mit farbiger Kante links (Netzwerk-Farbe) — schnellere Orientierung beim Scrollen. */
+/**
+ * Card mit farbiger Kante links (Netzwerk-Farbe). Die Kante wird direkt gezeichnet (kein
+ * IntrinsicSize + fillMaxHeight) — sonst blähen TextField-Intrinsics die Card auf (Leerraum-Bug).
+ */
 @Composable
 private fun AccentCard(color: Color, content: @Composable () -> Unit) {
     Card(modifier = Modifier.fillMaxWidth()) {
-        Row(Modifier.height(IntrinsicSize.Min)) {
-            Box(
-                Modifier
-                    .width(4.dp)
-                    .fillMaxHeight()
-                    .background(color),
-            )
-            Column(
-                Modifier
-                    .weight(1f)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) { content() }
-        }
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .drawBehind { drawRect(color = color, size = Size(4.dp.toPx(), size.height)) }
+                .padding(start = 20.dp, top = 16.dp, end = 16.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) { content() }
     }
 }
 

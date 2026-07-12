@@ -25,19 +25,32 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import app.scatterto.R
+import app.scatterto.data.model.AccountInfo
 import app.scatterto.ui.AppViewModelProvider
 import app.scatterto.ui.components.NetworkHeader
 import app.scatterto.ui.theme.BlueskyBlue
 import app.scatterto.ui.theme.MastodonViolet
+import java.text.NumberFormat
+import java.util.Locale
 
 /** Account-Verbindungen (§4.2). Trennen mit Rückfrage, da destruktiv (Token geht verloren). */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,10 +62,15 @@ fun AccountsScreen(
     val state = viewModel.uiState
     var confirmDisconnect by remember { mutableStateOf<String?>(null) }
 
+    // Live-Detailinfos laden, sobald sich der Verbindungsstatus (Konten) ändert.
+    LaunchedEffect(state.mastodonConnected, state.blueskyConnected) {
+        viewModel.loadAccountInfo()
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Accounts") },
+                title = { Text(stringResource(R.string.menu_accounts)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
@@ -98,6 +116,7 @@ private fun MastodonCard(state: SettingsUiState, viewModel: SettingsViewModel, o
     SectionCard {
         NetworkHeader("Mastodon", MastodonViolet, state.mastodonAvatarUrl, state.mastodonHandle?.takeIf { state.mastodonConnected })
         if (state.mastodonConnected) {
+            AccountDetails("Instanz", state.mastodonInfo, state.accountInfoLoading)
             OutlinedButton(onClick = onDisconnect, modifier = Modifier.fillMaxWidth()) { Text("Trennen") }
         } else {
             OutlinedTextField(
@@ -130,6 +149,7 @@ private fun BlueskyCard(state: SettingsUiState, viewModel: SettingsViewModel, on
     SectionCard {
         NetworkHeader("Bluesky", BlueskyBlue, state.blueskyAvatarUrl, state.blueskyHandle?.takeIf { state.blueskyConnected })
         if (state.blueskyConnected) {
+            AccountDetails("PDS", state.blueskyInfo, state.accountInfoLoading)
             OutlinedButton(onClick = onDisconnect, modifier = Modifier.fillMaxWidth()) { Text("Trennen") }
         } else {
             OutlinedTextField(
@@ -162,6 +182,42 @@ private fun BlueskyCard(state: SettingsUiState, viewModel: SettingsViewModel, on
             ) { Text(if (state.blueskyConnecting) "Verbinde…" else "Verbinden") }
             state.blueskyError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         }
+    }
+}
+
+/** Detailzeilen eines verbundenen Kontos: Server, Follower, Mitglied seit, letztes Posting, Profil. */
+@Composable
+private fun AccountDetails(serverLabel: String, info: AccountInfo?, loading: Boolean) {
+    val uriHandler = LocalUriHandler.current
+    when {
+        info != null -> Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            DetailRow(serverLabel, info.server)
+            info.followersCount?.let {
+                DetailRow("Follower", NumberFormat.getInstance(Locale.GERMAN).format(it))
+            }
+            info.memberSince?.let { DetailRow("Mitglied seit", it) }
+            info.lastPost?.let { DetailRow("Letztes Posting", it) }
+            Text(
+                text = "Profil öffnen",
+                color = MaterialTheme.colorScheme.primary,
+                textDecoration = TextDecoration.Underline,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.clickable { uriHandler.openUri(info.profileUrl) },
+            )
+        }
+        loading -> Text("Details werden geladen …", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun DetailRow(label: String, value: String) {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            "$label:",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
     }
 }
 

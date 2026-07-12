@@ -1,9 +1,13 @@
 package app.scatterto.ui.settings
 
+import app.scatterto.data.model.AccountInfo
 import app.scatterto.data.model.ModelChoices
 
 /** UI-Zustand des Einstellungsmenüs (§4). */
 data class SettingsUiState(
+    val mastodonInfo: AccountInfo? = null,
+    val blueskyInfo: AccountInfo? = null,
+    val accountInfoLoading: Boolean = false,
     // Mammouth
     val mammouthToken: String = "",
     val modelChoiceKey: String = ModelChoices.DEFAULT_KEY,
