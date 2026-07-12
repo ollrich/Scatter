@@ -8,9 +8,8 @@ import androidx.lifecycle.viewModelScope
 import app.scatterto.data.AppContainer
 import app.scatterto.data.model.MammouthConfig
 import app.scatterto.data.model.ModelChoices
-import app.scatterto.data.net.readableMessage
+import app.scatterto.data.net.ApiException
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
 
 /**
  * ViewModel für das Einstellungsmenü (§4): Mammouth-Token/Modellauswahl speichern,
@@ -111,8 +110,8 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
                     mastodonAvatarUrl = account.avatarUrl,
                     mastodonToken = "",
                 )
-            } catch (e: HttpException) {
-                uiState.copy(mastodonConnecting = false, mastodonError = e.readableMessage())
+            } catch (e: ApiException) {
+                uiState.copy(mastodonConnecting = false, mastodonError = e.error.readable)
             } catch (e: Exception) {
                 uiState.copy(mastodonConnecting = false, mastodonError = e.message ?: "Verbindung fehlgeschlagen")
             }
@@ -148,8 +147,8 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
                     blueskyAvatarUrl = account.avatarUrl,
                     blueskyAppPassword = "",
                 )
-            } catch (e: HttpException) {
-                uiState.copy(blueskyConnecting = false, blueskyError = e.readableMessage())
+            } catch (e: ApiException) {
+                uiState.copy(blueskyConnecting = false, blueskyError = e.error.readable)
             } catch (e: Exception) {
                 uiState.copy(blueskyConnecting = false, blueskyError = e.message ?: "Verbindung fehlgeschlagen")
             }

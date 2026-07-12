@@ -14,10 +14,9 @@ import app.scatterto.core.stripTrackingParams
 import app.scatterto.data.AppContainer
 import app.scatterto.data.bluesky.LinkCard
 import app.scatterto.data.metadata.PageMetadata
-import app.scatterto.data.net.readableMessage
+import app.scatterto.data.net.ApiException
 import app.scatterto.ui.PostStatus
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
 import java.net.SocketTimeoutException
 import java.util.UUID
 
@@ -67,20 +66,36 @@ class MainViewModel(
     }
 
     private fun restore(url: String) {
+        val metaTitle = savedStateHandle.get<String>(KEY_META_TITLE) ?: ""
+        val metaDescription = savedStateHandle.get<String>(KEY_META_DESC) ?: ""
+        val mastodon = NetworkPost(
+            text = savedStateHandle[KEY_M_TEXT] ?: "",
+            extraHashtags = savedStateHandle.get<String>(KEY_M_TAGS)?.toTagList() ?: emptyList(),
+            url = url,
+        )
+        val bluesky = NetworkPost(
+            text = savedStateHandle[KEY_B_TEXT] ?: "",
+            extraHashtags = savedStateHandle.get<String>(KEY_B_TAGS)?.toTagList() ?: emptyList(),
+            url = url,
+        )
+
+        siteName = savedStateHandle[KEY_SITE]
+        imageUrl = savedStateHandle[KEY_IMAGE]
+
+        // Phasen mit wiederherstellen (§12.3 Nr. 4): Sonst wären die geretteten Texte im State,
+        // aber unsichtbar — und der nächste Klick würde den bezahlten KI-Call wiederholen.
+        val hasPosts = mastodon.text.isNotBlank() || bluesky.text.isNotBlank()
+        val hasMeta = metaTitle.isNotBlank() || metaDescription.isNotBlank()
+        if (hasMeta) lastFetchedUrl = url
+
         uiState = uiState.copy(
             urlInput = url,
-            metaTitle = savedStateHandle[KEY_META_TITLE] ?: "",
-            metaDescription = savedStateHandle[KEY_META_DESC] ?: "",
-            mastodon = NetworkPost(
-                text = savedStateHandle[KEY_M_TEXT] ?: "",
-                extraHashtags = savedStateHandle.get<String>(KEY_M_TAGS)?.toTagList() ?: emptyList(),
-                url = url,
-            ),
-            bluesky = NetworkPost(
-                text = savedStateHandle[KEY_B_TEXT] ?: "",
-                extraHashtags = savedStateHandle.get<String>(KEY_B_TAGS)?.toTagList() ?: emptyList(),
-                url = url,
-            ),
+            metaTitle = metaTitle,
+            metaDescription = metaDescription,
+            metadataPhase = if (hasMeta) MetadataPhase.Ready else MetadataPhase.Idle,
+            generationPhase = if (hasPosts) GenerationPhase.Done else GenerationPhase.Idle,
+            mastodon = mastodon,
+            bluesky = bluesky,
         )
     }
 
@@ -92,14 +107,33 @@ class MainViewModel(
         val url = extractUrl(sharedText)?.let(::stripTrackingParams)
         if (url == null) {
             uiState = uiState.copy(
-                isFromShare = true,
                 generationPhase = GenerationPhase.Error("Kein Link im geteilten Text gefunden."),
             )
             return
         }
         // Kein Auto-Start: erst Netzwerkauswahl treffen, dann „Generieren" (Nutzer-Entscheidung).
-        uiState = uiState.copy(urlInput = url, isFromShare = true, metaTitle = subject.orEmpty())
+        // Ein neuer Share ersetzt den kompletten Zustand (§12.2 Nr. 8) — sonst blieben die
+        // generierten Texte des VORHERIGEN Artikels stehen und wären sendbar.
+        siteName = null
+        imageUrl = null
+        lastFetchedUrl = null
+        val empty = NetworkPost()
+        uiState = uiState.copy(
+            urlInput = url,
+            metaTitle = subject.orEmpty(),
+            metaDescription = "",
+            metadataPhase = MetadataPhase.Idle,
+            generationPhase = GenerationPhase.Idle,
+            mastodon = empty,
+            bluesky = empty,
+            mastodonStatus = PostStatus.Idle,
+            blueskyStatus = PostStatus.Idle,
+        )
         savedStateHandle[KEY_URL] = url
+        savedStateHandle[KEY_SITE] = null
+        savedStateHandle[KEY_IMAGE] = null
+        persistMeta()
+        persistPosts(empty, empty)
     }
 
     fun onUrlChange(value: String) {
@@ -151,6 +185,8 @@ class MainViewModel(
             lastFetchedUrl = uiState.urlInput
             siteName = metadata?.siteName
             imageUrl = metadata?.imageUrl
+            savedStateHandle[KEY_SITE] = siteName
+            savedStateHandle[KEY_IMAGE] = imageUrl
 
             if (metadata != null && metadata.isUsable) {
                 log.info("Metadaten ok (og:site_name: ${metadata.siteName ?: "fehlt – nutze Domain"})")
@@ -202,15 +238,20 @@ class MainViewModel(
                 persistPosts(mastodon, bluesky)
                 uiState.copy(
                     generationPhase = GenerationPhase.Done,
+                    // Manuell eingegebene Metadaten haben funktioniert -> Warnhinweis auflösen.
+                    metadataPhase = if (uiState.metadataPhase == MetadataPhase.NeedsManual) {
+                        MetadataPhase.Ready
+                    } else {
+                        uiState.metadataPhase
+                    },
                     mastodon = mastodon,
                     bluesky = bluesky,
                     mastodonStatus = PostStatus.Idle,
                     blueskyStatus = PostStatus.Idle,
                 )
-            } catch (e: HttpException) {
-                val message = e.readableMessage()
-                log.error("KI: $message")
-                uiState.copy(generationPhase = GenerationPhase.Error(message))
+            } catch (e: ApiException) {
+                log.error("KI: ${e.error.readable}")
+                uiState.copy(generationPhase = GenerationPhase.Error(e.error.readable))
             } catch (e: Exception) {
                 log.error("KI: ${e.message}")
                 uiState.copy(generationPhase = GenerationPhase.Error(e.message ?: "Generierung fehlgeschlagen"))
@@ -237,6 +278,12 @@ class MainViewModel(
 
     private fun updateMastodon(block: (NetworkPost) -> NetworkPost) {
         val updated = block(uiState.mastodon)
+        // Geänderter Inhalt = neuer Post -> neuer Idempotency-Key. Nur der Retry DESSELBEN
+        // Inhalts (z. B. nach Timeout) behält den Key, sonst käme nach einem Edit der alte
+        // Post als vermeintlicher Erfolg zurück (§12.1 Nr. 5).
+        if (updated != uiState.mastodon) {
+            mastodonIdempotencyKey = UUID.randomUUID().toString()
+        }
         uiState = uiState.copy(mastodon = updated)
         savedStateHandle[KEY_M_TEXT] = updated.text
         savedStateHandle[KEY_M_TAGS] = updated.extraHashtags.toTagString()
@@ -253,8 +300,10 @@ class MainViewModel(
 
     fun onSendClick() {
         viewModelScope.launch {
-            if (uiState.activeMastodon && uiState.mastodonStatus !is PostStatus.Success) sendMastodon()
-            if (uiState.activeBluesky && uiState.blueskyStatus !is PostStatus.Success) sendBluesky()
+            // Nur Netzwerke mit generiertem Text: Ein nach der Generierung aktivierter Chip hat
+            // noch keinen Inhalt und darf keinen leeren (Nur-URL-)Post absetzen.
+            if (uiState.mastodonSendable && uiState.mastodonStatus !is PostStatus.Success) sendMastodon()
+            if (uiState.blueskySendable && uiState.blueskyStatus !is PostStatus.Success) sendBluesky()
         }
     }
 
@@ -270,21 +319,21 @@ class MainViewModel(
 
     private suspend fun sendMastodon() {
         val account = container.credentialStore.loadMastodon() ?: return
+        if (uiState.mastodon.text.isBlank()) return
         uiState = uiState.copy(mastodonStatus = PostStatus.Pending)
         log.info("Mastodon: sende…")
         uiState = try {
             val post = composePost(uiState.mastodon.text, uiState.mastodon.extraHashtags, uiState.mastodon.url)
-            val url = container.mastodonRepository.post(account, post, mastodonIdempotencyKey)
+            val url = container.mastodonRepository.post(account, post, mastodonIdempotencyKey, language = MASTODON_LANG)
             log.info("Mastodon: gepostet")
             uiState.copy(mastodonStatus = PostStatus.Success(url))
         } catch (e: SocketTimeoutException) {
             // Idempotency-Key macht den Retry sicher (§12.1 Nr. 5).
             log.error("Mastodon: Zeitüberschreitung")
             uiState.copy(mastodonStatus = PostStatus.Failed("Zeitüberschreitung – erneut versuchen ist sicher"))
-        } catch (e: HttpException) {
-            val message = e.readableMessage()
-            log.error("Mastodon: $message")
-            uiState.copy(mastodonStatus = PostStatus.Failed(message))
+        } catch (e: ApiException) {
+            log.error("Mastodon: ${e.error.readable}")
+            uiState.copy(mastodonStatus = PostStatus.Failed(e.error.readable))
         } catch (e: Exception) {
             log.error("Mastodon: ${e.message}")
             uiState.copy(mastodonStatus = PostStatus.Failed(e.message ?: "Fehler beim Posten"))
@@ -293,6 +342,7 @@ class MainViewModel(
 
     private suspend fun sendBluesky() {
         val account = container.credentialStore.loadBluesky() ?: return
+        if (uiState.bluesky.text.isBlank()) return
         uiState = uiState.copy(blueskyStatus = PostStatus.Pending)
         log.info("Bluesky: sende…")
         uiState = try {
@@ -306,17 +356,16 @@ class MainViewModel(
                     imageUrl = imageUrl,
                 )
             }
-            val url = container.blueskyRepository.post(account, post, facets, card)
+            val url = container.blueskyRepository.post(account, post, facets, card, langs = BLUESKY_LANGS)
             log.info("Bluesky: gepostet (${facets.size} Facets)")
             uiState.copy(blueskyStatus = PostStatus.Success(url))
         } catch (e: SocketTimeoutException) {
             // Kein Idempotenz-Mechanismus: unklarer Ausgang, nicht automatisch retryen (§12.1 Nr. 5).
             log.error("Bluesky: Zeitüberschreitung – Ausgang unklar")
             uiState.copy(blueskyStatus = PostStatus.Uncertain("Unklar – bitte im Bluesky-Profil prüfen"))
-        } catch (e: HttpException) {
-            val message = e.readableMessage()
-            log.error("Bluesky: $message")
-            uiState.copy(blueskyStatus = PostStatus.Failed(message))
+        } catch (e: ApiException) {
+            log.error("Bluesky: ${e.error.readable}")
+            uiState.copy(blueskyStatus = PostStatus.Failed(e.error.readable))
         } catch (e: Exception) {
             log.error("Bluesky: ${e.message}")
             uiState.copy(blueskyStatus = PostStatus.Failed(e.message ?: "Fehler beim Posten"))
@@ -342,9 +391,15 @@ class MainViewModel(
         const val KEY_URL = "url"
         const val KEY_META_TITLE = "meta_title"
         const val KEY_META_DESC = "meta_desc"
+        const val KEY_SITE = "site_name"
+        const val KEY_IMAGE = "image_url"
         const val KEY_M_TEXT = "m_text"
         const val KEY_M_TAGS = "m_tags"
         const val KEY_B_TEXT = "b_text"
         const val KEY_B_TAGS = "b_tags"
+
+        // Feste Zuordnung DE=Mastodon / EN=Bluesky (§1); wird mit Multi-Language konfigurierbar.
+        const val MASTODON_LANG = "de"
+        val BLUESKY_LANGS = listOf("en")
     }
 }

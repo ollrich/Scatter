@@ -24,7 +24,6 @@ sealed interface GenerationPhase {
 /** Gesamter UI-Zustand der Hauptseite (§5). */
 data class MainUiState(
     val urlInput: String = "",
-    val isFromShare: Boolean = false,
 
     val metadataPhase: MetadataPhase = MetadataPhase.Idle,
     /** Titel/Beschreibung sind IMMER editierbar — sie sind der Input für die KI und die Link-Karte. */
@@ -59,6 +58,14 @@ data class MainUiState(
     val activeMastodon: Boolean get() = mastodonConnected && mastodonEnabled
     val activeBluesky: Boolean get() = blueskyConnected && blueskyEnabled
     val hasActiveTarget: Boolean get() = activeMastodon || activeBluesky
+
+    /**
+     * Sendbar = aktiv UND es wurde Text generiert. Ein nach der Generierung aktivierter Chip
+     * hat (noch) keinen Inhalt — sonst ginge ein leerer Nur-URL-Post raus.
+     */
+    val mastodonSendable: Boolean get() = activeMastodon && mastodon.text.isNotBlank()
+    val blueskySendable: Boolean get() = activeBluesky && bluesky.text.isNotBlank()
+    val hasSendableTarget: Boolean get() = mastodonSendable || blueskySendable
 
     /** Auswahl-Chips nur zeigen, wenn es überhaupt etwas zu wählen gibt (beide verbunden). */
     val showNetworkSelection: Boolean get() = mastodonConnected && blueskyConnected

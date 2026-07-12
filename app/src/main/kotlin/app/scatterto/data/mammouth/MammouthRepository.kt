@@ -6,7 +6,10 @@ import app.scatterto.data.metadata.PageMetadata
 import app.scatterto.data.model.GeneratedPosts
 import app.scatterto.data.model.MammouthConfig
 import app.scatterto.data.model.ModelChoices
+import app.scatterto.data.net.ApiException
 import app.scatterto.data.net.Network
+import app.scatterto.data.net.apiCall
+import app.scatterto.data.net.toApiError
 import retrofit2.HttpException
 
 /**
@@ -61,12 +64,14 @@ class MammouthRepository(private val log: EventLog) {
             // Manche Anbieter/Modelle lehnen response_format oder temperature ab -> ohne beides erneut.
             if (e.code() == 400) {
                 log.info("KI: HTTP 400 – Retry ohne response_format/temperature")
-                api.chat(
-                    bearer(config.token),
-                    request.copy(responseFormat = null, temperature = null),
-                ).firstContent()
+                apiCall {
+                    api.chat(
+                        bearer(config.token),
+                        request.copy(responseFormat = null, temperature = null),
+                    ).firstContent()
+                }
             } else {
-                throw e
+                throw ApiException(e.toApiError())
             }
         }
 

@@ -29,7 +29,13 @@ class ImageThumbnailer(private val client: OkHttpClient) {
         val response = client.newCall(Request.Builder().url(url).build()).execute()
         response.use {
             if (!it.isSuccessful) return null
-            return it.body?.bytes()
+            val body = it.body ?: return null
+            // Download begrenzen: riesige og:image-Dateien würden sonst komplett in den Speicher
+            // geladen (OOM-Risiko). Über dem Limit -> Karte ohne Bild (Fallback existiert).
+            if (body.contentLength() > MAX_DOWNLOAD_BYTES) return null
+            val source = body.source()
+            if (source.request(MAX_DOWNLOAD_BYTES + 1)) return null // mehr Daten als erlaubt
+            return source.readByteArray()
         }
     }
 
@@ -57,5 +63,6 @@ class ImageThumbnailer(private val client: OkHttpClient) {
     private companion object {
         const val MAX_DIMENSION = 1000
         const val MAX_BLOB_BYTES = 1_000_000 // Bluesky-Blob-Limit ≈ 1 MB (§6)
+        const val MAX_DOWNLOAD_BYTES = 15L * 1024 * 1024 // Quellbild-Limit gegen OOM
     }
 }

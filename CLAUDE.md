@@ -29,3 +29,5 @@ Native Android-App (Kotlin, Jetpack Compose): nimmt per Share-Intent eine Artike
 - Reine, unit-getestete Funktionen für: Facet-Byte-Offsets (Umlaute/Emoji-Fälle), Post-Zusammensetzung, URL-Extraktion aus Share-Text, netzwerkspezifische Zeichenzählung (Mastodon: URL = 23 Zeichen; Bluesky: Grapheme) — §12.3 Nr. 5.
 - Credentials nur via EncryptedSharedPreferences (bewusst trotz Deprecation, §12.1 Nr. 1), niemals in Logs; OkHttp-Logging nur in Debug-Builds.
 - `android:allowBackup="false"` (§12.1 Nr. 7).
+- HTTP-Fehler verlassen Repositories einheitlich als `ApiException` (via `apiCall {}` aus `data/net/ApiErrors.kt`) — ViewModels fangen keinen rohen `HttpException`.
+- **Neue nutzersichtbare UI-Texte in `res/values/strings.xml`** anlegen statt hartcodiert (Vorbereitung Lokalisierung DE/EN/DA; Bestandstexte werden beim Lokalisierungs-Schritt migriert).

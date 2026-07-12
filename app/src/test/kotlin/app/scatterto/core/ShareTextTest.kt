@@ -24,6 +24,29 @@ class ShareTextTest {
         assertNull(extractUrl("Nur Text ohne Link"))
     }
 
+    @Test fun keepsBalancedClosingParenthesis() {
+        // Wikipedia-Stil: die schließende Klammer gehört zur URL.
+        assertEquals(
+            "https://de.wikipedia.org/wiki/Berlin_(Band)",
+            extractUrl("Schau: https://de.wikipedia.org/wiki/Berlin_(Band)"),
+        )
+    }
+
+    @Test fun trimsUnbalancedClosingParenthesis() {
+        // Die URL steht in Klammern im Satz — das ")" gehört nicht zur URL.
+        assertEquals(
+            "https://example.com/artikel",
+            extractUrl("(siehe https://example.com/artikel)"),
+        )
+    }
+
+    @Test fun trimsPunctuationAfterBalancedParenthesis() {
+        assertEquals(
+            "https://de.wikipedia.org/wiki/Berlin_(Band)",
+            extractUrl("Kennst du https://de.wikipedia.org/wiki/Berlin_(Band)?"),
+        )
+    }
+
     @Test fun stripsUtmAndKnownTrackers() {
         assertEquals(
             "https://a.de/x?id=5",

@@ -51,7 +51,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
@@ -62,6 +61,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.scatterto.R
 import app.scatterto.core.blueskyLength
@@ -202,10 +202,11 @@ fun MainScreen(
                 val mastodonCount = mastodonLength(mastodonPost)
                 val blueskyCount = blueskyLength(blueskyPost)
 
-                if (state.activeMastodon) {
+                if (state.mastodonSendable) {
                     NetworkPostSection(
                         name = "Mastodon",
                         color = MastodonViolet,
+                        avatarUrl = state.mastodonAvatarUrl,
                         post = state.mastodon,
                         composedPost = mastodonPost,
                         count = mastodonCount,
@@ -217,11 +218,14 @@ fun MainScreen(
                         onUrl = viewModel::onMastodonUrlChange,
                         onRetry = viewModel::retryMastodon,
                     )
+                } else if (state.activeMastodon) {
+                    MissingTextHint("Mastodon")
                 }
-                if (state.activeBluesky) {
+                if (state.blueskySendable) {
                     NetworkPostSection(
                         name = "Bluesky",
                         color = BlueskyBlue,
+                        avatarUrl = state.blueskyAvatarUrl,
                         post = state.bluesky,
                         composedPost = blueskyPost,
                         count = blueskyCount,
@@ -233,12 +237,14 @@ fun MainScreen(
                         onUrl = viewModel::onBlueskyUrlChange,
                         onRetry = viewModel::retryBluesky,
                     )
+                } else if (state.activeBluesky) {
+                    MissingTextHint("Bluesky")
                 }
 
                 SendTargets(state)
 
-                val mastoOver = state.activeMastodon && mastodonCount > state.mastodonMaxChars
-                val blueskyOver = state.activeBluesky && blueskyCount > 300
+                val mastoOver = state.mastodonSendable && mastodonCount > state.mastodonMaxChars
+                val blueskyOver = state.blueskySendable && blueskyCount > 300
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(
                         onClick = viewModel::regenerate,
@@ -247,7 +253,7 @@ fun MainScreen(
                     ) { Text("Neu generieren") }
                     Button(
                         onClick = viewModel::onSendClick,
-                        enabled = state.hasActiveTarget && !mastoOver && !blueskyOver,
+                        enabled = state.hasSendableTarget && !mastoOver && !blueskyOver,
                         modifier = Modifier.weight(1f),
                     ) { Text("Senden") }
                 }
@@ -282,17 +288,29 @@ private fun NetworkSelection(state: MainUiState, viewModel: MainViewModel) {
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SendTargets(state: MainUiState) {
-    if (!state.hasActiveTarget) return
+    if (!state.hasSendableTarget) return
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text("Sendet an", style = MaterialTheme.typography.labelMedium)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            if (state.activeMastodon) {
+            if (state.mastodonSendable) {
                 TargetLabel("Mastodon", state.mastodonHandle, MastodonViolet)
             }
-            if (state.activeBluesky) {
+            if (state.blueskySendable) {
                 TargetLabel("Bluesky", state.blueskyHandle, BlueskyBlue)
             }
         }
+    }
+}
+
+/** Netzwerk wurde nach der Generierung aktiviert — es gibt dafür noch keinen Text. */
+@Composable
+private fun MissingTextHint(network: String) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            "Für $network wurde noch kein Text generiert – „Neu generieren“ erzeugt ihn.",
+            modifier = Modifier.padding(16.dp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
@@ -338,6 +356,7 @@ private fun MetadataCard(state: MainUiState, viewModel: MainViewModel) {
 private fun NetworkPostSection(
     name: String,
     color: Color,
+    avatarUrl: String?,
     post: NetworkPost,
     composedPost: String,
     count: Int,
@@ -353,7 +372,7 @@ private fun NetworkPostSection(
 
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            NetworkHeader(name, color, avatarUrl = null)
+            NetworkHeader(name, color, avatarUrl = avatarUrl)
             OutlinedTextField(
                 value = post.text,
                 onValueChange = onText,

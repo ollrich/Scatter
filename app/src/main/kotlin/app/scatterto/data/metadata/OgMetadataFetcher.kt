@@ -40,11 +40,17 @@ class OgMetadataFetcher {
                 ?: doc.selectFirst("meta[name=description]")?.attr("content")?.ifBlank { null }
             val image = doc.selectFirst("meta[property=og:image]")?.absUrl("content")?.ifBlank { null }
             val siteName = doc.ogProperty("og:site_name")
+            // Artikel-Sprache: <html lang="de-DE"> bzw. og:locale "de_DE" -> "de".
+            val language = (
+                doc.selectFirst("html")?.attr("lang")?.ifBlank { null }
+                    ?: doc.ogProperty("og:locale")
+                )?.take(2)?.lowercase()?.ifBlank { null }
             return PageMetadata(
                 title = title?.trim(),
                 description = description?.trim(),
                 imageUrl = image,
                 siteName = siteName?.trim(),
+                language = language,
             )
         }
 

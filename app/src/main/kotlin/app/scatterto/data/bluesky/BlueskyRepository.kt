@@ -6,11 +6,13 @@ import app.scatterto.data.log.EventLog
 import app.scatterto.data.model.BlueskyAccount
 import app.scatterto.data.net.ApiException
 import app.scatterto.data.net.Network
+import app.scatterto.data.net.apiCall
 import app.scatterto.data.net.toApiError
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
 import java.time.Instant
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Bluesky-Anbindung (§4.2, §6, §7, §12.1 Nr. 4). Session wird persistiert und bei 401 transparent
@@ -23,18 +25,22 @@ class BlueskyRepository(
 
     private val thumbnailer = ImageThumbnailer(Network.okHttp())
 
+    private val apis = ConcurrentHashMap<String, BlueskyApi>()
+
     private fun api(pdsUrl: String): BlueskyApi =
-        Network.retrofit(normalizePds(pdsUrl), Network.okHttp()).create(BlueskyApi::class.java)
+        apis.getOrPut(normalizePds(pdsUrl)) {
+            Network.retrofit(normalizePds(pdsUrl)).create(BlueskyApi::class.java)
+        }
 
     /** Verbindet den Account: createSession + Profil (Avatar/Handle). */
-    suspend fun connect(identifier: String, appPassword: String, pdsUrl: String): BlueskyAccount {
+    suspend fun connect(identifier: String, appPassword: String, pdsUrl: String): BlueskyAccount = apiCall {
         val api = api(pdsUrl)
         val session = api.createSession(CreateSessionRequest(identifier.trim(), appPassword))
         val profile = runCatching {
             api.getProfile("Bearer ${session.accessJwt}", session.did)
         }.getOrNull()
 
-        return BlueskyAccount(
+        BlueskyAccount(
             identifier = identifier.trim(),
             appPassword = appPassword,
             pdsUrl = pdsUrl,
@@ -55,6 +61,7 @@ class BlueskyRepository(
         text: String,
         facets: List<Facet>,
         card: LinkCard?,
+        langs: List<String> = listOf("en"), // BCP-47, Vorbereitung Multi-Language
     ): String {
         val api = api(account.pdsUrl)
         var current = account
@@ -92,6 +99,7 @@ class BlueskyRepository(
         val record = PostRecord(
             text = text,
             createdAt = Instant.now().toString(),
+            langs = langs,
             facets = facets.ifEmpty { null },
             embed = embed,
         )
@@ -125,7 +133,8 @@ class BlueskyRepository(
             api.refreshSession("Bearer ${account.refreshJwt}")
         }.getOrElse {
             log.info("Bluesky: Refresh fehlgeschlagen – neue Session aus App-Password")
-            api.createSession(CreateSessionRequest(account.identifier, account.appPassword))
+            // Auch dieser Pfad meldet HTTP-Fehler einheitlich als ApiException.
+            apiCall { api.createSession(CreateSessionRequest(account.identifier, account.appPassword)) }
         }
         return account.copy(
             did = session.did,

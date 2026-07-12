@@ -35,10 +35,20 @@ private const val TRAILING_PUNCTUATION = ".,;:!?)]}\"'»«"
 /**
  * Extrahiert die erste URL aus [sharedText] oder `null`, wenn keine enthalten ist
  * (dann Hinweis anzeigen, URL-Feld leer lassen — §12.1 Nr. 3).
+ *
+ * Schließende Klammern werden nur abgeschnitten, wenn sie unbalanciert sind — Wikipedia-URLs
+ * wie `…/wiki/Berlin_(Band)` enden legitim auf „)".
  */
 fun extractUrl(sharedText: String): String? {
     val match = URL_REGEX.find(sharedText) ?: return null
-    return match.value.trimEnd { it in TRAILING_PUNCTUATION }
+    var url = match.value
+    while (url.isNotEmpty()) {
+        val last = url.last()
+        if (last !in TRAILING_PUNCTUATION) break
+        if (last == ')' && url.count { it == '(' } >= url.count { it == ')' }) break
+        url = url.dropLast(1)
+    }
+    return url.ifEmpty { null }
 }
 
 // Bekannte Tracking-Parameter (§12.3 Nr. 1) — Präfix utm_* plus einzelne Netzwerk-Tracker.

@@ -37,6 +37,16 @@ data class ApiError(val status: Int, val errorName: String?, val detail: String?
 /** Fehler mit bereits ausgelesener Begründung — der Body ist danach verbraucht. */
 class ApiException(val error: ApiError) : Exception(error.readable)
 
+/**
+ * Einheitliche Fehlergrenze der Repositories: HTTP-Fehler werden als [ApiException] mit bereits
+ * ausgewertetem Body weitergereicht. ViewModels fangen dadurch überall denselben Typ.
+ */
+suspend fun <T> apiCall(block: suspend () -> T): T = try {
+    block()
+} catch (e: HttpException) {
+    throw ApiException(e.toApiError())
+}
+
 /** Liest den Fehler-Body genau einmal aus und wertet ihn aus. */
 fun HttpException.toApiError(): ApiError {
     val body = runCatching { response()?.errorBody()?.string() }.getOrNull().orEmpty()

@@ -45,4 +45,23 @@ class OgMetadataParserTest {
         assertNull(meta.title)
         assertEquals(false, meta.isUsable)
     }
+
+    @Test fun extractsLanguageFromHtmlLang() {
+        val meta = parse("""<html lang="de-DE"><head><title>T</title></head><body></body></html>""")
+        assertEquals("de", meta.language)
+    }
+
+    @Test fun fallsBackToOgLocaleForLanguage() {
+        val html = """
+            <html><head>
+              <title>T</title>
+              <meta property="og:locale" content="en_GB"/>
+            </head><body></body></html>
+        """.trimIndent()
+        assertEquals("en", parse(html).language)
+    }
+
+    @Test fun languageIsNullWhenAbsent() {
+        assertNull(parse("<html><head><title>T</title></head><body></body></html>").language)
+    }
 }

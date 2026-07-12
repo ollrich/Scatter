@@ -42,6 +42,17 @@ Offene Punkte, nach Aufwand und Priorität gruppiert. Die verbindliche Spezifika
 
 ## Erledigt
 
+- **Code-Audit v0.6.0** (2026-07-12): Share-Intent-Replay nach Rotation/Recreate behoben; neuer
+  Share ersetzt jetzt den kompletten Zustand; Wikipedia-URLs mit Klammern bleiben intakt;
+  Process-Death-Restore zeigt gerettete Texte wieder an (inkl. Karte/Thumbnail); leerer Post über
+  nachträglich aktivierten Netzwerk-Chip nicht mehr möglich (Hinweis + Send-Gate);
+  og:image-Download auf 15 MB begrenzt (OOM); ein geteilter OkHttp-Client + gecachte
+  API-Instanzen; HTTP-Fehler einheitlich als `ApiException`; Idempotency-Key rotiert bei
+  Inhaltsänderung; „Keine Metadaten"-Warnung löst sich nach manueller Generierung auf;
+  Avatare in den Post-Sektionen; Fallback-Theme im App-Blau; **Test-CI** (Push/PR) eingerichtet.
+  Roadmap-Vorarbeit: Posting-Sprache als Parameter, Artikel-Sprache (`<html lang>`/`og:locale`)
+  wird mitgelesen, Strings-Konvention in CLAUDE.md. 70 Unit-Tests.
+
 - **Slide-Panel + Unterseiten:** `ModalNavigationDrawer` (Hamburger), Kopf mit verbundenen Accounts
   (tippbar → Accounts), Menü Accounts / Mammouth-KI / Display / Logs / About. Settings-Monolith zerlegt.
   Trennen mit Rückfrage.
