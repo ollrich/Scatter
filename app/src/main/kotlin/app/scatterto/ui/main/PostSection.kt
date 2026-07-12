@@ -122,18 +122,6 @@ internal fun SuccessCard(name: String, color: Color, avatarUrl: String?, postUrl
     }
 }
 
-/** Netzwerk wurde nach der Generierung aktiviert — es gibt dafür noch keinen Text. */
-@Composable
-internal fun MissingTextHint(network: String) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            stringResource(R.string.missing_text_hint, network),
-            modifier = Modifier.padding(16.dp),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
 /**
  * Card mit farbiger Kante links (Netzwerk-Farbe). Die Kante wird direkt gezeichnet (kein
  * IntrinsicSize + fillMaxHeight) — sonst blähen TextField-Intrinsics die Card auf (Leerraum-Bug).

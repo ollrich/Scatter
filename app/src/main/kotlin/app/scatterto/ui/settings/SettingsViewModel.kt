@@ -7,13 +7,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.scatterto.data.AppContainer
 import app.scatterto.R
-import app.scatterto.data.model.MammouthConfig
+import app.scatterto.data.model.AiService
+import app.scatterto.data.model.AiSettings
 import app.scatterto.data.model.ModelChoices
+import app.scatterto.data.model.ModelProvider
 import app.scatterto.data.net.ApiException
 import kotlinx.coroutines.launch
 
 /**
- * ViewModel für das Einstellungsmenü (§4): Mammouth-Token/Modellauswahl speichern,
+ * ViewModel für das Einstellungsmenü (§4): KI-Dienst/Token/Modell speichern,
  * Accounts verbinden/trennen.
  */
 class SettingsViewModel(private val container: AppContainer) : ViewModel() {
@@ -28,23 +30,28 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     }
 
     private fun load() {
-        val mammouth = container.credentialStore.loadMammouth()
+        val ai = container.credentialStore.loadAiSettings()
         val mastodon = container.credentialStore.loadMastodon()
         val bluesky = container.credentialStore.loadBluesky()
 
+        val mm = ai.models[AiService.MAMMOUTH.key]
+        val providerKeys = ModelProvider.entries.map { it.key }
         val choiceKey = when {
-            mammouth == null -> ModelChoices.DEFAULT_KEY
-            mammouth.provider != null -> mammouth.provider
+            mm.isNullOrBlank() -> ModelChoices.DEFAULT_KEY
+            mm in providerKeys -> mm
             // Die alte Auswahl „Mammouth-Empfohlen" ist kein aufrufbares Modell -> auf Standard migrieren.
-            mammouth.fixedModelId == ModelChoices.LEGACY_RECOMMENDED_ID -> ModelChoices.DEFAULT_KEY
+            mm == ModelChoices.LEGACY_RECOMMENDED_ID -> ModelChoices.DEFAULT_KEY
             else -> ModelChoices.CUSTOM_KEY
         }
-        val custom = if (choiceKey == ModelChoices.CUSTOM_KEY) mammouth?.fixedModelId.orEmpty() else ""
+        val custom = if (choiceKey == ModelChoices.CUSTOM_KEY) mm.orEmpty() else ""
 
         uiState = uiState.copy(
-            mammouthToken = mammouth?.token.orEmpty(),
-            modelChoiceKey = choiceKey,
-            customModelId = custom,
+            aiEnabled = ai.enabled,
+            aiService = ai.activeService,
+            aiTokens = ai.tokens,
+            aiModels = ai.models,
+            mammouthChoiceKey = choiceKey,
+            mammouthCustomId = custom,
             mastodonInstance = mastodon?.instanceUrl.orEmpty(),
             mastodonConnected = mastodon != null,
             mastodonHandle = mastodon?.handle,
@@ -57,38 +64,78 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
         )
     }
 
-    // --- Mammouth ---
+    // --- KI ---
 
-    fun onMammouthTokenChange(value: String) { uiState = uiState.copy(mammouthToken = value) }
-    fun onModelChoice(key: String) { uiState = uiState.copy(modelChoiceKey = key) }
-    fun onCustomModelChange(value: String) { uiState = uiState.copy(customModelId = value) }
-
-    fun saveMammouth() {
-        if (uiState.mammouthToken.isBlank()) return
-        val token = uiState.mammouthToken.trim()
-        val config = when (uiState.modelChoiceKey) {
-            ModelChoices.CUSTOM_KEY -> {
-                if (uiState.customModelId.isBlank()) return
-                MammouthConfig(token, provider = null, fixedModelId = uiState.customModelId.trim())
-            }
-            else -> MammouthConfig(token, provider = uiState.modelChoiceKey, fixedModelId = null)
-        }
-        container.credentialStore.saveMammouth(config)
-        // Optionale Validierung (§4.1): Fehlschlag hindert das Speichern nicht (offline-tolerant).
-        validateMammouth(config)
+    /** Master-Schalter: sofort persistiert, damit der Hauptschirm den Zustand kennt. */
+    fun onAiEnabledChange(enabled: Boolean) {
+        uiState = uiState.copy(aiEnabled = enabled)
+        container.credentialStore.saveAiSettings(buildAiSettings())
     }
 
-    private fun validateMammouth(config: MammouthConfig) {
-        uiState = uiState.copy(mammouthValidation = ValidationState.Validating)
+    fun onServiceSelect(key: String) {
+        uiState = uiState.copy(aiService = key, aiValidation = ValidationState.None)
+    }
+
+    fun onAiTokenChange(value: String) {
+        uiState = uiState.copy(aiTokens = uiState.aiTokens + (uiState.aiService to value))
+    }
+
+    fun onAiModelChange(value: String) {
+        uiState = uiState.copy(aiModels = uiState.aiModels + (uiState.aiService to value))
+    }
+
+    fun onMammouthChoice(key: String) { uiState = uiState.copy(mammouthChoiceKey = key) }
+    fun onMammouthCustomChange(value: String) { uiState = uiState.copy(mammouthCustomId = value) }
+
+    fun saveAi() {
+        val settings = buildAiSettings()
+        container.credentialStore.saveAiSettings(settings)
+        // Optionale Validierung (§4.1): Fehlschlag hindert das Speichern nicht (offline-tolerant).
+        if (settings.enabled && settings.hasActiveToken) {
+            validateAi(settings)
+        } else {
+            uiState = uiState.copy(aiValidation = ValidationState.None)
+        }
+    }
+
+    private fun buildAiSettings(): AiSettings {
+        val tokens = uiState.aiTokens
+            .mapValues { it.value.trim() }
+            .filterValues { it.isNotBlank() }
+        val models = uiState.aiModels
+            .mapValues { it.value.trim() }
+            .filterValues { it.isNotBlank() }
+            .toMutableMap()
+        // Mammouth-Modell aus Dropdown/Custom-Feld ableiten.
+        val mammouthModel = if (uiState.mammouthChoiceKey == ModelChoices.CUSTOM_KEY) {
+            uiState.mammouthCustomId.trim()
+        } else {
+            uiState.mammouthChoiceKey
+        }
+        if (mammouthModel.isNotBlank()) {
+            models[AiService.MAMMOUTH.key] = mammouthModel
+        } else {
+            models.remove(AiService.MAMMOUTH.key)
+        }
+        return AiSettings(
+            enabled = uiState.aiEnabled,
+            activeService = uiState.aiService,
+            tokens = tokens,
+            models = models,
+        )
+    }
+
+    private fun validateAi(settings: AiSettings) {
+        uiState = uiState.copy(aiValidation = ValidationState.Validating)
         viewModelScope.launch {
             uiState = try {
-                if (container.mammouthRepository.validate(config)) {
-                    uiState.copy(mammouthValidation = ValidationState.Valid)
+                if (container.aiRepository.validate(settings)) {
+                    uiState.copy(aiValidation = ValidationState.Valid)
                 } else {
-                    uiState.copy(mammouthValidation = ValidationState.Invalid(str(R.string.validate_invalid)))
+                    uiState.copy(aiValidation = ValidationState.Invalid(str(R.string.validate_invalid)))
                 }
             } catch (e: Exception) {
-                uiState.copy(mammouthValidation = ValidationState.Invalid(str(R.string.validate_offline)))
+                uiState.copy(aiValidation = ValidationState.Invalid(str(R.string.validate_offline)))
             }
         }
     }

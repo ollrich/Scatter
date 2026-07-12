@@ -10,10 +10,10 @@
     <string name="menu_about">About</string>
     <string name="menu_close">Close menu</string>
     <string name="menu_open">Menu</string>
-    <string name="no_account_hint">No account connected – tap to connect.</string>
+    <string name="no_account_hint">No account connected. Tap to connect.</string>
 
     <!-- Main screen -->
-    <string name="start_hint">Share an article from any app – or paste a URL below.</string>
+    <string name="start_hint">Share an article from any app, or paste a URL below.</string>
     <string name="paste_from_clipboard">Paste URL from clipboard</string>
     <string name="clipboard_no_url">No URL in the clipboard</string>
     <string name="article_url">Article URL</string>
@@ -24,7 +24,6 @@
     <string name="sends_to">Sends to</string>
     <string name="new_article">New article</string>
     <string name="generating_with">%1$s is writing …</string>
-    <string name="missing_text_hint">No text has been generated for %1$s yet – “Regenerate” creates it.</string>
     <string name="to_settings">Open settings</string>
     <string name="banner_no_ai">No AI token saved. Please add one in the settings.</string>
     <string name="banner_no_network">No network connected. Please connect one in the settings.</string>
@@ -43,7 +42,7 @@
 
     <!-- Metadata -->
     <string name="metadata_title">Metadata</string>
-    <string name="metadata_missing">No metadata found – please fill in manually:</string>
+    <string name="metadata_missing">No metadata found. Please fill in manually:</string>
     <string name="label_meta_title">Title</string>
     <string name="label_meta_description">Description</string>
 
@@ -71,6 +70,13 @@
     <string name="details_loading">Loading details …</string>
 
     <!-- AI settings -->
+    <string name="ai_use">Use AI</string>
+    <string name="ai_disabled_hint">Without AI you write the posts yourself; the app only prepares the URL, link card and networks.</string>
+    <string name="ai_service">AI service</string>
+    <string name="ai_info">Info</string>
+    <string name="ai_info_text">Get your API token at %1$s and paste it here.</string>
+    <string name="ai_setup_guide">Setup guide (GitHub)</string>
+    <string name="ai_continue">Continue</string>
     <string name="ai_token_label">API token</string>
     <string name="ai_token_show">Show token</string>
     <string name="model_label">Model</string>
@@ -91,7 +97,7 @@
 
     <!-- About -->
     <string name="version">Version %1$s</string>
-    <string name="about_description">Share an article link and ScatterTo creates a short AI post each for Mastodon (German) and Bluesky (English) – review, adjust, send.</string>
+    <string name="about_description">Share an article link and ScatterTo creates a short AI post each for Mastodon (German) and Bluesky (English). Review, adjust, send.</string>
     <string name="about_privacy">No telemetry, no sharing with third parties other than the APIs you use. Credentials are stored encrypted on the device only.</string>
     <string name="about_source">Source code on GitHub</string>
     <string name="about_author_prefix">A personal project by </string>
@@ -114,6 +120,6 @@
     <string name="error_generation_failed">Generation failed</string>
     <string name="error_post_failed">Error while posting</string>
     <string name="error_connect_failed">Connection failed</string>
-    <string name="status_timeout_safe">Timeout – trying again is safe</string>
-    <string name="status_uncertain">Unclear – please check your Bluesky profile</string>
+    <string name="status_timeout_safe">Timeout. Trying again is safe.</string>
+    <string name="status_uncertain">Unclear. Please check your Bluesky profile.</string>
 </resources>

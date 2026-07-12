@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import app.scatterto.data.model.AiSettings
+import app.scatterto.data.model.AiService
 import app.scatterto.data.model.BlueskyAccount
 import app.scatterto.data.model.MammouthConfig
 import app.scatterto.data.model.MastodonAccount
@@ -34,9 +36,19 @@ class CredentialStore(context: Context) {
 
     private val json = Json { ignoreUnknownKeys = true; explicitNulls = false }
 
-    fun loadMammouth(): MammouthConfig? = read(KEY_MAMMOUTH)
-    fun saveMammouth(config: MammouthConfig) = write(KEY_MAMMOUTH, config)
-    fun clearMammouth() = remove(KEY_MAMMOUTH)
+    /** KI-Einstellungen; migriert bei Bedarf den alten MammouthConfig-Token (kein Datenverlust). */
+    fun loadAiSettings(): AiSettings {
+        read<AiSettings>(KEY_AI)?.let { return it }
+        val old = read<MammouthConfig>(KEY_MAMMOUTH) ?: return AiSettings()
+        return AiSettings(
+            enabled = true,
+            activeService = AiService.MAMMOUTH.key,
+            tokens = mapOf(AiService.MAMMOUTH.key to old.token),
+            models = mapOf(AiService.MAMMOUTH.key to (old.provider ?: old.fixedModelId ?: "mistral")),
+        )
+    }
+
+    fun saveAiSettings(settings: AiSettings) = write(KEY_AI, settings)
 
     fun loadMastodon(): MastodonAccount? = read(KEY_MASTODON)
     fun saveMastodon(account: MastodonAccount) = write(KEY_MASTODON, account)
@@ -60,6 +72,7 @@ class CredentialStore(context: Context) {
     private companion object {
         const val FILE_NAME = "scatterto_credentials"
         const val KEY_MAMMOUTH = "mammouth"
+        const val KEY_AI = "ai_settings"
         const val KEY_MASTODON = "mastodon"
         const val KEY_BLUESKY = "bluesky"
     }

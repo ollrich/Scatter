@@ -34,7 +34,14 @@ object AiResponseParser {
 
         return GeneratedPosts(
             de = if (wantDe) GeneratedPost(raw.de.text.trim(), cleanTags(raw.de.extraHashtags)) else EMPTY,
-            en = if (wantEn) GeneratedPost(raw.en.text.trim(), cleanTags(raw.en.extraHashtags)) else EMPTY,
+            en = if (wantEn) {
+                GeneratedPost(
+                    text = raw.en.text.trim(),
+                    extraHashtags = cleanTags(raw.en.extraHashtags),
+                    cardTitle = raw.en.cardTitle.trim().ifBlank { null },
+                    cardDescription = raw.en.cardDescription.trim().ifBlank { null },
+                )
+            } else EMPTY,
         )
     }
 

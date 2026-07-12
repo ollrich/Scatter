@@ -34,11 +34,16 @@ data class ModelsResponse(val data: List<ModelData> = emptyList())
 @Serializable
 data class ModelData(val id: String)
 
-/** Rohschema der KI-Antwort (§5.3): je Sprache ein Text mit Inline-Hashtags + optionale Ergänzungen. */
+/**
+ * Rohschema der KI-Antwort (§5.3): je Sprache ein Text mit Inline-Hashtags + optionale Ergänzungen.
+ * Für EN zusätzlich Titel/Beschreibung der englischen Bluesky-Link-Vorschau (§6).
+ */
 @Serializable
 data class AiLangResult(
     val text: String = "",
     @SerialName("extra_hashtags") val extraHashtags: List<String> = emptyList(),
+    @SerialName("card_title") val cardTitle: String = "",
+    @SerialName("card_description") val cardDescription: String = "",
 )
 
 @Serializable

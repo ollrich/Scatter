@@ -10,10 +10,10 @@
     <string name="menu_about">Om</string>
     <string name="menu_close">Luk menu</string>
     <string name="menu_open">Menu</string>
-    <string name="no_account_hint">Ingen konto forbundet – tryk for at forbinde.</string>
+    <string name="no_account_hint">Ingen konto forbundet. Tryk for at forbinde.</string>
 
     <!-- Hovedskærm -->
-    <string name="start_hint">Del en artikel fra en hvilken som helst app – eller indsæt en URL nedenfor.</string>
+    <string name="start_hint">Del en artikel fra en hvilken som helst app, eller indsæt en URL nedenfor.</string>
     <string name="paste_from_clipboard">Indsæt URL fra udklipsholder</string>
     <string name="clipboard_no_url">Ingen URL i udklipsholderen</string>
     <string name="article_url">Artikel-URL</string>
@@ -24,7 +24,6 @@
     <string name="sends_to">Sender til</string>
     <string name="new_article">Ny artikel</string>
     <string name="generating_with">%1$s skriver …</string>
-    <string name="missing_text_hint">Der er endnu ikke genereret tekst til %1$s – “Generér igen” opretter den.</string>
     <string name="to_settings">Åbn indstillinger</string>
     <string name="banner_no_ai">Ingen AI-token gemt. Tilføj en i indstillingerne.</string>
     <string name="banner_no_network">Intet netværk forbundet. Forbind et i indstillingerne.</string>
@@ -43,7 +42,7 @@
 
     <!-- Metadata -->
     <string name="metadata_title">Metadata</string>
-    <string name="metadata_missing">Ingen metadata fundet – udfyld venligst manuelt:</string>
+    <string name="metadata_missing">Ingen metadata fundet. Udfyld venligst manuelt:</string>
     <string name="label_meta_title">Titel</string>
     <string name="label_meta_description">Beskrivelse</string>
 
@@ -71,6 +70,13 @@
     <string name="details_loading">Indlæser detaljer …</string>
 
     <!-- AI-indstillinger -->
+    <string name="ai_use">Brug AI</string>
+    <string name="ai_disabled_hint">Uden AI skriver du selv opslagene; appen forbereder kun URL, link-kort og netværk.</string>
+    <string name="ai_service">AI-tjeneste</string>
+    <string name="ai_info">Info</string>
+    <string name="ai_info_text">Hent din API-token hos %1$s og indsæt den her.</string>
+    <string name="ai_setup_guide">Opsætningsvejledning (GitHub)</string>
+    <string name="ai_continue">Videre</string>
     <string name="ai_token_label">API-token</string>
     <string name="ai_token_show">Vis token</string>
     <string name="model_label">Model</string>
@@ -91,7 +97,7 @@
 
     <!-- Om -->
     <string name="version">Version %1$s</string>
-    <string name="about_description">Del et artikel-link, og ScatterTo opretter et kort AI-opslag til hver af Mastodon (tysk) og Bluesky (engelsk) – gennemse, tilpas, send.</string>
+    <string name="about_description">Del et artikel-link, og ScatterTo opretter et kort AI-opslag til hver af Mastodon (tysk) og Bluesky (engelsk). Gennemse, tilpas, send.</string>
     <string name="about_privacy">Ingen telemetri, ingen deling med tredjeparter ud over de anvendte API\'er. Loginoplysninger gemmes udelukkende krypteret på enheden.</string>
     <string name="about_source">Kildekode på GitHub</string>
     <string name="about_author_prefix">Et privat projekt af </string>
@@ -114,6 +120,6 @@
     <string name="error_generation_failed">Generering mislykkedes</string>
     <string name="error_post_failed">Fejl ved opslag</string>
     <string name="error_connect_failed">Forbindelse mislykkedes</string>
-    <string name="status_timeout_safe">Timeout – det er sikkert at prøve igen</string>
-    <string name="status_uncertain">Uklart – tjek venligst din Bluesky-profil</string>
+    <string name="status_timeout_safe">Timeout. Det er sikkert at prøve igen.</string>
+    <string name="status_uncertain">Uklart. Tjek venligst din Bluesky-profil.</string>
 </resources>

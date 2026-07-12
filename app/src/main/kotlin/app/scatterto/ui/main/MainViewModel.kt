@@ -15,7 +15,6 @@ import app.scatterto.data.AppContainer
 import app.scatterto.data.bluesky.LinkCard
 import app.scatterto.R
 import app.scatterto.data.metadata.PageMetadata
-import app.scatterto.data.model.ModelChoices
 import app.scatterto.data.net.ApiException
 import app.scatterto.ui.PostStatus
 import kotlinx.coroutines.launch
@@ -43,6 +42,11 @@ class MainViewModel(
     // Aus den Seiten-Metadaten gemerkt; Titel/Beschreibung leben editierbar im UI-State.
     private var siteName: String? = null
     private var imageUrl: String? = null
+    private var articleLanguage: String? = null
+
+    // Englische Bluesky-Link-Vorschau aus der KI-Generierung (§6); null -> Fallback auf Metadaten.
+    private var blueskyCardTitle: String? = null
+    private var blueskyCardDescription: String? = null
 
     // Stabiler Idempotency-Key für Mastodon pro Generierung (§12.1 Nr. 5).
     private var mastodonIdempotencyKey: String = UUID.randomUUID().toString()
@@ -56,6 +60,7 @@ class MainViewModel(
     fun refreshConnections() {
         val mastodon = container.credentialStore.loadMastodon()
         val bluesky = container.credentialStore.loadBluesky()
+        val ai = container.credentialStore.loadAiSettings()
         uiState = uiState.copy(
             mastodonConnected = mastodon != null,
             blueskyConnected = bluesky != null,
@@ -64,7 +69,8 @@ class MainViewModel(
             mastodonAvatarUrl = mastodon?.avatarUrl,
             blueskyAvatarUrl = bluesky?.avatarUrl,
             mastodonMaxChars = mastodon?.maxCharacters ?: 500,
-            mammouthMissing = container.credentialStore.loadMammouth() == null,
+            aiEnabled = ai.enabled,
+            aiTokenMissing = ai.enabled && !ai.hasActiveToken,
         )
     }
 
@@ -84,6 +90,9 @@ class MainViewModel(
 
         siteName = savedStateHandle[KEY_SITE]
         imageUrl = savedStateHandle[KEY_IMAGE]
+        articleLanguage = savedStateHandle[KEY_LANG]
+        blueskyCardTitle = savedStateHandle[KEY_CARD_TITLE]
+        blueskyCardDescription = savedStateHandle[KEY_CARD_DESC]
 
         // Phasen mit wiederherstellen (§12.3 Nr. 4): Sonst wären die geretteten Texte im State,
         // aber unsichtbar — und der nächste Klick würde den bezahlten KI-Call wiederholen.
@@ -119,6 +128,7 @@ class MainViewModel(
         // generierten Texte des VORHERIGEN Artikels stehen und wären sendbar.
         siteName = null
         imageUrl = null
+        resetCard()
         val empty = NetworkPost()
         uiState = uiState.copy(
             urlInput = url,
@@ -169,6 +179,7 @@ class MainViewModel(
     fun startNew() {
         siteName = null
         imageUrl = null
+        resetCard()
         val empty = NetworkPost()
         uiState = uiState.copy(
             urlInput = "",
@@ -185,14 +196,15 @@ class MainViewModel(
             blueskyStatus = PostStatus.Idle,
         )
         listOf(
-            KEY_URL, KEY_META_TITLE, KEY_META_DESC, KEY_SITE, KEY_IMAGE,
+            KEY_URL, KEY_META_TITLE, KEY_META_DESC, KEY_SITE, KEY_IMAGE, KEY_LANG,
+            KEY_CARD_TITLE, KEY_CARD_DESC,
             KEY_M_TEXT, KEY_M_TAGS, KEY_B_TEXT, KEY_B_TAGS,
         ).forEach { savedStateHandle[it] = null }
     }
 
     /** „Neu generieren": nutzt die vorhandenen (ggf. editierten) Metadaten, ohne erneuten OG-Abruf. */
     fun regenerate() {
-        if (!uiState.canGenerate || uiState.isGenerating) return
+        if (!uiState.aiEnabled || !uiState.canGenerate || uiState.isGenerating) return
         generate()
     }
 
@@ -214,8 +226,10 @@ class MainViewModel(
             uiState = uiState.copy(fetchedUrl = uiState.urlInput)
             siteName = metadata?.siteName
             imageUrl = metadata?.imageUrl
+            articleLanguage = metadata?.language
             savedStateHandle[KEY_SITE] = siteName
             savedStateHandle[KEY_IMAGE] = imageUrl
+            savedStateHandle[KEY_LANG] = articleLanguage
 
             if (metadata != null && metadata.isUsable) {
                 log.info("Metadaten ok (og:site_name: ${metadata.siteName ?: "fehlt – nutze Domain"})")
@@ -235,20 +249,24 @@ class MainViewModel(
     }
 
     private fun generate() {
-        val config = container.credentialStore.loadMammouth()
-        if (config == null) {
+        val settings = container.credentialStore.loadAiSettings()
+        // KI aus: Nutzer schreibt selbst -> leere, editierbare Bereiche anzeigen.
+        if (!settings.enabled) {
+            enterManualMode()
+            return
+        }
+        if (!settings.hasActiveToken) {
             uiState = uiState.copy(
-                mammouthMissing = true,
+                aiTokenMissing = true,
                 generationPhase = GenerationPhase.Error(str(R.string.error_no_ai_token)),
             )
             return
         }
 
-        // Anzeigename fürs „… schreibt"-Feedback: Anbieter-Label bzw. die feste Modell-ID.
-        val modelLabel = config.fixedModelId
-            ?: ModelChoices.entries.firstOrNull { it.key == config.provider }?.label
-            ?: "KI"
-        uiState = uiState.copy(generationPhase = GenerationPhase.Generating, generatingWith = modelLabel)
+        uiState = uiState.copy(
+            generationPhase = GenerationPhase.Generating,
+            generatingWith = settings.active.displayName,
+        )
         viewModelScope.launch {
             uiState = try {
                 val metadata = PageMetadata(
@@ -257,8 +275,8 @@ class MainViewModel(
                     imageUrl = imageUrl,
                     siteName = siteName,
                 )
-                val posts = container.mammouthRepository.generate(
-                    config = config,
+                val posts = container.aiRepository.generate(
+                    settings = settings,
                     metadata = metadata,
                     mastodonMaxChars = uiState.mastodonMaxChars,
                     blueskyUrl = uiState.urlInput,
@@ -269,6 +287,7 @@ class MainViewModel(
                 val mastodon = NetworkPost(posts.de.text, posts.de.extraHashtags, uiState.urlInput)
                 val bluesky = NetworkPost(posts.en.text, posts.en.extraHashtags, uiState.urlInput)
                 persistPosts(mastodon, bluesky)
+                setCard(posts.en.cardTitle, posts.en.cardDescription)
                 uiState.copy(
                     generationPhase = GenerationPhase.Done,
                     generatingWith = null,
@@ -295,6 +314,28 @@ class MainViewModel(
                 )
             }
         }
+    }
+
+    /** KI aus: leere, editierbare Bereiche zum Selbstschreiben (Metadaten sind bereits geladen). */
+    private fun enterManualMode() {
+        val mastodon = NetworkPost(url = uiState.urlInput)
+        val bluesky = NetworkPost(url = uiState.urlInput)
+        persistPosts(mastodon, bluesky)
+        resetCard()
+        uiState = uiState.copy(
+            generationPhase = GenerationPhase.Done,
+            generatingWith = null,
+            postsEdited = false,
+            metadataPhase = if (uiState.metadataPhase == MetadataPhase.NeedsManual) {
+                MetadataPhase.Ready
+            } else {
+                uiState.metadataPhase
+            },
+            mastodon = mastodon,
+            bluesky = bluesky,
+            mastodonStatus = PostStatus.Idle,
+            blueskyStatus = PostStatus.Idle,
+        )
     }
 
     // --- Editieren ---
@@ -388,11 +429,14 @@ class MainViewModel(
         uiState = try {
             val post = composePost(uiState.bluesky.text, uiState.bluesky.extraHashtags, uiState.bluesky.url)
             val facets = computeFacets(post, uiState.bluesky.url)
+            // Englische Link-Vorschau aus der KI (§6); ohne KI Fallback auf die Metadaten.
             val card = uiState.bluesky.url.takeIf { it.isNotBlank() }?.let {
                 LinkCard(
                     uri = it,
-                    title = uiState.metaTitle,
-                    description = uiState.metaDescription,
+                    title = blueskyCardTitle?.ifBlank { null } ?: uiState.metaTitle,
+                    description = withSourceLanguageNote(
+                        blueskyCardDescription?.ifBlank { null } ?: uiState.metaDescription,
+                    ),
                     imageUrl = imageUrl,
                 )
             }
@@ -417,6 +461,39 @@ class MainViewModel(
         savedStateHandle[KEY_META_DESC] = uiState.metaDescription
     }
 
+    private fun setCard(title: String?, description: String?) {
+        blueskyCardTitle = title
+        blueskyCardDescription = description
+        savedStateHandle[KEY_CARD_TITLE] = title
+        savedStateHandle[KEY_CARD_DESC] = description
+    }
+
+    private fun resetCard() = setCard(null, null)
+
+    /**
+     * Hängt an die englische Karten-Beschreibung einen kurzen Sprachhinweis an, wenn der verlinkte
+     * Artikel nicht englisch ist (z. B. „(in German)") — Orientierung für die Bluesky-Leserschaft.
+     */
+    private fun withSourceLanguageNote(description: String): String {
+        val name = englishLanguageName(articleLanguage) ?: return description
+        val note = "(in $name)"
+        return if (description.isBlank()) note else "$description $note"
+    }
+
+    private fun englishLanguageName(code: String?): String? = when (code?.lowercase()?.take(2)) {
+        "de" -> "German"
+        "fr" -> "French"
+        "es" -> "Spanish"
+        "it" -> "Italian"
+        "nl" -> "Dutch"
+        "da" -> "Danish"
+        "sv" -> "Swedish"
+        "no" -> "Norwegian"
+        "pt" -> "Portuguese"
+        "pl" -> "Polish"
+        else -> null // en, unbekannt oder leer -> kein Hinweis
+    }
+
     private fun persistPosts(mastodon: NetworkPost, bluesky: NetworkPost) {
         savedStateHandle[KEY_M_TEXT] = mastodon.text
         savedStateHandle[KEY_M_TAGS] = mastodon.extraHashtags.toTagString()
@@ -433,6 +510,9 @@ class MainViewModel(
         const val KEY_META_DESC = "meta_desc"
         const val KEY_SITE = "site_name"
         const val KEY_IMAGE = "image_url"
+        const val KEY_LANG = "article_lang"
+        const val KEY_CARD_TITLE = "card_title"
+        const val KEY_CARD_DESC = "card_desc"
         const val KEY_M_TEXT = "m_text"
         const val KEY_M_TAGS = "m_tags"
         const val KEY_B_TEXT = "b_text"

@@ -55,8 +55,10 @@ data class MainUiState(
     val mastodonStatus: PostStatus = PostStatus.Idle,
     val blueskyStatus: PostStatus = PostStatus.Idle,
 
-    /** true, wenn kein Mammouth-Token gespeichert ist → Generieren gesperrt (§12.2 Nr. 11). */
-    val mammouthMissing: Boolean = false,
+    /** KI aktiv? Ist sie aus, schreibt der Nutzer die Texte selbst (§4.1). */
+    val aiEnabled: Boolean = true,
+    /** true, wenn KI aktiv, aber kein Token für den gewählten Dienst gespeichert ist (§12.2 Nr. 11). */
+    val aiTokenMissing: Boolean = false,
 ) {
     val hasAnyConnection: Boolean get() = mastodonConnected || blueskyConnected
 
@@ -88,8 +90,11 @@ data class MainUiState(
     val isGenerating: Boolean get() = generationPhase is GenerationPhase.Generating ||
         metadataPhase == MetadataPhase.Loading
 
-    /** Ohne Metadaten hat die KI keine Grundlage — im Fallback erst nach manueller Eingabe (§12.2 Nr. 2). */
-    val canGenerate: Boolean get() = !mammouthMissing && urlInput.isNotBlank() && hasActiveTarget &&
+    /**
+     * Ohne Metadaten hat die KI keine Grundlage — im Fallback erst nach manueller Eingabe (§12.2 Nr. 2).
+     * Bei aktiver KI ist zusätzlich ein Token nötig; bei ausgeschalteter KI nicht.
+     */
+    val canGenerate: Boolean get() = !aiTokenMissing && urlInput.isNotBlank() && hasActiveTarget &&
         (metadataPhase != MetadataPhase.NeedsManual || hasMetadata)
 
     val isDone: Boolean get() = generationPhase is GenerationPhase.Done

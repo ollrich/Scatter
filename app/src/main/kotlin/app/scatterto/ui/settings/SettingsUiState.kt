@@ -1,6 +1,7 @@
 package app.scatterto.ui.settings
 
 import app.scatterto.data.model.AccountInfo
+import app.scatterto.data.model.AiService
 import app.scatterto.data.model.ModelChoices
 
 /** UI-Zustand des Einstellungsmenüs (§4). */
@@ -8,11 +9,15 @@ data class SettingsUiState(
     val mastodonInfo: AccountInfo? = null,
     val blueskyInfo: AccountInfo? = null,
     val accountInfoLoading: Boolean = false,
-    // Mammouth
-    val mammouthToken: String = "",
-    val modelChoiceKey: String = ModelChoices.DEFAULT_KEY,
-    val customModelId: String = "",
-    val mammouthValidation: ValidationState = ValidationState.None,
+
+    // KI
+    val aiEnabled: Boolean = true,
+    val aiService: String = AiService.MAMMOUTH.key,
+    val aiTokens: Map<String, String> = emptyMap(),
+    val aiModels: Map<String, String> = emptyMap(),
+    val mammouthChoiceKey: String = ModelChoices.DEFAULT_KEY,
+    val mammouthCustomId: String = "",
+    val aiValidation: ValidationState = ValidationState.None,
 
     // Mastodon
     val mastodonInstance: String = "",
@@ -33,8 +38,12 @@ data class SettingsUiState(
     val blueskyError: String? = null,
     val blueskyConnecting: Boolean = false,
 ) {
-    /** true, wenn „Eigene Modell-ID" gewählt ist → Freitextfeld zeigen (§12.4 Nr. 3). */
-    val isCustomModel: Boolean get() = modelChoiceKey == ModelChoices.CUSTOM_KEY
+    val activeAiService: AiService get() = AiService.fromKey(aiService)
+    val currentToken: String get() = aiTokens[aiService].orEmpty()
+    fun modelText(service: AiService): String = aiModels[service.key] ?: service.defaultModel
+
+    /** true, wenn beim Mammouth-Dienst „Eigene Modell-ID" gewählt ist. */
+    val isMammouthCustom: Boolean get() = mammouthChoiceKey == ModelChoices.CUSTOM_KEY
 }
 
 sealed interface ValidationState {

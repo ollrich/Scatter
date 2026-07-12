@@ -20,11 +20,11 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -146,6 +146,7 @@ fun MainScreen(
                     MainBottomBar(
                         allSent = state.allSent,
                         canSend = canSend,
+                        showRegenerate = state.aiEnabled,
                         isGenerating = state.isGenerating,
                         onRegenerate = {
                             if (state.postsEdited) confirmRegenerate = true else viewModel.regenerate()
@@ -164,8 +165,8 @@ fun MainScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                if (state.mammouthMissing) {
-                    InfoBanner(stringResource(R.string.banner_no_ai)) { onOpen(Routes.MAMMOUTH) }
+                if (state.aiTokenMissing) {
+                    InfoBanner(stringResource(R.string.banner_no_ai)) { onOpen(Routes.AI) }
                 }
                 if (!state.hasAnyConnection) {
                     InfoBanner(stringResource(R.string.banner_no_network)) { onOpen(Routes.ACCOUNTS) }
@@ -203,10 +204,10 @@ fun MainScreen(
                         onClick = viewModel::onGenerateClick,
                         enabled = state.canGenerate && !state.isGenerating,
                         modifier = Modifier.fillMaxWidth(),
-                    ) { Text(stringResource(R.string.generate)) }
+                    ) { Text(stringResource(if (state.aiEnabled) R.string.generate else R.string.ai_continue)) }
                 }
 
-                if (state.isGenerating) {
+                if (state.generatingWith != null) {
                     GeneratingIndicator(state.generatingWith)
                 }
 
@@ -223,7 +224,7 @@ fun MainScreen(
                     when {
                         state.activeMastodon && mastodonSuccess != null ->
                             SuccessCard("Mastodon", MastodonViolet, state.mastodonAvatarUrl, mastodonSuccess.url)
-                        state.mastodonSendable -> NetworkPostSection(
+                        state.activeMastodon -> NetworkPostSection(
                             name = "Mastodon",
                             color = MastodonViolet,
                             avatarUrl = state.mastodonAvatarUrl,
@@ -238,14 +239,13 @@ fun MainScreen(
                             onUrl = viewModel::onMastodonUrlChange,
                             onRetry = viewModel::retryMastodon,
                         )
-                        state.activeMastodon -> MissingTextHint("Mastodon")
                     }
 
                     val blueskySuccess = state.blueskyStatus as? PostStatus.Success
                     when {
                         state.activeBluesky && blueskySuccess != null ->
                             SuccessCard("Bluesky", BlueskyBlue, state.blueskyAvatarUrl, blueskySuccess.url)
-                        state.blueskySendable -> NetworkPostSection(
+                        state.activeBluesky -> NetworkPostSection(
                             name = "Bluesky",
                             color = BlueskyBlue,
                             avatarUrl = state.blueskyAvatarUrl,
@@ -260,7 +260,6 @@ fun MainScreen(
                             onUrl = viewModel::onBlueskyUrlChange,
                             onRetry = viewModel::retryBluesky,
                         )
-                        state.activeBluesky -> MissingTextHint("Bluesky")
                     }
 
                     if (!state.allSent) {
@@ -294,6 +293,7 @@ fun MainScreen(
 private fun MainBottomBar(
     allSent: Boolean,
     canSend: Boolean,
+    showRegenerate: Boolean,
     isGenerating: Boolean,
     onRegenerate: () -> Unit,
     onSend: () -> Unit,
@@ -312,16 +312,18 @@ private fun MainBottomBar(
                     Text(stringResource(R.string.new_article))
                 }
             } else {
-                OutlinedButton(
-                    onClick = onRegenerate,
-                    enabled = !isGenerating,
-                    modifier = Modifier.weight(1f),
-                ) { Text(stringResource(R.string.regenerate)) }
+                if (showRegenerate) {
+                    FilledTonalButton(
+                        onClick = onRegenerate,
+                        enabled = !isGenerating,
+                        modifier = Modifier.weight(1f),
+                    ) { Text(stringResource(R.string.regenerate), maxLines = 1) }
+                }
                 Button(
                     onClick = onSend,
                     enabled = canSend,
-                    modifier = Modifier.weight(1.4f),
-                ) { Text(stringResource(R.string.send)) }
+                    modifier = Modifier.weight(1f),
+                ) { Text(stringResource(R.string.send), maxLines = 1) }
             }
         }
     }

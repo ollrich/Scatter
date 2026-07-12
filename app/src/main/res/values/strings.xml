@@ -10,21 +10,20 @@
     <string name="menu_about">Über</string>
     <string name="menu_close">Menü schließen</string>
     <string name="menu_open">Menü</string>
-    <string name="no_account_hint">Kein Konto verbunden – tippen zum Verbinden.</string>
+    <string name="no_account_hint">Kein Konto verbunden. Zum Verbinden tippen.</string>
 
     <!-- Hauptseite -->
-    <string name="start_hint">Teile einen Artikel aus einer beliebigen App – oder füge unten eine URL ein.</string>
+    <string name="start_hint">Teile einen Artikel aus einer beliebigen App, oder füge unten eine URL ein.</string>
     <string name="paste_from_clipboard">URL aus Zwischenablage</string>
     <string name="clipboard_no_url">Keine URL in der Zwischenablage</string>
     <string name="article_url">Artikel-URL</string>
     <string name="networks">Netzwerke</string>
     <string name="generate">Generieren</string>
-    <string name="regenerate">Neu generieren</string>
+    <string name="regenerate">Neu schreiben</string>
     <string name="send">Senden</string>
     <string name="sends_to">Sendet an</string>
     <string name="new_article">Neuer Artikel</string>
     <string name="generating_with">%1$s schreibt …</string>
-    <string name="missing_text_hint">Für %1$s wurde noch kein Text generiert – „Neu generieren“ erzeugt ihn.</string>
     <string name="to_settings">Zu den Einstellungen</string>
     <string name="banner_no_ai">Kein KI-Token gespeichert. Bitte in den Einstellungen hinterlegen.</string>
     <string name="banner_no_network">Kein Netzwerk verbunden. Bitte in den Einstellungen verbinden.</string>
@@ -43,13 +42,13 @@
 
     <!-- Metadaten -->
     <string name="metadata_title">Metadaten</string>
-    <string name="metadata_missing">Keine Metadaten gefunden – bitte manuell ergänzen:</string>
+    <string name="metadata_missing">Keine Metadaten gefunden. Bitte manuell ergänzen:</string>
     <string name="label_meta_title">Titel</string>
     <string name="label_meta_description">Beschreibung</string>
 
     <!-- Neu generieren -->
     <string name="regen_confirm_title">Bearbeitete Texte verwerfen?</string>
-    <string name="regen_confirm_text">Du hast die Post-Texte bearbeitet. „Neu generieren“ ersetzt sie durch neue KI-Texte.</string>
+    <string name="regen_confirm_text">Du hast die Post-Texte bearbeitet. „Neu schreiben“ ersetzt sie durch neue KI-Texte.</string>
 
     <!-- Konten -->
     <string name="disconnect">Trennen</string>
@@ -71,6 +70,13 @@
     <string name="details_loading">Details werden geladen …</string>
 
     <!-- KI-Einstellungen -->
+    <string name="ai_use">KI verwenden</string>
+    <string name="ai_disabled_hint">Ohne KI schreibst du die Posts selbst; die App bereitet nur URL, Link-Karte und Netzwerke vor.</string>
+    <string name="ai_service">KI-Dienst</string>
+    <string name="ai_info">Info</string>
+    <string name="ai_info_text">Hol dir deinen API-Token bei %1$s und füge ihn hier ein.</string>
+    <string name="ai_setup_guide">Einrichtungs-Anleitung (GitHub)</string>
+    <string name="ai_continue">Weiter</string>
     <string name="ai_token_label">API-Token</string>
     <string name="ai_token_show">Token anzeigen</string>
     <string name="model_label">Modell</string>
@@ -91,7 +97,7 @@
 
     <!-- Über -->
     <string name="version">Version %1$s</string>
-    <string name="about_description">Teile einen Artikel-Link und ScatterTo erstellt per KI je einen kurzen Post für Mastodon (Deutsch) und Bluesky (Englisch) – prüfen, anpassen, absenden.</string>
+    <string name="about_description">Teile einen Artikel-Link und ScatterTo erstellt per KI je einen kurzen Post für Mastodon (Deutsch) und Bluesky (Englisch). Prüfen, anpassen, absenden.</string>
     <string name="about_privacy">Keine Telemetrie, keine Weitergabe an Dritte außer den genutzten APIs. Zugangsdaten liegen ausschließlich verschlüsselt auf dem Gerät.</string>
     <string name="about_source">Quellcode auf GitHub</string>
     <string name="about_author_prefix">Ein privates Projekt von </string>
@@ -114,6 +120,6 @@
     <string name="error_generation_failed">Generierung fehlgeschlagen</string>
     <string name="error_post_failed">Fehler beim Posten</string>
     <string name="error_connect_failed">Verbindung fehlgeschlagen</string>
-    <string name="status_timeout_safe">Zeitüberschreitung – erneut versuchen ist sicher</string>
-    <string name="status_uncertain">Unklar – bitte im Bluesky-Profil prüfen</string>
+    <string name="status_timeout_safe">Zeitüberschreitung. Erneut versuchen ist sicher.</string>
+    <string name="status_uncertain">Unklar. Bitte im Bluesky-Profil prüfen.</string>
 </resources>

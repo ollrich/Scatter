@@ -3,7 +3,7 @@ package app.scatterto.data
 import android.content.Context
 import app.scatterto.data.bluesky.BlueskyRepository
 import app.scatterto.data.log.EventLog
-import app.scatterto.data.mammouth.MammouthRepository
+import app.scatterto.data.mammouth.AiRepository
 import app.scatterto.data.mastodon.MastodonRepository
 import app.scatterto.data.metadata.OgMetadataFetcher
 
@@ -18,7 +18,7 @@ class AppContainer(context: Context) {
     val themePreferences = ThemePreferences(context)
     val credentialStore = CredentialStore(context.applicationContext)
     val metadataFetcher = OgMetadataFetcher()
-    val mammouthRepository = MammouthRepository(eventLog)
+    val aiRepository = AiRepository(eventLog)
     val mastodonRepository = MastodonRepository()
     val blueskyRepository = BlueskyRepository(credentialStore, eventLog)
 }
