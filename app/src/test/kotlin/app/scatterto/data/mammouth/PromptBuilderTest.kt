@@ -7,6 +7,9 @@ import org.junit.Test
 
 class PromptBuilderTest {
 
+    private fun mastodon(budget: Int = 400) = GenTarget("mastodon", "Mastodon", "German", budget, wantsCard = false)
+    private fun bluesky(budget: Int = 240) = GenTarget("bluesky", "Bluesky", "English", budget, wantsCard = true)
+
     @Test fun blueskyBudgetSubtractsUrlGraphemesAndReserve() {
         val url = "https://a.de/x" // 14 Zeichen
         assertEquals(236, PromptBuilder.blueskyTextBudget(url)) // 300 - 14 - 50
@@ -20,23 +23,28 @@ class PromptBuilderTest {
         assertTrue(PromptBuilder.mastodonTextBudget(50) >= 60)
     }
 
-    @Test fun userPromptListsOnlyRequestedBudgets() {
-        val both = PromptBuilder.user("NDR", "Titel", "Beschreibung", deBudget = 400, enBudget = 240)
-        assertTrue(both.contains("de_text max. 400"))
-        assertTrue(both.contains("en_text max. 240"))
+    @Test fun userPromptListsRequestedBudgets() {
+        val both = PromptBuilder.user("NDR", "Titel", "Beschreibung", listOf(mastodon(400), bluesky(240)))
+        assertTrue(both.contains("mastodon_text max. 400"))
+        assertTrue(both.contains("bluesky_text max. 240"))
         assertTrue(both.contains("NDR"))
 
-        val deOnly = PromptBuilder.user("NDR", "T", "B", deBudget = 400, enBudget = null)
-        assertTrue(deOnly.contains("de_text max. 400"))
-        assertFalse(deOnly.contains("en_text"))
+        val onlyMastodon = PromptBuilder.user("NDR", "T", "B", listOf(mastodon(400)))
+        assertTrue(onlyMastodon.contains("mastodon_text max. 400"))
+        assertFalse(onlyMastodon.contains("bluesky_text"))
     }
 
-    @Test fun systemSchemaMatchesRequestedLanguages() {
-        assertTrue(PromptBuilder.system(wantDe = true, wantEn = true).contains(""""de""""))
-        assertTrue(PromptBuilder.system(wantDe = true, wantEn = true).contains(""""en""""))
+    @Test fun systemSchemaAndLanguagesMatchTargets() {
+        val both = PromptBuilder.system(listOf(mastodon(), bluesky()))
+        assertTrue(both.contains(""""mastodon""""))
+        assertTrue(both.contains(""""bluesky""""))
+        assertTrue(both.contains("German"))
+        assertTrue(both.contains("English"))
+        assertTrue(both.contains("card_title")) // Bluesky verlangt eine Link-Karte
 
-        val deOnly = PromptBuilder.system(wantDe = true, wantEn = false)
-        assertTrue(deOnly.contains(""""de""""))
-        assertFalse(deOnly.contains(""""en":{"""))
+        val onlyMastodon = PromptBuilder.system(listOf(mastodon()))
+        assertTrue(onlyMastodon.contains(""""mastodon""""))
+        assertFalse(onlyMastodon.contains(""""bluesky":{"""))
+        assertFalse(onlyMastodon.contains("card_title")) // ohne Bluesky keine Karte
     }
 }

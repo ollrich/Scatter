@@ -48,6 +48,6 @@ data class AiLangResult(
 
 @Serializable
 data class AiResult(
-    val de: AiLangResult = AiLangResult(),
-    val en: AiLangResult = AiLangResult(),
+    val mastodon: AiLangResult = AiLangResult(),
+    val bluesky: AiLangResult = AiLangResult(),
 )

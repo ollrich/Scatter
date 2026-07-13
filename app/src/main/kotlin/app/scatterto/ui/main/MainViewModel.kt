@@ -9,12 +9,16 @@ import androidx.lifecycle.viewModelScope
 import app.scatterto.core.composePost
 import app.scatterto.core.computeFacets
 import app.scatterto.core.extractUrl
+import app.scatterto.core.mediumNameFrom
 import app.scatterto.core.normalizeHashtag
 import app.scatterto.core.stripTrackingParams
 import app.scatterto.data.AppContainer
 import app.scatterto.data.bluesky.LinkCard
 import app.scatterto.R
+import app.scatterto.data.mammouth.GenTarget
+import app.scatterto.data.mammouth.PromptBuilder
 import app.scatterto.data.metadata.PageMetadata
+import app.scatterto.data.model.PostLanguages
 import app.scatterto.data.net.ApiException
 import app.scatterto.ui.PostStatus
 import kotlinx.coroutines.launch
@@ -69,6 +73,8 @@ class MainViewModel(
             mastodonAvatarUrl = mastodon?.avatarUrl,
             blueskyAvatarUrl = bluesky?.avatarUrl,
             mastodonMaxChars = mastodon?.maxCharacters ?: 500,
+            mastodonLanguage = mastodon?.effectiveLanguage ?: "de",
+            blueskyLanguage = bluesky?.effectiveLanguage ?: "en",
             aiEnabled = ai.enabled,
             aiTokenMissing = ai.enabled && !ai.hasActiveToken,
         )
@@ -275,19 +281,33 @@ class MainViewModel(
                     imageUrl = imageUrl,
                     siteName = siteName,
                 )
-                val posts = container.aiRepository.generate(
-                    settings = settings,
-                    metadata = metadata,
-                    mastodonMaxChars = uiState.mastodonMaxChars,
-                    blueskyUrl = uiState.urlInput,
-                    wantDe = uiState.activeMastodon,
-                    wantEn = uiState.activeBluesky,
-                )
+                val targets = buildList {
+                    if (uiState.activeMastodon) add(
+                        GenTarget(
+                            key = "mastodon", label = "Mastodon",
+                            languageName = PostLanguages.englishName(uiState.mastodonLanguage)
+                                .ifBlank { uiState.mastodonLanguage },
+                            budget = PromptBuilder.mastodonTextBudget(uiState.mastodonMaxChars),
+                            wantsCard = false,
+                        ),
+                    )
+                    if (uiState.activeBluesky) add(
+                        GenTarget(
+                            key = "bluesky", label = "Bluesky",
+                            languageName = PostLanguages.englishName(uiState.blueskyLanguage)
+                                .ifBlank { uiState.blueskyLanguage },
+                            budget = PromptBuilder.blueskyTextBudget(uiState.urlInput),
+                            wantsCard = true,
+                        ),
+                    )
+                }
+                val medium = siteName ?: mediumNameFrom(uiState.urlInput)
+                val posts = container.aiRepository.generate(settings, metadata, medium, targets)
                 mastodonIdempotencyKey = UUID.randomUUID().toString()
-                val mastodon = NetworkPost(posts.de.text, posts.de.extraHashtags, uiState.urlInput)
-                val bluesky = NetworkPost(posts.en.text, posts.en.extraHashtags, uiState.urlInput)
+                val mastodon = NetworkPost(posts.mastodon.text, posts.mastodon.extraHashtags, uiState.urlInput)
+                val bluesky = NetworkPost(posts.bluesky.text, posts.bluesky.extraHashtags, uiState.urlInput)
                 persistPosts(mastodon, bluesky)
-                setCard(posts.en.cardTitle, posts.en.cardDescription)
+                setCard(posts.bluesky.cardTitle, posts.bluesky.cardDescription)
                 uiState.copy(
                     generationPhase = GenerationPhase.Done,
                     generatingWith = null,
@@ -405,7 +425,7 @@ class MainViewModel(
         log.info("Mastodon: sende…")
         uiState = try {
             val post = composePost(uiState.mastodon.text, uiState.mastodon.extraHashtags, uiState.mastodon.url)
-            val url = container.mastodonRepository.post(account, post, mastodonIdempotencyKey, language = MASTODON_LANG)
+            val url = container.mastodonRepository.post(account, post, mastodonIdempotencyKey, language = account.effectiveLanguage)
             log.info("Mastodon: gepostet")
             uiState.copy(mastodonStatus = PostStatus.Success(url))
         } catch (e: SocketTimeoutException) {
@@ -429,18 +449,20 @@ class MainViewModel(
         uiState = try {
             val post = composePost(uiState.bluesky.text, uiState.bluesky.extraHashtags, uiState.bluesky.url)
             val facets = computeFacets(post, uiState.bluesky.url)
-            // Englische Link-Vorschau aus der KI (§6); ohne KI Fallback auf die Metadaten.
+            val lang = account.effectiveLanguage
+            // Link-Vorschau aus der KI (§6, in der Bluesky-Sprache); ohne KI Fallback auf die Metadaten.
             val card = uiState.bluesky.url.takeIf { it.isNotBlank() }?.let {
                 LinkCard(
                     uri = it,
                     title = blueskyCardTitle?.ifBlank { null } ?: uiState.metaTitle,
                     description = withSourceLanguageNote(
                         blueskyCardDescription?.ifBlank { null } ?: uiState.metaDescription,
+                        lang,
                     ),
                     imageUrl = imageUrl,
                 )
             }
-            val url = container.blueskyRepository.post(account, post, facets, card, langs = BLUESKY_LANGS)
+            val url = container.blueskyRepository.post(account, post, facets, card, langs = listOf(lang))
             log.info("Bluesky: gepostet (${facets.size} Facets)")
             uiState.copy(blueskyStatus = PostStatus.Success(url))
         } catch (e: SocketTimeoutException) {
@@ -471,27 +493,16 @@ class MainViewModel(
     private fun resetCard() = setCard(null, null)
 
     /**
-     * Hängt an die englische Karten-Beschreibung einen kurzen Sprachhinweis an, wenn der verlinkte
-     * Artikel nicht englisch ist (z. B. „(in German)") — Orientierung für die Bluesky-Leserschaft.
+     * Hängt an die Karten-Beschreibung einen kurzen Sprachhinweis an (z. B. „(in German)"), wenn der
+     * verlinkte Artikel in einer ANDEREN Sprache ist als der Bluesky-Post — Orientierung für die
+     * Leserschaft. Der Hinweis bleibt bewusst englisch (kompakte, breit verständliche Konvention).
      */
-    private fun withSourceLanguageNote(description: String): String {
-        val name = englishLanguageName(articleLanguage) ?: return description
+    private fun withSourceLanguageNote(description: String, postLanguage: String): String {
+        val article = articleLanguage?.let { PostLanguages.primary(it) } ?: return description
+        if (article == PostLanguages.primary(postLanguage)) return description
+        val name = PostLanguages.englishName(article).ifBlank { return description }
         val note = "(in $name)"
         return if (description.isBlank()) note else "$description $note"
-    }
-
-    private fun englishLanguageName(code: String?): String? = when (code?.lowercase()?.take(2)) {
-        "de" -> "German"
-        "fr" -> "French"
-        "es" -> "Spanish"
-        "it" -> "Italian"
-        "nl" -> "Dutch"
-        "da" -> "Danish"
-        "sv" -> "Swedish"
-        "no" -> "Norwegian"
-        "pt" -> "Portuguese"
-        "pl" -> "Polish"
-        else -> null // en, unbekannt oder leer -> kein Hinweis
     }
 
     private fun persistPosts(mastodon: NetworkPost, bluesky: NetworkPost) {
@@ -517,9 +528,5 @@ class MainViewModel(
         const val KEY_M_TAGS = "m_tags"
         const val KEY_B_TEXT = "b_text"
         const val KEY_B_TAGS = "b_tags"
-
-        // Feste Zuordnung DE=Mastodon / EN=Bluesky (§1); wird mit Multi-Language konfigurierbar.
-        const val MASTODON_LANG = "de"
-        val BLUESKY_LANGS = listOf("en")
     }
 }

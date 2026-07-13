@@ -41,7 +41,19 @@ interface AnthropicApi {
         @Header("anthropic-version") version: String,
         @Body request: AnthropicRequest,
     ): AnthropicResponse
+
+    @GET("v1/models")
+    suspend fun models(
+        @Header("x-api-key") apiKey: String,
+        @Header("anthropic-version") version: String,
+    ): AnthropicModelsResponse
 }
+
+@Serializable
+data class AnthropicModelsResponse(val data: List<AnthropicModel> = emptyList())
+
+@Serializable
+data class AnthropicModel(val id: String = "")
 
 // --- Google Gemini: POST /v1beta/models/{model}:generateContent ---
 
@@ -87,4 +99,7 @@ interface GeminiApi {
 data class GeminiModelsResponse(val models: List<GeminiModel> = emptyList())
 
 @Serializable
-data class GeminiModel(val name: String = "")
+data class GeminiModel(
+    val name: String = "",
+    @SerialName("supportedGenerationMethods") val supportedGenerationMethods: List<String> = emptyList(),
+)

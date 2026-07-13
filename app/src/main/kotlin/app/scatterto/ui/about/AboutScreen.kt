@@ -77,7 +77,9 @@ fun AboutScreen(onBack: () -> Unit) {
 
             Text(stringResource(R.string.about_description), style = MaterialTheme.typography.bodyMedium)
             val author = buildAnnotatedString {
+                // Trennzeichen bewusst hier: Android trimmt ein Leerzeichen am String-Ende weg.
                 append(stringResource(R.string.about_author_prefix))
+                append(" ")
                 withLink(LinkAnnotation.Url("https://eichhof.me")) {
                     withStyle(
                         SpanStyle(

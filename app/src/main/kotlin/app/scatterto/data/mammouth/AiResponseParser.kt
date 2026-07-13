@@ -16,9 +16,9 @@ class AiParseException(message: String, cause: Throwable? = null) : Exception(me
 object AiResponseParser {
 
     /**
-     * @param wantDe / [wantEn] welche Sprachen angefordert wurden — nur diese müssen vorhanden sein.
+     * @param wantMastodon / [wantBluesky] welche Netzwerke angefordert wurden — nur diese müssen da sein.
      */
-    fun parse(content: String?, wantDe: Boolean = true, wantEn: Boolean = true): GeneratedPosts {
+    fun parse(content: String?, wantMastodon: Boolean = true, wantBluesky: Boolean = true): GeneratedPosts {
         if (content.isNullOrBlank()) throw AiParseException("Leere KI-Antwort")
 
         val jsonObject = extractJsonObject(content)
@@ -28,18 +28,20 @@ object AiResponseParser {
             throw AiParseException("Antwort nicht im erwarteten JSON-Format", e)
         }
 
-        if ((wantDe && raw.de.text.isBlank()) || (wantEn && raw.en.text.isBlank())) {
+        if ((wantMastodon && raw.mastodon.text.isBlank()) || (wantBluesky && raw.bluesky.text.isBlank())) {
             throw AiParseException("KI-Antwort ohne Post-Text")
         }
 
         return GeneratedPosts(
-            de = if (wantDe) GeneratedPost(raw.de.text.trim(), cleanTags(raw.de.extraHashtags)) else EMPTY,
-            en = if (wantEn) {
+            mastodon = if (wantMastodon) {
+                GeneratedPost(raw.mastodon.text.trim(), cleanTags(raw.mastodon.extraHashtags))
+            } else EMPTY,
+            bluesky = if (wantBluesky) {
                 GeneratedPost(
-                    text = raw.en.text.trim(),
-                    extraHashtags = cleanTags(raw.en.extraHashtags),
-                    cardTitle = raw.en.cardTitle.trim().ifBlank { null },
-                    cardDescription = raw.en.cardDescription.trim().ifBlank { null },
+                    text = raw.bluesky.text.trim(),
+                    extraHashtags = cleanTags(raw.bluesky.extraHashtags),
+                    cardTitle = raw.bluesky.cardTitle.trim().ifBlank { null },
+                    cardDescription = raw.bluesky.cardDescription.trim().ifBlank { null },
                 )
             } else EMPTY,
         )

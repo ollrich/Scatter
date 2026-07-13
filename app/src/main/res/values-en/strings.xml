@@ -68,6 +68,7 @@
     <string name="last_post">Last post</string>
     <string name="open_profile">Open profile</string>
     <string name="details_loading">Loading details …</string>
+    <string name="post_language_label">Post language</string>
 
     <!-- AI settings -->
     <string name="ai_use">Use AI</string>
@@ -79,8 +80,13 @@
     <string name="ai_continue">Continue</string>
     <string name="ai_token_label">API token</string>
     <string name="ai_token_show">Show token</string>
+    <string name="ai_provider">Provider</string>
     <string name="model_label">Model</string>
-    <string name="custom_model_label">Custom model ID</string>
+    <string name="models_reload">Reload models</string>
+    <string name="models_loading">Loading models …</string>
+    <string name="models_error">Could not load models. Check the token and reload.</string>
+    <string name="models_need_token">Enter a token, then load the models.</string>
+    <string name="models_empty">No matching models found.</string>
     <string name="save">Save</string>
     <string name="validate_checking">Checking token …</string>
     <string name="validate_valid">Token valid ✓</string>
@@ -97,10 +103,10 @@
 
     <!-- About -->
     <string name="version">Version %1$s</string>
-    <string name="about_description">Share an article link and ScatterTo creates a short AI post each for Mastodon (German) and Bluesky (English). Review, adjust, send.</string>
+    <string name="about_description">Share an article link and ScatterTo creates a short AI post each for Mastodon and Bluesky, in the language you choose per network. Review, adjust, send.</string>
     <string name="about_privacy">No telemetry, no sharing with third parties other than the APIs you use. Credentials are stored encrypted on the device only.</string>
     <string name="about_source">Source code on GitHub</string>
-    <string name="about_author_prefix">A personal project by </string>
+    <string name="about_author_prefix">A personal project by</string>
 
     <!-- Log -->
     <string name="log_copy">Copy to clipboard</string>

@@ -1,5 +1,6 @@
 package app.scatterto.ui.settings
 
+import android.content.res.Resources
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -7,10 +8,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.scatterto.data.AppContainer
 import app.scatterto.R
+import app.scatterto.data.mammouth.MammouthProvider
+import app.scatterto.data.mammouth.ModelCatalog
 import app.scatterto.data.model.AiService
 import app.scatterto.data.model.AiSettings
-import app.scatterto.data.model.ModelChoices
-import app.scatterto.data.model.ModelProvider
+import app.scatterto.data.model.PostLanguages
 import app.scatterto.data.net.ApiException
 import kotlinx.coroutines.launch
 
@@ -29,39 +31,37 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
         load()
     }
 
+    /** Rohe Mammouth-Modell-Liste (alle Anbieter) — zum Umfiltern bei Anbieterwechsel ohne Neuabruf. */
+    private var mammouthAllModels: List<String> = emptyList()
+
     private fun load() {
         val ai = container.credentialStore.loadAiSettings()
         val mastodon = container.credentialStore.loadMastodon()
         val bluesky = container.credentialStore.loadBluesky()
 
-        val mm = ai.models[AiService.MAMMOUTH.key]
-        val providerKeys = ModelProvider.entries.map { it.key }
-        val choiceKey = when {
-            mm.isNullOrBlank() -> ModelChoices.DEFAULT_KEY
-            mm in providerKeys -> mm
-            // Die alte Auswahl „Mammouth-Empfohlen" ist kein aufrufbares Modell -> auf Standard migrieren.
-            mm == ModelChoices.LEGACY_RECOMMENDED_ID -> ModelChoices.DEFAULT_KEY
-            else -> ModelChoices.CUSTOM_KEY
-        }
-        val custom = if (choiceKey == ModelChoices.CUSTOM_KEY) mm.orEmpty() else ""
+        val mammouthModel = ai.models[AiService.MAMMOUTH.key].orEmpty()
+        val provider = MammouthProvider.ofModel(mammouthModel) ?: MammouthProvider.DEFAULT
 
         uiState = uiState.copy(
             aiEnabled = ai.enabled,
             aiService = ai.activeService,
             aiTokens = ai.tokens,
             aiModels = ai.models,
-            mammouthChoiceKey = choiceKey,
-            mammouthCustomId = custom,
+            mammouthProvider = provider.key,
             mastodonInstance = mastodon?.instanceUrl.orEmpty(),
             mastodonConnected = mastodon != null,
             mastodonHandle = mastodon?.handle,
             mastodonAvatarUrl = mastodon?.avatarUrl,
+            mastodonLanguage = mastodon?.effectiveLanguage ?: "de",
             blueskyIdentifier = bluesky?.identifier.orEmpty(),
             blueskyPds = bluesky?.pdsUrl ?: uiState.blueskyPds,
             blueskyConnected = bluesky != null,
             blueskyHandle = bluesky?.handle,
             blueskyAvatarUrl = bluesky?.avatarUrl,
+            blueskyLanguage = bluesky?.effectiveLanguage ?: "en",
         )
+        // Modelle des aktiven Dienstes laden, wenn schon ein Token gespeichert ist.
+        if (uiState.currentToken.isNotBlank()) refreshModels()
     }
 
     // --- KI ---
@@ -73,19 +73,68 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     }
 
     fun onServiceSelect(key: String) {
-        uiState = uiState.copy(aiService = key, aiValidation = ValidationState.None)
+        if (key == uiState.aiService) return
+        mammouthAllModels = emptyList()
+        uiState = uiState.copy(
+            aiService = key,
+            aiValidation = ValidationState.None,
+            availableModels = emptyList(),
+            modelsError = false,
+        )
+        if (uiState.currentToken.isNotBlank()) refreshModels()
     }
 
     fun onAiTokenChange(value: String) {
         uiState = uiState.copy(aiTokens = uiState.aiTokens + (uiState.aiService to value))
     }
 
-    fun onAiModelChange(value: String) {
-        uiState = uiState.copy(aiModels = uiState.aiModels + (uiState.aiService to value))
+    fun onMammouthProviderSelect(key: String) {
+        uiState = uiState.copy(mammouthProvider = key)
+        uiState = withModels(ModelCatalog.mammouthModels(MammouthProvider.fromKey(key), mammouthAllModels))
     }
 
-    fun onMammouthChoice(key: String) { uiState = uiState.copy(mammouthChoiceKey = key) }
-    fun onMammouthCustomChange(value: String) { uiState = uiState.copy(mammouthCustomId = value) }
+    fun onModelSelect(id: String) {
+        uiState = uiState.copy(aiModels = uiState.aiModels + (uiState.aiService to id))
+    }
+
+    /** Modell-Liste des aktiven Dienstes laden — nur nach Token-Eingabe (§4.1). */
+    fun refreshModels() {
+        val service = uiState.activeAiService
+        val token = uiState.currentToken.trim()
+        if (token.isBlank()) return
+        uiState = uiState.copy(modelsLoading = true, modelsError = false)
+        viewModelScope.launch {
+            val result = runCatching { container.aiRepository.availableModels(service, token) }
+            // Dienst zwischenzeitlich gewechselt? Dann veraltetes Ergebnis verwerfen.
+            if (uiState.aiService != service.key) return@launch
+            uiState = result.fold(
+                onSuccess = { ids ->
+                    val filtered = if (service == AiService.MAMMOUTH) {
+                        mammouthAllModels = ids
+                        ModelCatalog.mammouthModels(MammouthProvider.fromKey(uiState.mammouthProvider), ids)
+                    } else {
+                        ModelCatalog.directModels(service, ids)
+                    }
+                    withModels(filtered)
+                },
+                onFailure = {
+                    uiState.copy(modelsLoading = false, modelsError = true, availableModels = emptyList())
+                },
+            )
+        }
+    }
+
+    /** Übernimmt die gefilterte Liste und wählt ein Modell vor (Bestand behalten, sonst neuestes). */
+    private fun withModels(models: List<String>): SettingsUiState {
+        val current = uiState.currentModel
+        val selected = if (current.isNotBlank() && current in models) current else models.firstOrNull().orEmpty()
+        return uiState.copy(
+            availableModels = models,
+            modelsLoading = false,
+            modelsError = false,
+            aiModels = uiState.aiModels + (uiState.aiService to selected),
+        )
+    }
 
     fun saveAi() {
         val settings = buildAiSettings()
@@ -105,18 +154,6 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
         val models = uiState.aiModels
             .mapValues { it.value.trim() }
             .filterValues { it.isNotBlank() }
-            .toMutableMap()
-        // Mammouth-Modell aus Dropdown/Custom-Feld ableiten.
-        val mammouthModel = if (uiState.mammouthChoiceKey == ModelChoices.CUSTOM_KEY) {
-            uiState.mammouthCustomId.trim()
-        } else {
-            uiState.mammouthChoiceKey
-        }
-        if (mammouthModel.isNotBlank()) {
-            models[AiService.MAMMOUTH.key] = mammouthModel
-        } else {
-            models.remove(AiService.MAMMOUTH.key)
-        }
         return AiSettings(
             enabled = uiState.aiEnabled,
             activeService = uiState.aiService,
@@ -152,12 +189,14 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
             uiState = try {
                 val account = container.mastodonRepository
                     .connect(uiState.mastodonInstance, uiState.mastodonToken.trim())
+                    .copy(postLanguage = deviceLanguage())
                 container.credentialStore.saveMastodon(account)
                 uiState.copy(
                     mastodonConnecting = false,
                     mastodonConnected = true,
                     mastodonHandle = account.handle,
                     mastodonAvatarUrl = account.avatarUrl,
+                    mastodonLanguage = account.effectiveLanguage,
                     mastodonToken = "",
                 )
             } catch (e: ApiException) {
@@ -167,6 +206,18 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
             }
         }
     }
+
+    /** Post-Sprache eines verbundenen Mastodon-Kontos ändern (persistiert sofort). */
+    fun onMastodonLanguageChange(tag: String) {
+        val account = container.credentialStore.loadMastodon() ?: return
+        container.credentialStore.saveMastodon(account.copy(postLanguage = tag))
+        uiState = uiState.copy(mastodonLanguage = tag)
+    }
+
+    private fun deviceLanguage(): String =
+        PostLanguages.normalizedOrEnglish(
+            Resources.getSystem().configuration.locales.get(0).toLanguageTag(),
+        )
 
     fun disconnectMastodon() {
         container.credentialStore.clearMastodon()
@@ -214,13 +265,14 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
                     identifier = uiState.blueskyIdentifier,
                     appPassword = uiState.blueskyAppPassword,
                     pdsUrl = uiState.blueskyPds.ifBlank { "https://bsky.social" },
-                )
+                ).copy(postLanguage = deviceLanguage())
                 container.credentialStore.saveBluesky(account)
                 uiState.copy(
                     blueskyConnecting = false,
                     blueskyConnected = true,
                     blueskyHandle = account.handle,
                     blueskyAvatarUrl = account.avatarUrl,
+                    blueskyLanguage = account.effectiveLanguage,
                     blueskyAppPassword = "",
                 )
             } catch (e: ApiException) {
@@ -229,6 +281,13 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
                 uiState.copy(blueskyConnecting = false, blueskyError = e.message ?: str(R.string.error_connect_failed))
             }
         }
+    }
+
+    /** Post-Sprache eines verbundenen Bluesky-Kontos ändern (persistiert sofort). */
+    fun onBlueskyLanguageChange(tag: String) {
+        val account = container.credentialStore.loadBluesky() ?: return
+        container.credentialStore.saveBluesky(account.copy(postLanguage = tag))
+        uiState = uiState.copy(blueskyLanguage = tag)
     }
 
     fun disconnectBluesky() {

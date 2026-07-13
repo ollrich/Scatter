@@ -13,6 +13,6 @@ data class GeneratedPost(
 )
 
 data class GeneratedPosts(
-    val de: GeneratedPost,
-    val en: GeneratedPost,
+    val mastodon: GeneratedPost,
+    val bluesky: GeneratedPost,
 )

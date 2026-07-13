@@ -48,6 +48,9 @@ data class MainUiState(
     val mastodonAvatarUrl: String? = null,
     val blueskyAvatarUrl: String? = null,
     val mastodonMaxChars: Int = 500,
+    // Post-Sprache je Netzwerk (BCP-47), aus dem verbundenen Konto (§4.2).
+    val mastodonLanguage: String = "de",
+    val blueskyLanguage: String = "en",
 
     val mastodon: NetworkPost = NetworkPost(),
     val bluesky: NetworkPost = NetworkPost(),

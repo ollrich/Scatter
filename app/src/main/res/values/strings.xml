@@ -68,6 +68,7 @@
     <string name="last_post">Letztes Posting</string>
     <string name="open_profile">Profil öffnen</string>
     <string name="details_loading">Details werden geladen …</string>
+    <string name="post_language_label">Post-Sprache</string>
 
     <!-- KI-Einstellungen -->
     <string name="ai_use">KI verwenden</string>
@@ -79,8 +80,13 @@
     <string name="ai_continue">Weiter</string>
     <string name="ai_token_label">API-Token</string>
     <string name="ai_token_show">Token anzeigen</string>
+    <string name="ai_provider">Anbieter</string>
     <string name="model_label">Modell</string>
-    <string name="custom_model_label">Eigene Modell-ID</string>
+    <string name="models_reload">Modelle neu laden</string>
+    <string name="models_loading">Modelle werden geladen …</string>
+    <string name="models_error">Modelle konnten nicht geladen werden. Token prüfen und neu laden.</string>
+    <string name="models_need_token">Token eingeben, dann Modelle laden.</string>
+    <string name="models_empty">Keine passenden Modelle gefunden.</string>
     <string name="save">Speichern</string>
     <string name="validate_checking">Prüfe Token …</string>
     <string name="validate_valid">Token gültig ✓</string>
@@ -97,10 +103,10 @@
 
     <!-- Über -->
     <string name="version">Version %1$s</string>
-    <string name="about_description">Teile einen Artikel-Link und ScatterTo erstellt per KI je einen kurzen Post für Mastodon (Deutsch) und Bluesky (Englisch). Prüfen, anpassen, absenden.</string>
+    <string name="about_description">Teile einen Artikel-Link und ScatterTo erstellt per KI je einen kurzen Post für Mastodon und Bluesky, in der pro Netzwerk gewählten Sprache. Prüfen, anpassen, absenden.</string>
     <string name="about_privacy">Keine Telemetrie, keine Weitergabe an Dritte außer den genutzten APIs. Zugangsdaten liegen ausschließlich verschlüsselt auf dem Gerät.</string>
     <string name="about_source">Quellcode auf GitHub</string>
-    <string name="about_author_prefix">Ein privates Projekt von </string>
+    <string name="about_author_prefix">Ein privates Projekt von</string>
 
     <!-- Protokoll -->
     <string name="log_copy">In Zwischenablage kopieren</string>

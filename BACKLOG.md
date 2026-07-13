@@ -5,6 +5,27 @@ Offene Punkte, nach Aufwand und Priorität gruppiert. Die verbindliche Spezifika
 
 ## Später (Ausbau)
 
+- **Post-Sprache je Netzwerk konfigurierbar:** Statt fest DE=Mastodon / EN=Bluesky beim Verbinden
+  je Konto eine Post-Sprache wählen (Dropdown unter der Info-Box im Konten-Menü, später änderbar).
+  Sprachen als **BCP-47**-Tags, Anzeigenamen via `Locale`. Betrifft: Konten-Model (Sprache je Konto
+  speichern), Settings-UI, `PromptBuilder`/`AiResult`/`GeneratedPosts` (aktuell fest de/en →
+  parametrisieren, Schema besser nach Netzwerk statt Sprachcode keyen), Sende-Sprache
+  (`MASTODON_LANG`/`BLUESKY_LANGS` → aus Konto), Bluesky-Karten-Sprache + „(in <Sprache>)"-Hinweis,
+  sowie die App-Selbstbeschreibung (README DE/EN + `about_description` + Feature-Zeilen, da nicht mehr
+  fest Deutsch/Englisch). Größerer Umbau.
+- **Protokoll/Logs in der App-Sprache:** Log-Texte sind aktuell hart Deutsch (`log.info(...)` in
+  Repositories/VM). Nach `strings.xml` auslagern und beim Loggen lokalisieren (Alt-Einträge bleiben
+  in ihrer Ursprungssprache). Nutzer-Präferenz: an App-Sprache anpassen, nicht fix Englisch.
+- **Modell-Auswahl für die Direkt-Anbieter (Claude/OpenAI/Gemini):** Statt festem Modell-Textfeld
+  ein Dropdown je Anbieter mit den relevanten aktuellen Text-Modellen — **Anzahl pro Anbieter
+  unterschiedlich, kein fester Wert** (z. B. Claude: Haiku/Sonnet/Opus; Gemini: eigene Stufen wie
+  Flash-Lite/Flash/Pro; OpenAI: kuratierte Auswahl). Jeder Eintrag auf die **neueste Version**
+  aufgelöst. Zwei Wege: (1) kuratierte stabile Alias-IDs (einfach, App-Update bei neuer Generation
+  nötig) oder (2) live über den models-Endpunkt filtern/gruppieren — Gemini `GET /v1beta/models`
+  und OpenAI `GET /v1/models` sind schon verdrahtet, Claude bräuchte noch `GET /v1/models`. „Eigene
+  Modell-ID" bleibt als Fallback. Exakte Modell-IDs bei der Umsetzung gegen die Anbieter-Doku
+  prüfen (ändern sich laufend). Analog zu Mammouths `ModelResolver`, aber pro Anbieter eigene
+  Familien-Definition statt einer gemeinsamen Regel.
 - **Englische Bluesky-Link-Karte:** Das KI-Modell liefert im selben Call zusätzlich einen
   englischen Titel + Beschreibung fürs `app.bsky.embed.external` (URL bleibt die deutsche Quelle).
   **Dazu ein Hinweis, dass der verlinkte Artikel auf Deutsch ist** (z. B. „(Artikel auf Deutsch)"

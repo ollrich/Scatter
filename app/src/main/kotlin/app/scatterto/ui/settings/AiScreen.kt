@@ -3,26 +3,26 @@ package app.scatterto.ui.settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -48,8 +48,8 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.scatterto.R
+import app.scatterto.data.mammouth.MammouthProvider
 import app.scatterto.data.model.AiService
-import app.scatterto.data.model.ModelChoices
 import app.scatterto.ui.AppViewModelProvider
 
 private const val GUIDE_URL = "https://github.com/ollrich/ScatterTo/blob/main/docs/ai-setup.md"
@@ -62,8 +62,8 @@ private fun consoleFor(service: AiService): String = when (service) {
     AiService.GEMINI -> "aistudio.google.com/apikey"
 }
 
-/** KI: Ein-/Ausschalter, Dienst-Auswahl, Token und Modell (§4.1). */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+/** KI: Ein-/Ausschalter, Dienst-Auswahl (Dropdown + „?"), Token und Modell (§4.1). */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AiScreen(
     onBack: () -> Unit,
@@ -111,24 +111,17 @@ fun AiScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             } else {
-                // Dienst-Auswahl mit „?"-Info
+                // KI-Dienst-Dropdown + adaptives „?"
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        stringResource(R.string.ai_service),
-                        style = MaterialTheme.typography.titleSmall,
+                    ChoiceDropdown(
+                        label = stringResource(R.string.ai_service),
+                        selectedText = active.displayName,
+                        options = AiService.entries.map { it.key to it.displayName },
+                        onSelect = viewModel::onServiceSelect,
                         modifier = Modifier.weight(1f),
                     )
                     IconButton(onClick = { showInfo = true }) {
                         Icon(Icons.AutoMirrored.Outlined.HelpOutline, contentDescription = stringResource(R.string.ai_info))
-                    }
-                }
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    AiService.entries.forEach { svc ->
-                        FilterChip(
-                            selected = state.aiService == svc.key,
-                            onClick = { viewModel.onServiceSelect(svc.key) },
-                            label = { Text(svc.displayName) },
-                        )
                     }
                 }
 
@@ -149,17 +142,18 @@ fun AiScreen(
                     modifier = Modifier.fillMaxWidth(),
                 )
 
-                if (active == AiService.MAMMOUTH) {
-                    MammouthModelPicker(state, viewModel)
-                } else {
-                    OutlinedTextField(
-                        value = state.modelText(active),
-                        onValueChange = viewModel::onAiModelChange,
-                        label = { Text(stringResource(R.string.model_label)) },
-                        singleLine = true,
+                // Mammouth: zusätzlich die Anbieter-Wahl vor der Modell-Liste.
+                if (state.isMammouth) {
+                    ChoiceDropdown(
+                        label = stringResource(R.string.ai_provider),
+                        selectedText = MammouthProvider.fromKey(state.mammouthProvider).label,
+                        options = MammouthProvider.entries.map { it.key to it.label },
+                        onSelect = viewModel::onMammouthProviderSelect,
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }
+
+                ModelField(state, viewModel)
 
                 Button(onClick = viewModel::saveAi, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.save))
@@ -198,45 +192,93 @@ fun AiScreen(
     }
 }
 
-/** Mammouth-spezifische Modellauswahl: Anbieter-Dropdown mit optionaler eigener Modell-ID. */
+/** Read-only-Dropdown über eine feste Optionsliste (Dienst bzw. Mammouth-Anbieter). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun MammouthModelPicker(state: SettingsUiState, viewModel: SettingsViewModel) {
+private fun ChoiceDropdown(
+    label: String,
+    selectedText: String,
+    options: List<Pair<String, String>>,
+    onSelect: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     var expanded by remember { mutableStateOf(false) }
-    val selectedLabel = ModelChoices.entries.firstOrNull { it.key == state.mammouthChoiceKey }
-        ?.label ?: state.mammouthChoiceKey
-
-    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }, modifier = modifier) {
         OutlinedTextField(
-            value = selectedLabel,
+            value = selectedText,
             onValueChange = {},
             readOnly = true,
-            label = { Text(stringResource(R.string.model_label)) },
+            label = { Text(label) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier
                 .fillMaxWidth()
                 .menuAnchor(MenuAnchorType.PrimaryNotEditable),
         )
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            ModelChoices.entries.forEach { entry ->
-                DropdownMenuItem(
-                    text = { Text(entry.label) },
-                    onClick = {
-                        viewModel.onMammouthChoice(entry.key)
-                        expanded = false
-                    },
-                )
+            options.forEach { (key, text) ->
+                DropdownMenuItem(text = { Text(text) }, onClick = { onSelect(key); expanded = false })
             }
         }
     }
+}
 
-    if (state.isMammouthCustom) {
-        OutlinedTextField(
-            value = state.mammouthCustomId,
-            onValueChange = viewModel::onMammouthCustomChange,
-            label = { Text(stringResource(R.string.custom_model_label)) },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
+/** Live-Modell-Dropdown mit Nachlade-Button und Statushinweis (erst nach gültigem Token). */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ModelField(state: SettingsUiState, viewModel: SettingsViewModel) {
+    var expanded by remember { mutableStateOf(false) }
+    val hasToken = state.currentToken.isNotBlank()
+    val models = state.availableModels
+    val menuOpen = expanded && models.isNotEmpty()
+
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        ExposedDropdownMenuBox(
+            expanded = menuOpen,
+            onExpandedChange = { if (models.isNotEmpty()) expanded = it },
+            modifier = Modifier.weight(1f),
+        ) {
+            OutlinedTextField(
+                value = state.currentModel,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text(stringResource(R.string.model_label)) },
+                trailingIcon = {
+                    if (state.modelsLoading) {
+                        CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                    } else {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = menuOpen)
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+            )
+            ExposedDropdownMenu(expanded = menuOpen, onDismissRequest = { expanded = false }) {
+                models.forEach { id ->
+                    DropdownMenuItem(
+                        text = { Text(id) },
+                        onClick = { viewModel.onModelSelect(id); expanded = false },
+                    )
+                }
+            }
+        }
+        IconButton(onClick = viewModel::refreshModels, enabled = hasToken && !state.modelsLoading) {
+            Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.models_reload))
+        }
+    }
+
+    val hint = when {
+        !hasToken -> stringResource(R.string.models_need_token)
+        state.modelsLoading -> stringResource(R.string.models_loading)
+        state.modelsError -> stringResource(R.string.models_error)
+        models.isEmpty() -> stringResource(R.string.models_empty)
+        else -> null
+    }
+    hint?.let {
+        Text(
+            it,
+            style = MaterialTheme.typography.bodySmall,
+            color = if (state.modelsError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }

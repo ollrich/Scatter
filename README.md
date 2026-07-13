@@ -4,7 +4,7 @@
 
 # ScatterTo
 
-**Teile einen Artikel-Link — ScatterTo macht daraus per KI einen Mastodon-Post (Deutsch) und einen Bluesky-Post (Englisch). Prüfen, anpassen, absenden.**
+**Teile einen Artikel-Link — ScatterTo macht daraus per KI je einen Post für Mastodon und Bluesky, in der pro Netzwerk gewählten Sprache. Prüfen, anpassen, absenden.**
 
 🇩🇪 [Deutsch](#deutsch) · 🇬🇧 [English](#english)
 
@@ -14,15 +14,15 @@
 
 ## Deutsch
 
-ScatterTo ist eine native Android-App für Leute, die denselben Artikel auf **Mastodon** (deutsch) und **Bluesky** (englisch) teilen. Statt zweimal zu tippen: Link teilen → die App holt die Seiten-Metadaten, ein KI-Modell schreibt je einen kurzen, sachlichen Post pro Netzwerk → du prüfst, passt an und sendest.
+ScatterTo ist eine native Android-App für Leute, die denselben Artikel auf **Mastodon** und **Bluesky** teilen. Statt zweimal zu tippen: Link teilen → die App holt die Seiten-Metadaten, ein KI-Modell schreibt je einen kurzen, sachlichen Post pro Netzwerk (in der pro Netzwerk gewählten Sprache) → du prüfst, passt an und sendest.
 
 Es ist ein **persönlicher Ein-Nutzer-Client**: Token-basierte Anmeldung (kein OAuth), keine Telemetrie, Zugangsdaten nur verschlüsselt auf dem Gerät.
 
 ### Funktionen
 
 - **Share-Intent:** Link aus einer beliebigen App teilen — die URL landet direkt in ScatterTo.
-- **KI-Generierung** über [Mammouth.ai](https://mammouth.ai): sachlicher Stil, je ein Post für Mastodon (DE) und Bluesky (EN) — zwei eigenständige Texte, keine Übersetzung.
-- **Modellauswahl:** vier Anbieter (Mistral / Claude / GPT / Gemini) lösen automatisch auf das jeweils **aktuelle Flaggschiff-Modell** auf; alternativ eigene Modell-ID.
+- **KI-Generierung** über [Mammouth.ai](https://mammouth.ai): sachlicher Stil, je ein Post für Mastodon und Bluesky in der jeweils gewählten Sprache — eigenständige Texte, keine Übersetzung.
+- **Modellauswahl:** bei Mammouth wählst du erst den Anbieter (**GPT, Claude, Mistral, Gemini, Kimi, Qwen**) und darunter das konkrete Text-Modell; bei den Direkt-Diensten direkt das Modell. Die Modell-Listen kommen **live vom Anbieter** und aktualisieren sich selbst — neue Modelle erscheinen, abgekündigte verschwinden. Reasoning- und Code-Modelle sind ausgeblendet.
 - **Netzwerkauswahl je Post:** Mastodon oder Bluesky einzeln abwählen; abgewählte Netzwerke werden weder generiert noch gesendet.
 - **Editierbar:** Text, ergänzende Hashtags (als Chips) und URL pro Netzwerk, mit Zeichen-/Graphem-Zähler (Mastodon-Regeln vs. Bluesky-Grapheme).
 - **Bluesky korrekt:** klickbare Links und Hashtags (Facets über UTF-8-Byte-Offsets) plus Link-Vorschaukarte mit Vorschaubild.
@@ -57,7 +57,7 @@ Keine Telemetrie, kein Analytics. Zugangsdaten (Tokens, App-Password, JWTs) lieg
 
 Grobe Aussicht, ohne festen Termin:
 
-- **Englische Bluesky-Link-Karte** (englischer Karten-Titel/-Text) inkl. Hinweis, dass der verlinkte Artikel auf Deutsch ist.
+- **Bluesky-Link-Karte in der Post-Sprache** (Karten-Titel/-Text), inkl. Hinweis, wenn der verlinkte Artikel in einer anderen Sprache ist.
 - **App-Oberfläche in mehreren Sprachen** (Deutsch, Englisch, Dänisch).
 - **Mehrere Accounts** je Netzwerk, mit Sprachzuweisung pro Konto.
 - **Weitere KI-Anbieter** direkt (OpenAI, Claude, Gemini), KI optional abschaltbar.
@@ -77,15 +77,15 @@ Ein GitHub-Actions-Workflow baut bei jedem `v*`-Tag eine **signierte** Release-A
 
 ## English
 
-ScatterTo is a native Android app for people who share the same article on **Mastodon** (German) and **Bluesky** (English). Instead of typing twice: share a link → the app fetches the page metadata, an AI model writes one short, factual post per network → you review, tweak and send.
+ScatterTo is a native Android app for people who share the same article on **Mastodon** and **Bluesky**. Instead of typing twice: share a link → the app fetches the page metadata, an AI model writes one short, factual post per network (in the language you choose per network) → you review, tweak and send.
 
 It is a **personal single-user client**: token-based sign-in (no OAuth), no telemetry, credentials stored encrypted on the device only.
 
 ### Features
 
 - **Share intent:** share a link from any app — the URL lands straight in ScatterTo.
-- **AI generation** via [Mammouth.ai](https://mammouth.ai): factual tone, one post each for Mastodon (DE) and Bluesky (EN) — two independent texts, not a translation.
-- **Model choice:** four providers (Mistral / Claude / GPT / Gemini) auto-resolve to each one's **current flagship model**; or bring your own model ID.
+- **AI generation** via [Mammouth.ai](https://mammouth.ai): factual tone, one post each for Mastodon and Bluesky in the language you choose per network — independent texts, not a translation.
+- **Model choice:** with Mammouth you first pick the provider (**GPT, Claude, Mistral, Gemini, Kimi, Qwen**) and then the concrete text model below; with the direct services you pick the model directly. The model lists come **live from the provider** and update themselves — new models appear, retired ones disappear. Reasoning and code models are hidden.
 - **Per-post network selection:** disable Mastodon or Bluesky individually; a disabled network is neither generated nor sent.
 - **Editable:** text, extra hashtags (as chips) and URL per network, with character/grapheme counters (Mastodon rules vs. Bluesky graphemes).
 - **Bluesky done right:** clickable links and hashtags (facets via UTF-8 byte offsets) plus a link preview card with thumbnail.
@@ -120,7 +120,7 @@ No telemetry, no analytics. Credentials (tokens, app password, JWTs) are stored 
 
 Rough outlook, no fixed timeline:
 
-- **English Bluesky link card** (English card title/text), with a hint that the linked article is in German.
+- **Bluesky link card in the post language** (card title/text), with a hint when the linked article is in a different language.
 - **App interface in multiple languages** (German, English, Danish).
 - **Multiple accounts** per network, with a language assigned per account.
 - **More AI providers** directly (OpenAI, Claude, Gemini), AI optionally disableable.

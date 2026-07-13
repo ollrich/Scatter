@@ -8,7 +8,8 @@ enum class AiService(
     val displayName: String,
     val defaultModel: String,
 ) {
-    MAMMOUTH("mammouth", "Mammouth", ModelChoices.DEFAULT_KEY),
+    // Bei Mammouth wird das konkrete Modell aus der Live-Liste gewählt (kein sinnvoller Default).
+    MAMMOUTH("mammouth", "Mammouth", ""),
     CLAUDE("claude", "Claude", "claude-sonnet-4-5"),
     OPENAI("openai", "OpenAI", "gpt-4.1"),
     GEMINI("gemini", "Gemini", "gemini-2.5-flash");

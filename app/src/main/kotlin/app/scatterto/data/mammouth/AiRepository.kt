@@ -1,6 +1,5 @@
 package app.scatterto.data.mammouth
 
-import app.scatterto.core.mediumNameFrom
 import app.scatterto.data.log.EventLog
 import app.scatterto.data.metadata.PageMetadata
 import app.scatterto.data.model.AiService
@@ -37,25 +36,16 @@ class AiRepository(private val log: EventLog) {
     suspend fun generate(
         settings: AiSettings,
         metadata: PageMetadata,
-        mastodonMaxChars: Int,
-        blueskyUrl: String,
-        wantDe: Boolean,
-        wantEn: Boolean,
+        medium: String?,
+        targets: List<GenTarget>,
     ): GeneratedPosts {
         val service = settings.active
         val token = settings.token(service)
         val model = resolveModel(service, settings, token)
-        val medium = metadata.siteName ?: mediumNameFrom(blueskyUrl)
         log.info("KI: ${service.displayName} / $model, Medium ${medium ?: "unbekannt"}")
 
-        val system = PromptBuilder.system(wantDe, wantEn)
-        val user = PromptBuilder.user(
-            medium = medium,
-            title = metadata.title,
-            description = metadata.description,
-            deBudget = if (wantDe) PromptBuilder.mastodonTextBudget(mastodonMaxChars) else null,
-            enBudget = if (wantEn) PromptBuilder.blueskyTextBudget(blueskyUrl) else null,
-        )
+        val system = PromptBuilder.system(targets)
+        val user = PromptBuilder.user(medium, metadata.title, metadata.description, targets)
 
         val content = when (service) {
             AiService.MAMMOUTH -> openAiComplete(mammouthApi, token, model, system, user)
@@ -63,7 +53,11 @@ class AiRepository(private val log: EventLog) {
             AiService.CLAUDE -> claudeComplete(token, model, system, user)
             AiService.GEMINI -> geminiComplete(token, model, system, user)
         }
-        return AiResponseParser.parse(content, wantDe, wantEn)
+        return AiResponseParser.parse(
+            content,
+            wantMastodon = targets.any { it.key == "mastodon" },
+            wantBluesky = targets.any { it.key == "bluesky" },
+        )
     }
 
     /** Token-/Modell-Validierung (§4.1); für Mammouth/OpenAI via Modell-Liste, sonst nur Präsenz. */
@@ -131,26 +125,47 @@ class AiRepository(private val log: EventLog) {
         ).firstText()
     }
 
+    // --- Modell-Listen (für die Einstellungs-Dropdowns) ---
+
+    /**
+     * Rohe Modell-Liste eines Dienstes (ungefiltert — die UI filtert via [ModelCatalog]).
+     * Fehler werden durchgereicht, damit das Menü einen Ladefehler anzeigen kann.
+     */
+    suspend fun availableModels(service: AiService, token: String): List<String> = when (service) {
+        AiService.MAMMOUTH -> fetchMammouthModels(token)
+        AiService.OPENAI -> openAiApi.models(bearer(token)).data.map { it.id }
+        AiService.CLAUDE -> anthropicApi.models(token, ANTHROPIC_VERSION).data.map { it.id }
+        AiService.GEMINI -> geminiApi.models(token).models
+            .filter { "generateContent" in it.supportedGenerationMethods }
+            .map { it.name.removePrefix("models/") }
+    }
+
     // --- Modellauflösung ---
 
     private suspend fun resolveModel(service: AiService, settings: AiSettings, token: String): String {
-        if (service != AiService.MAMMOUTH) return settings.model(service)
-        // Mammouth: Provider-Schlüssel -> aktuelles Flaggschiff via /v1/models, sonst feste ID.
-        val choice = settings.model(AiService.MAMMOUTH)
-        return if (choice in MAMMOUTH_PROVIDERS) {
-            ModelResolver.resolve(choice, availableMammouthModels(token))
-        } else {
-            choice
-        }
+        val stored = settings.model(service).takeIf { it.isNotBlank() }
+        if (service != AiService.MAMMOUTH) return stored ?: service.defaultModel.ifBlank { FALLBACK_MODEL }
+        // Mammouth: gespeicherte konkrete ID nutzen, solange sie im Katalog steht — sonst das neueste
+        // Text-Modell des abgeleiteten Anbieters (Selbstheilung, falls Mammouth ein Modell entfernt).
+        val all = availableMammouthModels(token)
+        if (all.isEmpty()) return stored ?: FALLBACK_MODEL
+        if (stored != null && stored in all && ModelCatalog.isTextModel(stored)) return stored
+        val provider = stored?.let { MammouthProvider.ofModel(it) } ?: MammouthProvider.DEFAULT
+        return ModelCatalog.mammouthModels(provider, all).firstOrNull() ?: stored ?: FALLBACK_MODEL
     }
 
+    /** Nicht-werfende, gecachte Variante für die Generierung (Selbstheilung darf nie blockieren). */
     private suspend fun availableMammouthModels(token: String): List<String> {
         val now = System.currentTimeMillis()
         if (mammouthModelCache.isNotEmpty() && now - mammouthCacheAt < CACHE_TTL_MS) return mammouthModelCache
-        val ids = runCatching { mammouthApi.models(bearer(token)).data.map { it.id } }.getOrDefault(emptyList())
+        return runCatching { fetchMammouthModels(token) }.getOrDefault(emptyList())
+    }
+
+    private suspend fun fetchMammouthModels(token: String): List<String> {
+        val ids = mammouthApi.models(bearer(token)).data.map { it.id }
         if (ids.isNotEmpty()) {
             mammouthModelCache = ids
-            mammouthCacheAt = now
+            mammouthCacheAt = System.currentTimeMillis()
         }
         return ids
     }
@@ -158,7 +173,8 @@ class AiRepository(private val log: EventLog) {
     private fun bearer(token: String) = "Bearer $token"
 
     private companion object {
-        val MAMMOUTH_PROVIDERS = setOf("mistral", "claude", "gpt", "gemini")
         const val CACHE_TTL_MS = 30 * 60 * 1000L
+        const val ANTHROPIC_VERSION = "2023-06-01"
+        const val FALLBACK_MODEL = "gpt-4o" // extrem seltener Offline-Erstfall ohne je geladene Liste
     }
 }

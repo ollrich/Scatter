@@ -8,41 +8,15 @@ import kotlinx.serialization.Serializable
  * niemals loggen (§8).
  */
 
-/** Die vier Anbieter, hinter denen die App dynamisch das aktuelle Flaggschiff auflöst (§4.1). */
-enum class ModelProvider(val key: String, val displayName: String) {
-    MISTRAL("mistral", "Mistral (Large)"),
-    CLAUDE("claude", "Claude (Opus)"),
-    GPT("gpt", "GPT"),
-    GEMINI("gemini", "Gemini (Pro)"),
-}
-
-/** Ein Eintrag im Modell-Dropdown (§12.4 Nr. 3): Anbieter, „Empfohlen" oder Freitext. */
-data class ModelChoiceEntry(val key: String, val label: String)
-
-object ModelChoices {
-    const val CUSTOM_KEY = "custom"
-    const val DEFAULT_KEY = "mistral"
-
-    /**
-     * `mammouth-recommended` steht zwar in /v1/models, ist aber kein aufrufbares Modell, sondern ein
-     * OpenRouter-Preset (404 „preset_not_found"). Daher kein Dropdown-Eintrag — die Konstante bleibt
-     * nur, um alte gespeicherte Einstellungen darauf zu migrieren.
-     */
-    const val LEGACY_RECOMMENDED_ID = "mammouth-recommended"
-
-    val entries: List<ModelChoiceEntry> =
-        ModelProvider.entries.map { ModelChoiceEntry(it.key, it.displayName) } +
-            ModelChoiceEntry(CUSTOM_KEY, "Eigene Modell-ID…")
-}
-
 /**
- * Modellauswahl: entweder ein [provider] (App löst zur Laufzeit das aktuelle Flaggschiff auf)
- * oder eine feste [fixedModelId] („Empfohlen" bzw. Custom-ID). fixedModelId hat Vorrang.
+ * Alt-Format der Mammouth-Konfiguration (bis v0.7.x): entweder ein [provider]-Schlüssel oder eine
+ * feste [fixedModelId]. Bleibt nur, damit [app.scatterto.data.CredentialStore] gespeicherte
+ * Alt-Einstellungen nach [AiSettings] migrieren kann; neu geschrieben wird es nicht mehr.
  */
 @Serializable
 data class MammouthConfig(
     val token: String,
-    val provider: String? = ModelChoices.DEFAULT_KEY,
+    val provider: String? = "mistral",
     val fixedModelId: String? = null,
 )
 
@@ -54,7 +28,11 @@ data class MastodonAccount(
     val avatarUrl: String? = null,
     /** Aus GET /api/v1/instance ausgelesen; Fallback 500 (§12.2 Nr. 7). */
     val maxCharacters: Int = 500,
-)
+    /** Post-Sprache (BCP-47). Leer = Alt-Konto -> Fallback Deutsch. */
+    val postLanguage: String = "",
+) {
+    val effectiveLanguage: String get() = postLanguage.ifBlank { "de" }
+}
 
 @Serializable
 data class BlueskyAccount(
@@ -68,4 +46,8 @@ data class BlueskyAccount(
     // Persistierte Session (§12.1 Nr. 4): nicht bei jedem Start neu erzeugen.
     val accessJwt: String? = null,
     val refreshJwt: String? = null,
-)
+    /** Post-Sprache (BCP-47). Leer = Alt-Konto -> Fallback Englisch. */
+    val postLanguage: String = "",
+) {
+    val effectiveLanguage: String get() = postLanguage.ifBlank { "en" }
+}

@@ -68,6 +68,7 @@
     <string name="last_post">Seneste opslag</string>
     <string name="open_profile">Åbn profil</string>
     <string name="details_loading">Indlæser detaljer …</string>
+    <string name="post_language_label">Opslagssprog</string>
 
     <!-- AI-indstillinger -->
     <string name="ai_use">Brug AI</string>
@@ -79,8 +80,13 @@
     <string name="ai_continue">Videre</string>
     <string name="ai_token_label">API-token</string>
     <string name="ai_token_show">Vis token</string>
+    <string name="ai_provider">Udbyder</string>
     <string name="model_label">Model</string>
-    <string name="custom_model_label">Egen model-ID</string>
+    <string name="models_reload">Genindlæs modeller</string>
+    <string name="models_loading">Indlæser modeller …</string>
+    <string name="models_error">Kunne ikke indlæse modeller. Tjek token, og genindlæs.</string>
+    <string name="models_need_token">Indtast token, indlæs derefter modeller.</string>
+    <string name="models_empty">Ingen passende modeller fundet.</string>
     <string name="save">Gem</string>
     <string name="validate_checking">Kontrollerer token …</string>
     <string name="validate_valid">Token gyldig ✓</string>
@@ -97,10 +103,10 @@
 
     <!-- Om -->
     <string name="version">Version %1$s</string>
-    <string name="about_description">Del et artikel-link, og ScatterTo opretter et kort AI-opslag til hver af Mastodon (tysk) og Bluesky (engelsk). Gennemse, tilpas, send.</string>
+    <string name="about_description">Del et artikel-link, og ScatterTo opretter et kort AI-opslag til hver af Mastodon og Bluesky, i det sprog du vælger pr. netværk. Gennemse, tilpas, send.</string>
     <string name="about_privacy">Ingen telemetri, ingen deling med tredjeparter ud over de anvendte API\'er. Loginoplysninger gemmes udelukkende krypteret på enheden.</string>
     <string name="about_source">Kildekode på GitHub</string>
-    <string name="about_author_prefix">Et privat projekt af </string>
+    <string name="about_author_prefix">Et privat projekt af</string>
 
     <!-- Log -->
     <string name="log_copy">Kopiér til udklipsholder</string>

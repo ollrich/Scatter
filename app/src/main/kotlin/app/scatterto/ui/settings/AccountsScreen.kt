@@ -13,11 +13,15 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -45,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.scatterto.R
 import app.scatterto.data.model.AccountInfo
+import app.scatterto.data.model.PostLanguages
 import app.scatterto.ui.AppViewModelProvider
 import app.scatterto.ui.components.NetworkHeader
 import app.scatterto.ui.theme.BlueskyBlue
@@ -117,6 +122,7 @@ private fun MastodonCard(state: SettingsUiState, viewModel: SettingsViewModel, o
         NetworkHeader("Mastodon", MastodonViolet, state.mastodonAvatarUrl, state.mastodonHandle?.takeIf { state.mastodonConnected })
         if (state.mastodonConnected) {
             AccountDetails(stringResource(R.string.server_instance), state.mastodonInfo, state.accountInfoLoading)
+            LanguageDropdown(state.mastodonLanguage, viewModel::onMastodonLanguageChange)
             OutlinedButton(onClick = onDisconnect, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.disconnect)) }
         } else {
             OutlinedTextField(
@@ -150,6 +156,7 @@ private fun BlueskyCard(state: SettingsUiState, viewModel: SettingsViewModel, on
         NetworkHeader("Bluesky", BlueskyBlue, state.blueskyAvatarUrl, state.blueskyHandle?.takeIf { state.blueskyConnected })
         if (state.blueskyConnected) {
             AccountDetails(stringResource(R.string.server_pds), state.blueskyInfo, state.accountInfoLoading)
+            LanguageDropdown(state.blueskyLanguage, viewModel::onBlueskyLanguageChange)
             OutlinedButton(onClick = onDisconnect, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.disconnect)) }
         } else {
             OutlinedTextField(
@@ -218,6 +225,34 @@ private fun DetailRow(label: String, value: String) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+    }
+}
+
+/** Post-Sprache eines verbundenen Kontos (BCP-47) — Dropdown unter den Kontodetails (§4.2). */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LanguageDropdown(selected: String, onSelect: (String) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    val locale = Locale.getDefault()
+    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+        OutlinedTextField(
+            value = PostLanguages.displayName(selected, locale),
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(stringResource(R.string.post_language_label)) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+        )
+        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            PostLanguages.TAGS.forEach { tag ->
+                DropdownMenuItem(
+                    text = { Text(PostLanguages.displayName(tag, locale)) },
+                    onClick = { onSelect(tag); expanded = false },
+                )
+            }
+        }
     }
 }
 
