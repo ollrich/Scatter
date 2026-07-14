@@ -234,7 +234,13 @@ private fun ModelField(state: SettingsUiState, viewModel: SettingsViewModel) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         ExposedDropdownMenuBox(
             expanded = menuOpen,
-            onExpandedChange = { if (models.isNotEmpty()) expanded = it },
+            onExpandedChange = {
+                when {
+                    models.isNotEmpty() -> expanded = it
+                    // Leeres Dropdown angetippt, Token da: Liste laden statt leeres Menü öffnen.
+                    hasToken && !state.modelsLoading -> viewModel.refreshModels()
+                }
+            },
             modifier = Modifier.weight(1f),
         ) {
             OutlinedTextField(

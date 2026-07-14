@@ -69,6 +69,9 @@
     <string name="open_profile">Åbn profil</string>
     <string name="details_loading">Indlæser detaljer …</string>
     <string name="post_language_label">Opslagssprog</string>
+    <string name="post_language_info_title">Opslagssprog</string>
+    <string name="post_language_info_text">AI\'en skriver netværkets tekst på dette sprog, og opslaget mærkes med det. Standarden er dit systemsprog; du kan ændre det når som helst.</string>
+    <string name="partial_send_hint">Et aktivt netværk har ingen tekst og sendes ikke.</string>
 
     <!-- AI-indstillinger -->
     <string name="ai_use">Brug AI</string>

@@ -10,6 +10,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -228,31 +229,54 @@ private fun DetailRow(label: String, value: String) {
     }
 }
 
-/** Post-Sprache eines verbundenen Kontos (BCP-47) — Dropdown unter den Kontodetails (§4.2). */
+/** Post-Sprache eines verbundenen Kontos (BCP-47) — Dropdown + „?"-Info unter den Kontodetails (§4.2). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LanguageDropdown(selected: String, onSelect: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
+    var showInfo by remember { mutableStateOf(false) }
     val locale = Locale.getDefault()
-    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
-        OutlinedTextField(
-            value = PostLanguages.displayName(selected, locale),
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(stringResource(R.string.post_language_label)) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
-        )
-        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            PostLanguages.TAGS.forEach { tag ->
-                DropdownMenuItem(
-                    text = { Text(PostLanguages.displayName(tag, locale)) },
-                    onClick = { onSelect(tag); expanded = false },
-                )
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = it },
+            modifier = Modifier.weight(1f),
+        ) {
+            OutlinedTextField(
+                value = PostLanguages.displayName(selected, locale),
+                onValueChange = {},
+                readOnly = true,
+                label = { Text(stringResource(R.string.post_language_label)) },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+            )
+            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                PostLanguages.TAGS.forEach { tag ->
+                    DropdownMenuItem(
+                        text = { Text(PostLanguages.displayName(tag, locale)) },
+                        onClick = { onSelect(tag); expanded = false },
+                    )
+                }
             }
         }
+        IconButton(onClick = { showInfo = true }) {
+            Icon(
+                Icons.AutoMirrored.Outlined.HelpOutline,
+                contentDescription = stringResource(R.string.post_language_info_title),
+            )
+        }
+    }
+    if (showInfo) {
+        AlertDialog(
+            onDismissRequest = { showInfo = false },
+            title = { Text(stringResource(R.string.post_language_info_title)) },
+            text = { Text(stringResource(R.string.post_language_info_text)) },
+            confirmButton = {
+                TextButton(onClick = { showInfo = false }) { Text(stringResource(android.R.string.ok)) }
+            },
+        )
     }
 }
 

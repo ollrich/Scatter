@@ -69,6 +69,9 @@
     <string name="open_profile">Profil öffnen</string>
     <string name="details_loading">Details werden geladen …</string>
     <string name="post_language_label">Post-Sprache</string>
+    <string name="post_language_info_title">Post-Sprache</string>
+    <string name="post_language_info_text">In dieser Sprache erstellt die KI den Text für dieses Netzwerk, und der Post bekommt sie als Sprach-Tag. Grundeinstellung ist die Systemsprache; du kannst sie jederzeit ändern.</string>
+    <string name="partial_send_hint">Ein aktives Netzwerk hat keinen Text und wird nicht gesendet.</string>
 
     <!-- KI-Einstellungen -->
     <string name="ai_use">KI verwenden</string>

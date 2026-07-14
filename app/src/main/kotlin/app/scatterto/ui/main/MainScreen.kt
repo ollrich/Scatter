@@ -147,6 +147,7 @@ fun MainScreen(
                         allSent = state.allSent,
                         canSend = canSend,
                         showRegenerate = state.aiEnabled,
+                        regenerateEnabled = !state.aiTokenMissing,
                         isGenerating = state.isGenerating,
                         onRegenerate = {
                             if (state.postsEdited) confirmRegenerate = true else viewModel.regenerate()
@@ -264,6 +265,13 @@ fun MainScreen(
 
                     if (!state.allSent) {
                         SendTargets(state)
+                        if (state.isDone && state.hasPartialEmptyTarget) {
+                            Text(
+                                stringResource(R.string.partial_send_hint),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        }
                     }
                 }
             }
@@ -294,6 +302,7 @@ private fun MainBottomBar(
     allSent: Boolean,
     canSend: Boolean,
     showRegenerate: Boolean,
+    regenerateEnabled: Boolean,
     isGenerating: Boolean,
     onRegenerate: () -> Unit,
     onSend: () -> Unit,
@@ -315,7 +324,7 @@ private fun MainBottomBar(
                 if (showRegenerate) {
                     FilledTonalButton(
                         onClick = onRegenerate,
-                        enabled = !isGenerating,
+                        enabled = !isGenerating && regenerateEnabled,
                         modifier = Modifier.weight(1f),
                     ) { Text(stringResource(R.string.regenerate), maxLines = 1) }
                 }

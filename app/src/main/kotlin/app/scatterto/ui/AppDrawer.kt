@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.NavigationDrawerItem
@@ -39,6 +40,8 @@ import app.scatterto.ui.components.NetworkHeader
 import app.scatterto.ui.main.MainUiState
 import app.scatterto.ui.theme.BlueskyBlue
 import app.scatterto.ui.theme.MastodonViolet
+import app.scatterto.ui.theme.SeedPrimary
+import app.scatterto.ui.theme.isLightTheme
 
 /** Inhalt des Slide-Panels: Account-Kopf + Menüpunkte (§3). [onOpen] navigiert per Route. */
 @Composable
@@ -104,9 +107,11 @@ fun AppDrawerContent(state: MainUiState, onClose: () -> Unit, onOpen: (String) -
 
 @Composable
 private fun DrawerItem(label: String, icon: ImageVector, onClick: () -> Unit) {
+    // Menü-Icons im Hell-Modus im Icon-Blau; im Dunkel-Modus unverändert (Standard-Icon-Farbe).
+    val iconTint = if (isLightTheme()) SeedPrimary else LocalContentColor.current
     NavigationDrawerItem(
         label = { Text(label) },
-        icon = { Icon(icon, contentDescription = null) },
+        icon = { Icon(icon, contentDescription = null, tint = iconTint) },
         selected = false,
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),

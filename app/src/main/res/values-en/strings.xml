@@ -69,6 +69,9 @@
     <string name="open_profile">Open profile</string>
     <string name="details_loading">Loading details …</string>
     <string name="post_language_label">Post language</string>
+    <string name="post_language_info_title">Post language</string>
+    <string name="post_language_info_text">The AI writes this network\'s text in this language, and the post is tagged with it. The default is your system language; you can change it anytime.</string>
+    <string name="partial_send_hint">One active network has no text and will not be sent.</string>
 
     <!-- AI settings -->
     <string name="ai_use">Use AI</string>

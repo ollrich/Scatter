@@ -3,65 +3,92 @@
 Offene Punkte, nach Aufwand und Priorität gruppiert. Die verbindliche Spezifikation bleibt
 [pflichtenheft-share-app.md](pflichtenheft-share-app.md); dies hier ist die laufende Arbeitsliste.
 
-## Später (Ausbau)
+## v0.9.0 (nächstes Release)
 
-- **Post-Sprache je Netzwerk konfigurierbar:** Statt fest DE=Mastodon / EN=Bluesky beim Verbinden
-  je Konto eine Post-Sprache wählen (Dropdown unter der Info-Box im Konten-Menü, später änderbar).
-  Sprachen als **BCP-47**-Tags, Anzeigenamen via `Locale`. Betrifft: Konten-Model (Sprache je Konto
-  speichern), Settings-UI, `PromptBuilder`/`AiResult`/`GeneratedPosts` (aktuell fest de/en →
-  parametrisieren, Schema besser nach Netzwerk statt Sprachcode keyen), Sende-Sprache
-  (`MASTODON_LANG`/`BLUESKY_LANGS` → aus Konto), Bluesky-Karten-Sprache + „(in <Sprache>)"-Hinweis,
-  sowie die App-Selbstbeschreibung (README DE/EN + `about_description` + Feature-Zeilen, da nicht mehr
-  fest Deutsch/Englisch). Größerer Umbau.
-- **Protokoll/Logs in der App-Sprache:** Log-Texte sind aktuell hart Deutsch (`log.info(...)` in
+- **Logs in der App-Sprache:** Log-Texte sind aktuell hart Deutsch (`log.info(...)` in
   Repositories/VM). Nach `strings.xml` auslagern und beim Loggen lokalisieren (Alt-Einträge bleiben
-  in ihrer Ursprungssprache). Nutzer-Präferenz: an App-Sprache anpassen, nicht fix Englisch.
-- **Modell-Auswahl für die Direkt-Anbieter (Claude/OpenAI/Gemini):** Statt festem Modell-Textfeld
-  ein Dropdown je Anbieter mit den relevanten aktuellen Text-Modellen — **Anzahl pro Anbieter
-  unterschiedlich, kein fester Wert** (z. B. Claude: Haiku/Sonnet/Opus; Gemini: eigene Stufen wie
-  Flash-Lite/Flash/Pro; OpenAI: kuratierte Auswahl). Jeder Eintrag auf die **neueste Version**
-  aufgelöst. Zwei Wege: (1) kuratierte stabile Alias-IDs (einfach, App-Update bei neuer Generation
-  nötig) oder (2) live über den models-Endpunkt filtern/gruppieren — Gemini `GET /v1beta/models`
-  und OpenAI `GET /v1/models` sind schon verdrahtet, Claude bräuchte noch `GET /v1/models`. „Eigene
-  Modell-ID" bleibt als Fallback. Exakte Modell-IDs bei der Umsetzung gegen die Anbieter-Doku
-  prüfen (ändern sich laufend). Analog zu Mammouths `ModelResolver`, aber pro Anbieter eigene
-  Familien-Definition statt einer gemeinsamen Regel.
-- **Englische Bluesky-Link-Karte:** Das KI-Modell liefert im selben Call zusätzlich einen
-  englischen Titel + Beschreibung fürs `app.bsky.embed.external` (URL bleibt die deutsche Quelle).
-  **Dazu ein Hinweis, dass der verlinkte Artikel auf Deutsch ist** (z. B. „(Artikel auf Deutsch)"
-  im Text oder in der Karte). Kein externer Übersetzer nötig — datenschutzmäßig sauber (kein
-  weiterer Dritter), siehe unten.
-- **Translation-Service (später bewerten):** Für einen *Link* auf eine übersetzte Fassung bräuchte
-  es einen Ganzseiten-Übersetzer wie Google Translate. Datenschutzfreundliche Optionen
-  (LibreTranslate self-hosted, Lingva/SimplyTranslate) sind für Ganzseiten unzuverlässig
-  (Community-Instanzen offline/rate-limited). Erst bei Bedarf neu bewerten.
+  in ihrer Ursprungssprache). Präferenz: an App-Sprache anpassen, nicht fix Englisch.
+- **Dynamische Farben abschaltbar** + feste Akzentfarbe: Material You (Dynamic Color) ist aktuell
+  immer an; Schalter unter **Anzeige**, bei „aus" das App-Blau als festes Schema.
+- **Direkt-Anbieter-Modelllisten feintunen:** die Live-Filter für Claude/OpenAI/Gemini sind
+  „best effort" (nur Mammouths echter Katalog ist bekannt). Gegen die realen `models`-Ausgaben der
+  Anbieter prüfen (wie bei Mammouth) — nur für die Dienste relevant, die man direkt nutzt.
 
-- **Multi-Language (App-Oberfläche):** UI in Deutsch, Englisch, **Dänisch** — Sprachwahl unter
-  **Anzeige** (zusammen mit Dark Mode, kein eigener Menüpunkt). Kern der Arbeit: alle UI-Texte in String-Ressourcen
-  auslagern (`values/` = Deutsch + `values-en/` + `values-da/`), da aktuell vieles in Compose
-  hartcodiert ist. Dazu `localeConfig` im Manifest (System-Sprachpicker ab Android 13) + In-App-
-  Picker via `LocaleManager.applicationLocales` (minSdk 34 nativ). Betrifft NICHT die Posting-
-  Sprachen — die erzeugt das KI-Modell.
-- **Display → dynamische Farben abschaltbar** + feste Akzentfarbe (sekundäres Farbschema).
-  Aktuell ist Material You (Dynamic Color) immer an. *(vorerst zurückgestellt)*
+Danach: als **0.9.0** taggen.
 
-## Feinschliff
+## Weg zu V1 (nach v0.9.0)
 
-- **Prompt-Ton und Hashtag-Auswahl** weiter nachjustieren — Wortlaut isoliert in `PromptBuilder.kt`.
-  Stand: mit GPT bereits gut.
+- **Bugfixing & Kleinkram** identifizieren (aus den 0.8.5-/0.9.0-Tests). Aus dem UX-Review 2026-07-13.
+  **Paket 1 (Feinschliff) umgesetzt am 2026-07-13, uncommittet** — die folgenden Punkte außer dem
+  Karten-Bug sind erledigt (Farb-Tweaks + Statusbar-Fix inklusive):
+  - **Senden-Feedback bei leerem aktivem Netzwerk:** „Senden" überspringt ein aktives Netzwerk ohne
+    Text stillschweigend. Praktisch nur relevant, wenn KI aus ist und man selbst schreibt (sonst ist
+    kein Feld leer) — kleiner Hinweis genügt.
+  - **KI aus: Metadaten-Pflicht lockern.** `canGenerate` blockiert „Weiter" bei fehlenden Metadaten
+    (NeedsManual) auch, wenn man den Text selbst schreibt. Gate nur bei aktiver KI anwenden.
+  - **Mammouth: Anbieterwechsel ohne geladene Modell-Liste löscht das gespeicherte Modell**
+    (`withModels` setzt bei leerer Liste ""). Bei leerer Liste die bestehende Auswahl behalten;
+    zusätzlich in `saveAi` eine leere Mammouth-Auswahl nie einen gespeicherten Wert überschreiben lassen.
+  - **Modell-Liste automatisch laden** (aktuell nur über ⟳): beim Speichern und beim Antippen des
+    leeren Modell-Dropdowns, wenn ein Token vorhanden ist.
+  - **„Neu schreiben"-Button:** ausgeblendet bei KI aus (ist so); zusätzlich **ausgegraut**, wenn
+    KI an, aber kein Token gesetzt (aktuell tippbar, tut still nichts).
+  - **Konten: „?"-Icon mit Modal zur Post-Sprache** (erklärt, was die Sprachauswahl bewirkt —
+    Sprache der KI-Texte + Sprach-Tag des Posts; Grundeinstellung Systemsprache).
+  - **KI-Menü: Speicher-Semantik vereinheitlichen.** Master-Schalter persistiert sofort alles
+    (inkl. halb editierter Tokens), Rest erst bei „Speichern" — Schalter soll nur `enabled` togglen.
+  - **Onboarding/Erste-Schritte-Zustand** auf der leeren Hauptseite bei Frischinstallation
+    (KI aus + kein Konto): kleine Checkliste „1. Konto verbinden, 2. optional KI einrichten".
+  - **Bug: Quellsprach-Hinweis auf der Bluesky-Karte oft nicht sichtbar.** Der „(in German)"-Zusatz
+    (`withSourceLanguageNote` in `MainViewModel`) erscheint nur, wenn (a) die Artikelsprache erkannt
+    wurde — sie kommt aus `<html lang>`/`og:locale` (`OgMetadataFetcher`), was viele Seiten nicht
+    setzen → dann kein Hinweis — und (b) er hängt nur als kleines „(in X)" ans ENDE der
+    Karten-Beschreibung, die Bluesky auf ~2 Zeilen kürzt → oft abgeschnitten, nie prominent. Fix
+    später: Hinweis prominenter (Anfang der Beschreibung, Karten-Titel oder Post-Text) und/oder
+    Artikelsprache robuster bestimmen (z. B. Fallback aus der Mastodon-Post-Sprache).
+- **Vollständiger Code-Audit** — vor dem Play-Protect-Schritt einmal komplett durch den Code
+  (Korrektheit, Robustheit, tote Pfade, Sicherheit), analog zu den Audits v0.6.0.
+- **Google Play Protect lösen:** App + Zertifikat bei Google registrieren, damit die Install-Warnung
+  „gefährlich / muss gescannt werden" verschwindet (ggf. Play Console App-Signing oder andere
+  Verteilstrategie). Der Hinweis ist harmlos, aber abschreckend.
+- dann **V1** raus.
 
-## Geparkt (auf ausdrücklichen Wunsch)
+## Nach V1
 
-- **Multi-Account** (mehrere Mastodon-/Bluesky-Konten, Auswahl vor der Generierung, Sprache je Konto).
-- **Threads** — offen, ob das Netzwerk *Meta Threads* (OAuth + App-Review, aufwendig) oder
-  Multi-Post-Fäden innerhalb Mastodon/Bluesky gemeint sind.
-- **Weitere KI-Anbieter direkt** ansprechbar; KI optional abschaltbar. Nur relevant, wenn die App
-  für andere geöffnet wird.
+- **Bluesky-Link-Karten-Vorschau, editierbar:** Karten-Titel/-Beschreibung (+ Thumbnail) werden
+  aktuell generiert und ungesehen gesendet — als editierbare Mini-Vorschau in der Bluesky-Sektion
+  anzeigen. Gutes Add-on, bewusst nach V1 (löst nebenbei die Sichtbarkeit des Quellsprach-Hinweises).
+- **README / alle `.md` / GitHub-Repo auf Stand bringen** (KI optional/Standard-aus, Menü „KI",
+  mehrere Anbieter, Post-Sprache) + **Screenshots** → `docs/screenshots/`.
+- **Prompt-Ton und Hashtag-Auswahl** — ongoing, immer mal wieder nachjustieren (Wortlaut isoliert in
+  `PromptBuilder.kt`).
+
+## Nice-to-have (eher unrealistisch als Feature)
+
+- **Translation-Service für Links:** für einen *Link* auf eine übersetzte Fassung bräuchte es einen
+  Ganzseiten-Übersetzer (Google Translate; datenschutzfreundliche Alternativen wie LibreTranslate/
+  Lingva sind für Ganzseiten unzuverlässig). Erst bei Bedarf neu bewerten.
+- **Multi-Account:** mehrere Mastodon-/Bluesky-Konten, Auswahl vor der Generierung.
+
+## Geparkt
+
+- **Threads** — offen, ob *Meta Threads* (OAuth + App-Review, aufwendig) oder Multi-Post-Fäden
+  innerhalb Mastodon/Bluesky gemeint sind.
 - **Hashtag-Relevanzabgleich** über Mastodon (`GET /api/v2/search?type=hashtags`, `/api/v1/trends/tags`).
   Bluesky bietet keine stabile Entsprechung. Entscheidung: erst über den Prompt verbessern.
-- **Repo öffentlich stellen.** Derzeit privat; Obtainium läuft über einen GitHub-Token (siehe README).
 
 ## Erledigt
+
+- **v0.8.5** (2026-07-13): **KI-Menü-Umbau** — Dienst als Dropdown + adaptives „?"; Mammouth mit
+  Anbieter-Dropdown (GPT/Claude/Mistral/Gemini/Kimi/Qwen) + Live-Modell-Dropdown aus `/v1/models`;
+  Direkt-Dienste mit Live-Modellen (Claude-`GET /v1/models` ergänzt); `ModelCatalog`-Filter
+  (ohne Bild/Embedding/Code/Reasoning/Preview), Selbstheilung; `ModelResolver` entfernt. **Post-Sprache
+  je Netzwerk** — pro Konto BCP-47 (Default Gerätesprache), Dropdown im Konten-Menü, Prompt/Schema
+  auf Netzwerk-Keys + Sprache je Ziel umgebaut, Karten-Sprachhinweis, Beschreibung generalisiert.
+- **v0.8.0** (2026-07-12): Mehrsprachigkeit DE/EN/DA (per-App-Locale); Menü „Anzeige"↔„KI" getauscht,
+  „Mammouth-KI"→„KI"; **KI optional/abschaltbar, Standard aus**; **Anbieterwahl** (Mammouth default,
+  Claude/OpenAI/Gemini direkt, „?"-Setup-Infos + `docs/ai-setup.md`); **englische Bluesky-Link-Karte**
+  (später zu „Post-Sprache" verallgemeinert); Feinschliff (keine Gedankenstriche, „Neu schreiben").
 
 - **UX-Release v0.7.0** (2026-07-12): „Generieren" erscheint wieder bei neuer URL (vorher kein Weg
   zum nächsten Artikel ohne Share); fixe Bottom-Bar mit dominantem „Senden"; nach Komplett-Erfolg

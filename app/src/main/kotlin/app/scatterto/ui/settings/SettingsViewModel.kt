@@ -66,10 +66,14 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
 
     // --- KI ---
 
-    /** Master-Schalter: sofort persistiert, damit der Hauptschirm den Zustand kennt. */
+    /**
+     * Master-Schalter: nur den enabled-Flag persistieren (nicht den halb editierten UI-Zustand mit
+     * Token/Modell). Der Hauptschirm braucht den Zustand sofort; alles andere geht über „Speichern".
+     */
     fun onAiEnabledChange(enabled: Boolean) {
         uiState = uiState.copy(aiEnabled = enabled)
-        container.credentialStore.saveAiSettings(buildAiSettings())
+        val stored = container.credentialStore.loadAiSettings()
+        container.credentialStore.saveAiSettings(stored.copy(enabled = enabled))
     }
 
     fun onServiceSelect(key: String) {
@@ -126,8 +130,13 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
 
     /** Übernimmt die gefilterte Liste und wählt ein Modell vor (Bestand behalten, sonst neuestes). */
     private fun withModels(models: List<String>): SettingsUiState {
+        // Leere Liste (noch nicht geladen bzw. gefiltert leer): die bestehende Auswahl NICHT
+        // überschreiben — sonst geht beim Anbieter-Durchklicken ohne Liste das Modell verloren.
+        if (models.isEmpty()) {
+            return uiState.copy(availableModels = emptyList(), modelsLoading = false, modelsError = false)
+        }
         val current = uiState.currentModel
-        val selected = if (current.isNotBlank() && current in models) current else models.firstOrNull().orEmpty()
+        val selected = if (current.isNotBlank() && current in models) current else models.first()
         return uiState.copy(
             availableModels = models,
             modelsLoading = false,
@@ -139,6 +148,8 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     fun saveAi() {
         val settings = buildAiSettings()
         container.credentialStore.saveAiSettings(settings)
+        // Nach dem Speichern (Token ist jetzt fertig) die Modell-Liste laden, falls noch keine da ist.
+        if (settings.hasActiveToken && uiState.availableModels.isEmpty()) refreshModels()
         // Optionale Validierung (§4.1): Fehlschlag hindert das Speichern nicht (offline-tolerant).
         if (settings.enabled && settings.hasActiveToken) {
             validateAi(settings)
@@ -148,12 +159,17 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
     }
 
     private fun buildAiSettings(): AiSettings {
+        val stored = container.credentialStore.loadAiSettings()
         val tokens = uiState.aiTokens
             .mapValues { it.value.trim() }
             .filterValues { it.isNotBlank() }
-        val models = uiState.aiModels
-            .mapValues { it.value.trim() }
-            .filterValues { it.isNotBlank() }
+        // Gespeicherte Modelle als Basis; nur nicht-leere UI-Werte überschreiben — eine leere
+        // Auswahl (Liste noch nicht geladen) darf einen gespeicherten Wert nie löschen.
+        val models = stored.models.toMutableMap()
+        uiState.aiModels.forEach { (service, value) ->
+            val trimmed = value.trim()
+            if (trimmed.isNotBlank()) models[service] = trimmed
+        }
         return AiSettings(
             enabled = uiState.aiEnabled,
             activeService = uiState.aiService,

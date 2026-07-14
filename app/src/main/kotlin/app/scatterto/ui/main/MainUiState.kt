@@ -78,6 +78,13 @@ data class MainUiState(
     val blueskySendable: Boolean get() = activeBluesky && bluesky.text.isNotBlank()
     val hasSendableTarget: Boolean get() = mastodonSendable || blueskySendable
 
+    /**
+     * Ein aktives Netzwerk hat keinen Text (wird beim Senden übersprungen), während ein anderes
+     * sendbar ist — Grundlage für einen Hinweis, dass nicht alles Aktive rausgeht (§7).
+     */
+    val hasPartialEmptyTarget: Boolean get() = hasSendableTarget &&
+        ((activeMastodon && mastodon.text.isBlank()) || (activeBluesky && bluesky.text.isBlank()))
+
     /** URL im Feld weicht von der zuletzt geladenen ab → „Generieren" wieder anbieten. */
     val urlChanged: Boolean get() = urlInput.isNotBlank() && urlInput.trim() != fetchedUrl
 
@@ -98,7 +105,8 @@ data class MainUiState(
      * Bei aktiver KI ist zusätzlich ein Token nötig; bei ausgeschalteter KI nicht.
      */
     val canGenerate: Boolean get() = !aiTokenMissing && urlInput.isNotBlank() && hasActiveTarget &&
-        (metadataPhase != MetadataPhase.NeedsManual || hasMetadata)
+        // Metadaten-Pflicht nur bei aktiver KI (die braucht Grundlage); wer selbst schreibt, nicht.
+        (!aiEnabled || metadataPhase != MetadataPhase.NeedsManual || hasMetadata)
 
     val isDone: Boolean get() = generationPhase is GenerationPhase.Done
 }
