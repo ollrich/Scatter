@@ -13,10 +13,38 @@ Offene Punkte, nach Aufwand und Priorität gruppiert. Die verbindliche Spezifika
 - **Direkt-Anbieter-Modelllisten feintunen:** die Live-Filter für Claude/OpenAI/Gemini sind
   „best effort" (nur Mammouths echter Katalog ist bekannt). Gegen die realen `models`-Ausgaben der
   Anbieter prüfen (wie bei Mammouth) — nur für die Dienste relevant, die man direkt nutzt.
+  **Achtung: die Direkt-API-Anbindung (Generieren via Claude/OpenAI/Gemini) ist noch NIE getestet**
+  (nur Mammouth läuft in der Praxis) — beim Feintunen zugleich end-to-end testen: Auth-Header,
+  Request-/Response-Schema, `apiCall`-Fehlerpfad. Realer Bug-Risiko-Kandidat.
+- **Umbenennung ScatterTo → Scatter** (Nutzer-Wunsch 2026-07-14): nur der **Anzeigename**
+  (`app_name` in 3 Sprachen, Top-Bar-Text, About, README), `applicationId app.scatterto` bleibt
+  (unveränderlich, Update-/Cert-Identität). **GitHub-Repo wird mit umbenannt** (`ollrich/Scatter`;
+  GitHub leitet Alt-URLs um, zusätzlich die hartcodierten URLs anpassen: About-`GITHUB_URL`,
+  `docs/ai-setup.md`-Link, Obtainium/README).
 
 Danach: als **0.9.0** taggen.
 
-## Weg zu V1 (nach v0.9.0)
+## v0.9.5 (vor Code-Audit & Verifizierung)
+
+- **Tonality-Menü in den KI-Einstellungen** (Nutzer 2026-07-14): 4 **globale** Tonalitäten,
+  Standard = aktueller sachlich-neutraler Stil, plus „freudig/positiv" und zwei archetyp-basierte
+  (Slot 3/4 — Nutzer liefert die konkreten Archetypen separat; Hashtag-/Emoji-Verhalten wird mit
+  den Archetypen festgelegt). Technisch: `tonality`-Feld in `AiSettings` + Dropdown im KI-Menü +
+  Tonalitäts-Block in `PromptBuilder.system`.
+- **Editierbare Link-Karten-Vorschau — NUR Bluesky:** Karten-Titel/-Beschreibung (+ Thumbnail)
+  werden aktuell generiert und ungesehen gesendet — als editierbare Mini-Vorschau in der
+  Bluesky-Sektion anzeigen. Löst zugleich den Quellsprach-Hinweis-Bug (Karte sichtbar/editierbar).
+  **UX-Entscheidung (2026-07-14): eingeklappt als Standard, aber sichtbar** (progressive disclosure) —
+  kompakte, erkennbare Zeile mit Thumbnail + gekürztem Kartentitel + Chevron; Antippen klappt die
+  Editierfelder (Titel/Beschreibung/Thumbnail + Sprachhinweis) auf. **Muster der vorhandenen
+  einklappbaren Metadaten-Karte** wiederverwenden (bekanntes Bedienkonzept).
+  **Mastodon geht nicht:** dort baut der Server die Link-Karte selbst aus den OG-Tags der Quellseite
+  (kein `card`-Feld in der Status-API, nicht mitsendbar/editierbar) — höchstens read-only, aber
+  redundant zur bestehenden Metadaten-Karte. Also Vorschau Bluesky-only.
+
+Danach: als **0.9.5** taggen.
+
+## Weg zu V1 (nach v0.9.5)
 
 - **Bugfixing & Kleinkram** identifizieren (aus den 0.8.5-/0.9.0-Tests). Aus dem UX-Review 2026-07-13.
   **Paket 1 (Feinschliff) umgesetzt am 2026-07-13, uncommittet** — die folgenden Punkte außer dem
@@ -43,25 +71,51 @@ Danach: als **0.9.0** taggen.
     (`withSourceLanguageNote` in `MainViewModel`) erscheint nur, wenn (a) die Artikelsprache erkannt
     wurde — sie kommt aus `<html lang>`/`og:locale` (`OgMetadataFetcher`), was viele Seiten nicht
     setzen → dann kein Hinweis — und (b) er hängt nur als kleines „(in X)" ans ENDE der
-    Karten-Beschreibung, die Bluesky auf ~2 Zeilen kürzt → oft abgeschnitten, nie prominent. Fix
-    später: Hinweis prominenter (Anfang der Beschreibung, Karten-Titel oder Post-Text) und/oder
-    Artikelsprache robuster bestimmen (z. B. Fallback aus der Mastodon-Post-Sprache).
+    Karten-Beschreibung, die Bluesky auf ~2 Zeilen kürzt → oft abgeschnitten, nie prominent. Wird
+    mit der **editierbaren Link-Karten-Vorschau in v0.9.5** gelöst (Karte sichtbar/editierbar); dazu
+    Artikelsprache robuster bestimmen (Fallback aus der Mastodon-Post-Sprache).
 - **Vollständiger Code-Audit** — vor dem Play-Protect-Schritt einmal komplett durch den Code
   (Korrektheit, Robustheit, tote Pfade, Sicherheit), analog zu den Audits v0.6.0.
-- **Google Play Protect lösen:** App + Zertifikat bei Google registrieren, damit die Install-Warnung
-  „gefährlich / muss gescannt werden" verschwindet (ggf. Play Console App-Signing oder andere
-  Verteilstrategie). Der Hinweis ist harmlos, aber abschreckend.
+- **Google Play Protect / Sideload-Warnung angehen** (Stand recherchiert 2026-07-14): Der Hinweis ist
+  reputationsbasiert (App unbekannt, frischer Signing-Key, kleine Installbasis) — **kein Malware-Fund**.
+  ScatterTo nutzt KEINE der hart geblockten Sensibel-Permissions (SMS/Notification-Listener/
+  Accessibility), wird also nicht install-geblockt, nur „unverifiziert" gewarnt. Google verlangt
+  zunehmend **Entwickler-Identitätsverifizierung auch für Sideload** (Rollout ab Sept. 2026 in
+  einzelnen Regionen, global bis 2027 — betrifft dann auch alt. Stores/F-Droid).
+  **Entscheidung (Nutzer 2026-07-14): Google-Entwicklerverifizierung** — Identitätsverifizierung/
+  App-Registrierung ohne Play-Veröffentlichung. (Alternativen wären F-Droid, Reputation-abwarten
+  oder Warnung-akzeptieren; vollständig Google-frei wird durch die 2026/2027-Regeln ohnehin schwerer.)
 - dann **V1** raus.
 
 ## Nach V1
 
-- **Bluesky-Link-Karten-Vorschau, editierbar:** Karten-Titel/-Beschreibung (+ Thumbnail) werden
-  aktuell generiert und ungesehen gesendet — als editierbare Mini-Vorschau in der Bluesky-Sektion
-  anzeigen. Gutes Add-on, bewusst nach V1 (löst nebenbei die Sichtbarkeit des Quellsprach-Hinweises).
 - **README / alle `.md` / GitHub-Repo auf Stand bringen** (KI optional/Standard-aus, Menü „KI",
   mehrere Anbieter, Post-Sprache) + **Screenshots** → `docs/screenshots/`.
 - **Prompt-Ton und Hashtag-Auswahl** — ongoing, immer mal wieder nachjustieren (Wortlaut isoliert in
   `PromptBuilder.kt`).
+
+## Ideen-Pool (nach V1 sortieren)
+
+Inspiration 2026-07-14, noch nicht priorisiert — wird nach V1 einsortiert.
+
+Direkter Kernnutzen (Favoriten):
+- **„Kürzen"-Aktion bei Überlänge:** geht der Post übers Limit, ein Knopf, der die KI den Text
+  straffen lässt (statt manuell zu kürzen).
+- **Hashtag-Verlauf / Favoriten:** zuletzt/oft genutzte Hashtags lokal merken und per Tipp anhängen.
+- **Mastodon: Sichtbarkeit + Content Warning:** optionale Felder `visibility`
+  (öffentlich/nicht gelistet/nur Follower) und `spoiler_text` — native Mastodon-Funktionen.
+
+Weitere:
+- **Geplantes Posten:** Mastodon nativ (`scheduled_at`); Bluesky müsste lokal geplant werden (mehr
+  Aufwand). Für ein Posting-Tool stark, aber größer.
+- **Alt-Text fürs Karten-Bild:** Barrierefreiheit, beide Netze unterstützen es.
+- **Teilen auch von reinem Text/Bild** (nicht nur URL) — erweitert den Input.
+- **Kompakte „so wird's aussehen"-Post-Vorschau:** der zusammengesetzte Post (Text ⏎ URL ⏎ Hashtags)
+  als Ganzes statt nur Einzelteile + Zähler (stand schon im UX-Review).
+- **A11y-Durchgang** vor „für andere öffnen": TalkBack, große Schrift, Kontraste.
+
+Niedrige Priorität / bewusst skeptisch (Fokus-Verwässerung):
+- Weitere Netzwerke (Nostr/Lemmy/Pixelfed …), Home-Screen-Widget, Statistik-Dashboard.
 
 ## Nice-to-have (eher unrealistisch als Feature)
 
