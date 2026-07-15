@@ -32,12 +32,13 @@ class MainActivity : ComponentActivity() {
         val themePreferences = (application as ScatterToApplication).container.themePreferences
         setContent {
             val mode by themePreferences.mode.collectAsStateWithLifecycle()
+            val dynamicColor by themePreferences.dynamicColor.collectAsStateWithLifecycle()
             val darkTheme = when (mode) {
                 ThemeMode.SYSTEM -> isSystemInDarkTheme()
                 ThemeMode.LIGHT -> false
                 ThemeMode.DARK -> true
             }
-            ScatterToTheme(darkTheme = darkTheme) {
+            ScatterToTheme(darkTheme = darkTheme, dynamicColor = dynamicColor) {
                 ScatterToApp(
                     sharedText = shared?.text,
                     sharedSubject = shared?.subject,

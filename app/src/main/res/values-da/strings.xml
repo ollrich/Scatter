@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ScatterTo</string>
+    <string name="app_name">Scatter</string>
 
     <!-- Menu -->
     <string name="menu_accounts">Konti</string>
@@ -14,6 +14,12 @@
 
     <!-- Hovedskærm -->
     <string name="start_hint">Del en artikel fra en hvilken som helst app, eller indsæt en URL nedenfor.</string>
+    <string name="onboarding_title">Kom godt i gang</string>
+    <string name="onboarding_connect">Forbind en konto</string>
+    <string name="onboarding_connect_sub">Mastodon eller Bluesky</string>
+    <string name="onboarding_ai">Opsæt AI (valgfrit)</string>
+    <string name="onboarding_ai_sub">Uden AI skriver du selv opslagene.</string>
+    <string name="onboarding_then">Del derefter en artikel, eller indsæt en URL.</string>
     <string name="paste_from_clipboard">Indsæt URL fra udklipsholder</string>
     <string name="clipboard_no_url">Ingen URL i udklipsholderen</string>
     <string name="article_url">Artikel-URL</string>
@@ -101,6 +107,8 @@
     <string name="theme_system">System</string>
     <string name="theme_light">Lyst</string>
     <string name="theme_dark">Mørkt</string>
+    <string name="dynamic_colors_label">Dynamiske farver</string>
+    <string name="dynamic_colors_desc">Farver fra systemets baggrund (Material You). Fra: fast app-blå.</string>
     <string name="language_heading">Sprog</string>
     <string name="language_system">Systemsprog</string>
 
@@ -115,6 +123,28 @@
     <string name="log_copy">Kopiér til udklipsholder</string>
     <string name="log_clear">Ryd log</string>
     <string name="log_empty">Ingen poster endnu.</string>
+
+    <!-- Log-beskeder (app-sprog) -->
+    <string name="log_meta_loading">Indlæser metadata: %1$s</string>
+    <string name="log_meta_ok">Metadata ok (og:site_name: %1$s)</string>
+    <string name="log_site_missing">mangler, bruger domænet</string>
+    <string name="log_meta_unusable">Metadata ubrugelig, manuel indtastning nødvendig</string>
+    <string name="log_ai_error">AI: %1$s</string>
+    <string name="log_ai_generating">AI: %1$s / %2$s, medie %3$s</string>
+    <string name="log_ai_retry_400">AI: HTTP 400, prøver igen uden response_format/temperature</string>
+    <string name="log_unknown">ukendt</string>
+    <string name="log_masto_sending">Mastodon: sender …</string>
+    <string name="log_masto_posted">Mastodon: sendt</string>
+    <string name="log_masto_timeout">Mastodon: timeout</string>
+    <string name="log_masto_error">Mastodon: %1$s</string>
+    <string name="log_bsky_sending">Bluesky: sender …</string>
+    <string name="log_bsky_posted">Bluesky: sendt (%1$d facets)</string>
+    <string name="log_bsky_timeout">Bluesky: timeout, uklart resultat</string>
+    <string name="log_bsky_error">Bluesky: %1$s</string>
+    <string name="log_bsky_thumb_failed">Bluesky: upload af miniature mislykkedes, kort uden billede</string>
+    <string name="log_bsky_embed_rejected">Bluesky: embed afvist (%1$s), sender uden kort</string>
+    <string name="log_bsky_token_expired">Bluesky: adgangstoken udløbet, fornyer session automatisk</string>
+    <string name="log_bsky_refresh_failed">Bluesky: fornyelse mislykkedes, ny session fra app-adgangskode</string>
 
     <!-- Handlinger / a11y -->
     <string name="back">Tilbage</string>

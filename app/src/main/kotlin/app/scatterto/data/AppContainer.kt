@@ -14,7 +14,7 @@ import app.scatterto.data.metadata.OgMetadataFetcher
 class AppContainer(context: Context) {
     /** Für nutzersichtbare Strings in ViewModels (via getString). */
     val appContext: Context = context.applicationContext
-    val eventLog = EventLog()
+    val eventLog = EventLog(resolve = { id, args -> appContext.getString(id, *args) })
     val themePreferences = ThemePreferences(context)
     val credentialStore = CredentialStore(context.applicationContext)
     val metadataFetcher = OgMetadataFetcher()

@@ -27,7 +27,7 @@ class EventLogTest {
         val log = EventLog()
         log.error("Bluesky abgelehnt")
         val text = log.formatted()
-        assertTrue(text.contains("FEHLER"))
+        assertTrue(text.contains("ERROR"))
         assertTrue(text.contains("Bluesky abgelehnt"))
     }
 

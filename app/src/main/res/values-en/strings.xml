@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ScatterTo</string>
+    <string name="app_name">Scatter</string>
 
     <!-- Menu -->
     <string name="menu_accounts">Accounts</string>
@@ -14,6 +14,12 @@
 
     <!-- Main screen -->
     <string name="start_hint">Share an article from any app, or paste a URL below.</string>
+    <string name="onboarding_title">Getting started</string>
+    <string name="onboarding_connect">Connect an account</string>
+    <string name="onboarding_connect_sub">Mastodon or Bluesky</string>
+    <string name="onboarding_ai">Set up AI (optional)</string>
+    <string name="onboarding_ai_sub">Without AI you write the posts yourself.</string>
+    <string name="onboarding_then">Then share an article or paste a URL.</string>
     <string name="paste_from_clipboard">Paste URL from clipboard</string>
     <string name="clipboard_no_url">No URL in the clipboard</string>
     <string name="article_url">Article URL</string>
@@ -101,6 +107,8 @@
     <string name="theme_system">System</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
+    <string name="dynamic_colors_label">Dynamic colours</string>
+    <string name="dynamic_colors_desc">Colours from the system wallpaper (Material You). Off: fixed app blue.</string>
     <string name="language_heading">Language</string>
     <string name="language_system">System language</string>
 
@@ -115,6 +123,28 @@
     <string name="log_copy">Copy to clipboard</string>
     <string name="log_clear">Clear log</string>
     <string name="log_empty">No entries yet.</string>
+
+    <!-- Log messages (app language) -->
+    <string name="log_meta_loading">Loading metadata: %1$s</string>
+    <string name="log_meta_ok">Metadata ok (og:site_name: %1$s)</string>
+    <string name="log_site_missing">missing, using the domain</string>
+    <string name="log_meta_unusable">Metadata unusable, manual entry needed</string>
+    <string name="log_ai_error">AI: %1$s</string>
+    <string name="log_ai_generating">AI: %1$s / %2$s, medium %3$s</string>
+    <string name="log_ai_retry_400">AI: HTTP 400, retrying without response_format/temperature</string>
+    <string name="log_unknown">unknown</string>
+    <string name="log_masto_sending">Mastodon: sending …</string>
+    <string name="log_masto_posted">Mastodon: posted</string>
+    <string name="log_masto_timeout">Mastodon: timeout</string>
+    <string name="log_masto_error">Mastodon: %1$s</string>
+    <string name="log_bsky_sending">Bluesky: sending …</string>
+    <string name="log_bsky_posted">Bluesky: posted (%1$d facets)</string>
+    <string name="log_bsky_timeout">Bluesky: timeout, outcome unclear</string>
+    <string name="log_bsky_error">Bluesky: %1$s</string>
+    <string name="log_bsky_thumb_failed">Bluesky: thumbnail upload failed, card without image</string>
+    <string name="log_bsky_embed_rejected">Bluesky: embed rejected (%1$s), sending without card</string>
+    <string name="log_bsky_token_expired">Bluesky: access token expired, refreshing session automatically</string>
+    <string name="log_bsky_refresh_failed">Bluesky: refresh failed, new session from app password</string>
 
     <!-- Actions / a11y -->
     <string name="back">Back</string>

@@ -20,9 +20,18 @@ class ThemePreferences(context: Context) {
     private val _mode = MutableStateFlow(load())
     val mode: StateFlow<ThemeMode> = _mode.asStateFlow()
 
+    // Material-You-Dynamic-Color; aus = festes App-Blau (§2, Backlog v0.9.0). Standard an.
+    private val _dynamicColor = MutableStateFlow(prefs.getBoolean(KEY_DYNAMIC, true))
+    val dynamicColor: StateFlow<Boolean> = _dynamicColor.asStateFlow()
+
     fun setMode(mode: ThemeMode) {
         _mode.value = mode
         prefs.edit().putString(KEY, mode.name).apply()
+    }
+
+    fun setDynamicColor(enabled: Boolean) {
+        _dynamicColor.value = enabled
+        prefs.edit().putBoolean(KEY_DYNAMIC, enabled).apply()
     }
 
     private fun load(): ThemeMode =
@@ -31,5 +40,6 @@ class ThemePreferences(context: Context) {
 
     private companion object {
         const val KEY = "theme_mode"
+        const val KEY_DYNAMIC = "dynamic_color"
     }
 }

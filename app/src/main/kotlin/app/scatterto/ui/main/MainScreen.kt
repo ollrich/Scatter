@@ -14,8 +14,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.Card
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
@@ -130,7 +133,7 @@ fun MainScreen(
                                 contentDescription = null,
                                 modifier = Modifier.size(28.dp).clip(RoundedCornerShape(7.dp)),
                             )
-                            Text("ScatterTo")
+                            Text(stringResource(R.string.app_name))
                         }
                     },
                     navigationIcon = {
@@ -170,10 +173,9 @@ fun MainScreen(
                     InfoBanner(stringResource(R.string.banner_no_ai)) { onOpen(Routes.AI) }
                 }
                 if (!state.hasAnyConnection) {
-                    InfoBanner(stringResource(R.string.banner_no_network)) { onOpen(Routes.ACCOUNTS) }
-                }
-
-                if (state.urlInput.isBlank() && !state.isDone) {
+                    // Frischinstallation: statt nur Banner eine Erste-Schritte-Checkliste.
+                    OnboardingCard(onOpen)
+                } else if (state.urlInput.isBlank() && !state.isDone) {
                     Text(
                         stringResource(R.string.start_hint),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -292,6 +294,59 @@ fun MainScreen(
             dismissButton = {
                 TextButton(onClick = { confirmRegenerate = false }) { Text(stringResource(R.string.cancel)) }
             },
+        )
+    }
+}
+
+/** Erste-Schritte-Checkliste auf der leeren Hauptseite, solange kein Konto verbunden ist. */
+@Composable
+private fun OnboardingCard(onOpen: (String) -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(stringResource(R.string.onboarding_title), style = MaterialTheme.typography.titleMedium)
+            OnboardingStep(
+                title = stringResource(R.string.onboarding_connect),
+                subtitle = stringResource(R.string.onboarding_connect_sub),
+                onClick = { onOpen(Routes.ACCOUNTS) },
+            )
+            OnboardingStep(
+                title = stringResource(R.string.onboarding_ai),
+                subtitle = stringResource(R.string.onboarding_ai_sub),
+                onClick = { onOpen(Routes.AI) },
+            )
+            Text(
+                stringResource(R.string.onboarding_then),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
+private fun OnboardingStep(title: String, subtitle: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.bodyLarge)
+            Text(
+                subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Icon(
+            Icons.AutoMirrored.Filled.ArrowForward,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
         )
     }
 }

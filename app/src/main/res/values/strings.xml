@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ScatterTo</string>
+    <string name="app_name">Scatter</string>
 
     <!-- Menü -->
     <string name="menu_accounts">Konten</string>
@@ -14,6 +14,12 @@
 
     <!-- Hauptseite -->
     <string name="start_hint">Teile einen Artikel aus einer beliebigen App, oder füge unten eine URL ein.</string>
+    <string name="onboarding_title">Erste Schritte</string>
+    <string name="onboarding_connect">Konto verbinden</string>
+    <string name="onboarding_connect_sub">Mastodon oder Bluesky</string>
+    <string name="onboarding_ai">KI einrichten (optional)</string>
+    <string name="onboarding_ai_sub">Ohne KI schreibst du die Posts selbst.</string>
+    <string name="onboarding_then">Dann einen Artikel teilen oder eine URL einfügen.</string>
     <string name="paste_from_clipboard">URL aus Zwischenablage</string>
     <string name="clipboard_no_url">Keine URL in der Zwischenablage</string>
     <string name="article_url">Artikel-URL</string>
@@ -101,6 +107,8 @@
     <string name="theme_system">System</string>
     <string name="theme_light">Hell</string>
     <string name="theme_dark">Dunkel</string>
+    <string name="dynamic_colors_label">Dynamische Farben</string>
+    <string name="dynamic_colors_desc">Farben aus dem System-Hintergrund (Material You). Aus: festes App-Blau.</string>
     <string name="language_heading">Sprache</string>
     <string name="language_system">Systemsprache</string>
 
@@ -115,6 +123,28 @@
     <string name="log_copy">In Zwischenablage kopieren</string>
     <string name="log_clear">Protokoll leeren</string>
     <string name="log_empty">Noch keine Einträge.</string>
+
+    <!-- Log-Meldungen (App-Sprache) -->
+    <string name="log_meta_loading">Metadaten laden: %1$s</string>
+    <string name="log_meta_ok">Metadaten ok (og:site_name: %1$s)</string>
+    <string name="log_site_missing">fehlt, Domain wird genutzt</string>
+    <string name="log_meta_unusable">Metadaten unbrauchbar, manuelle Eingabe nötig</string>
+    <string name="log_ai_error">KI: %1$s</string>
+    <string name="log_ai_generating">KI: %1$s / %2$s, Medium %3$s</string>
+    <string name="log_ai_retry_400">KI: HTTP 400, Retry ohne response_format/temperature</string>
+    <string name="log_unknown">unbekannt</string>
+    <string name="log_masto_sending">Mastodon: sende …</string>
+    <string name="log_masto_posted">Mastodon: gepostet</string>
+    <string name="log_masto_timeout">Mastodon: Zeitüberschreitung</string>
+    <string name="log_masto_error">Mastodon: %1$s</string>
+    <string name="log_bsky_sending">Bluesky: sende …</string>
+    <string name="log_bsky_posted">Bluesky: gepostet (%1$d Facets)</string>
+    <string name="log_bsky_timeout">Bluesky: Zeitüberschreitung, Ausgang unklar</string>
+    <string name="log_bsky_error">Bluesky: %1$s</string>
+    <string name="log_bsky_thumb_failed">Bluesky: Thumbnail-Upload fehlgeschlagen, Karte ohne Bild</string>
+    <string name="log_bsky_embed_rejected">Bluesky: Embed abgelehnt (%1$s), sende ohne Karte</string>
+    <string name="log_bsky_token_expired">Bluesky: Zugriffstoken abgelaufen, erneuere Session automatisch</string>
+    <string name="log_bsky_refresh_failed">Bluesky: Refresh fehlgeschlagen, neue Session aus App-Password</string>
 
     <!-- Aktionen / A11y -->
     <string name="back">Zurück</string>

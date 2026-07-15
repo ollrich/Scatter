@@ -52,7 +52,7 @@ import app.scatterto.data.mammouth.MammouthProvider
 import app.scatterto.data.model.AiService
 import app.scatterto.ui.AppViewModelProvider
 
-private const val GUIDE_URL = "https://github.com/ollrich/ScatterTo/blob/main/docs/ai-setup.md"
+private const val GUIDE_URL = "https://github.com/ollrich/Scatter/blob/main/docs/ai-setup.md"
 
 /** Wo es den API-Token für den jeweiligen Dienst gibt (für den Info-Dialog). */
 private fun consoleFor(service: AiService): String = when (service) {

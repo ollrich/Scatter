@@ -227,7 +227,7 @@ class MainViewModel(
     private fun loadMetadataThenGenerate() {
         uiState = uiState.copy(metadataPhase = MetadataPhase.Loading, generationPhase = GenerationPhase.Idle)
         viewModelScope.launch {
-            log.info("Metadaten laden: ${uiState.urlInput}")
+            log.info(R.string.log_meta_loading, uiState.urlInput)
             val metadata = runCatching { container.metadataFetcher.fetch(uiState.urlInput) }.getOrNull()
             uiState = uiState.copy(fetchedUrl = uiState.urlInput)
             siteName = metadata?.siteName
@@ -238,7 +238,7 @@ class MainViewModel(
             savedStateHandle[KEY_LANG] = articleLanguage
 
             if (metadata != null && metadata.isUsable) {
-                log.info("Metadaten ok (og:site_name: ${metadata.siteName ?: "fehlt – nutze Domain"})")
+                log.info(R.string.log_meta_ok, metadata.siteName ?: str(R.string.log_site_missing))
                 uiState = uiState.copy(
                     metadataPhase = MetadataPhase.Ready,
                     metaTitle = metadata.title ?: uiState.metaTitle,
@@ -248,7 +248,7 @@ class MainViewModel(
                 generate()
             } else {
                 // Fallback: manuelle Felder anzeigen, NICHT automatisch generieren (§12.2 Nr. 2).
-                log.error("Metadaten unbrauchbar – manuelle Eingabe nötig")
+                log.error(R.string.log_meta_unusable)
                 uiState = uiState.copy(metadataPhase = MetadataPhase.NeedsManual)
             }
         }
@@ -324,10 +324,10 @@ class MainViewModel(
                     blueskyStatus = PostStatus.Idle,
                 )
             } catch (e: ApiException) {
-                log.error("KI: ${e.error.readable}")
+                log.error(R.string.log_ai_error, e.error.readable)
                 uiState.copy(generationPhase = GenerationPhase.Error(e.error.readable), generatingWith = null)
             } catch (e: Exception) {
-                log.error("KI: ${e.message}")
+                log.error(R.string.log_ai_error, e.message.orEmpty())
                 uiState.copy(
                     generationPhase = GenerationPhase.Error(e.message ?: str(R.string.error_generation_failed)),
                     generatingWith = null,
@@ -422,21 +422,21 @@ class MainViewModel(
         val account = container.credentialStore.loadMastodon() ?: return
         if (uiState.mastodon.text.isBlank()) return
         uiState = uiState.copy(mastodonStatus = PostStatus.Pending)
-        log.info("Mastodon: sende…")
+        log.info(R.string.log_masto_sending)
         uiState = try {
             val post = composePost(uiState.mastodon.text, uiState.mastodon.extraHashtags, uiState.mastodon.url)
             val url = container.mastodonRepository.post(account, post, mastodonIdempotencyKey, language = account.effectiveLanguage)
-            log.info("Mastodon: gepostet")
+            log.info(R.string.log_masto_posted)
             uiState.copy(mastodonStatus = PostStatus.Success(url))
         } catch (e: SocketTimeoutException) {
             // Idempotency-Key macht den Retry sicher (§12.1 Nr. 5).
-            log.error("Mastodon: Zeitüberschreitung")
+            log.error(R.string.log_masto_timeout)
             uiState.copy(mastodonStatus = PostStatus.Failed(str(R.string.status_timeout_safe)))
         } catch (e: ApiException) {
-            log.error("Mastodon: ${e.error.readable}")
+            log.error(R.string.log_masto_error, e.error.readable)
             uiState.copy(mastodonStatus = PostStatus.Failed(e.error.readable))
         } catch (e: Exception) {
-            log.error("Mastodon: ${e.message}")
+            log.error(R.string.log_masto_error, e.message.orEmpty())
             uiState.copy(mastodonStatus = PostStatus.Failed(e.message ?: str(R.string.error_post_failed)))
         }
     }
@@ -445,7 +445,7 @@ class MainViewModel(
         val account = container.credentialStore.loadBluesky() ?: return
         if (uiState.bluesky.text.isBlank()) return
         uiState = uiState.copy(blueskyStatus = PostStatus.Pending)
-        log.info("Bluesky: sende…")
+        log.info(R.string.log_bsky_sending)
         uiState = try {
             val post = composePost(uiState.bluesky.text, uiState.bluesky.extraHashtags, uiState.bluesky.url)
             val facets = computeFacets(post, uiState.bluesky.url)
@@ -463,17 +463,17 @@ class MainViewModel(
                 )
             }
             val url = container.blueskyRepository.post(account, post, facets, card, langs = listOf(lang))
-            log.info("Bluesky: gepostet (${facets.size} Facets)")
+            log.info(R.string.log_bsky_posted, facets.size)
             uiState.copy(blueskyStatus = PostStatus.Success(url))
         } catch (e: SocketTimeoutException) {
             // Kein Idempotenz-Mechanismus: unklarer Ausgang, nicht automatisch retryen (§12.1 Nr. 5).
-            log.error("Bluesky: Zeitüberschreitung – Ausgang unklar")
+            log.error(R.string.log_bsky_timeout)
             uiState.copy(blueskyStatus = PostStatus.Uncertain(str(R.string.status_uncertain)))
         } catch (e: ApiException) {
-            log.error("Bluesky: ${e.error.readable}")
+            log.error(R.string.log_bsky_error, e.error.readable)
             uiState.copy(blueskyStatus = PostStatus.Failed(e.error.readable))
         } catch (e: Exception) {
-            log.error("Bluesky: ${e.message}")
+            log.error(R.string.log_bsky_error, e.message.orEmpty())
             uiState.copy(blueskyStatus = PostStatus.Failed(e.message ?: str(R.string.error_post_failed)))
         }
     }

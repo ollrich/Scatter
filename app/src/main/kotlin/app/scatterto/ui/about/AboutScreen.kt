@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.dp
 import app.scatterto.BuildConfig
 import app.scatterto.R
 
-private const val GITHUB_URL = "https://github.com/ollrich/ScatterTo"
+private const val GITHUB_URL = "https://github.com/ollrich/Scatter"
 
 /** Kurzinfo zur App, Autor, Quellcode und Version (§ Distribution). */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,7 +72,7 @@ fun AboutScreen(onBack: () -> Unit) {
                 contentDescription = null,
                 modifier = Modifier.size(72.dp).clip(RoundedCornerShape(16.dp)),
             )
-            Text("ScatterTo", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
             Text(stringResource(R.string.version, BuildConfig.VERSION_NAME), style = MaterialTheme.typography.bodyMedium)
 
             Text(stringResource(R.string.about_description), style = MaterialTheme.typography.bodyMedium)

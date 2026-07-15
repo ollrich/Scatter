@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="design/icon-source.svg" width="112" alt="ScatterTo">
+<img src="design/icon-source.svg" width="112" alt="Scatter">
 
-# ScatterTo
+# Scatter
 
-**Teile einen Artikel-Link — ScatterTo macht daraus per KI je einen Post für Mastodon und Bluesky, in der pro Netzwerk gewählten Sprache. Prüfen, anpassen, absenden.**
+**Teile einen Artikel-Link — Scatter macht daraus per KI je einen Post für Mastodon und Bluesky, in der pro Netzwerk gewählten Sprache. Prüfen, anpassen, absenden.**
 
 🇩🇪 [Deutsch](#deutsch) · 🇬🇧 [English](#english)
 
@@ -14,13 +14,13 @@
 
 ## Deutsch
 
-ScatterTo ist eine native Android-App für Leute, die denselben Artikel auf **Mastodon** und **Bluesky** teilen. Statt zweimal zu tippen: Link teilen → die App holt die Seiten-Metadaten, ein KI-Modell schreibt je einen kurzen, sachlichen Post pro Netzwerk (in der pro Netzwerk gewählten Sprache) → du prüfst, passt an und sendest.
+Scatter ist eine native Android-App für Leute, die denselben Artikel auf **Mastodon** und **Bluesky** teilen. Statt zweimal zu tippen: Link teilen → die App holt die Seiten-Metadaten, ein KI-Modell schreibt je einen kurzen, sachlichen Post pro Netzwerk (in der pro Netzwerk gewählten Sprache) → du prüfst, passt an und sendest.
 
 Es ist ein **persönlicher Ein-Nutzer-Client**: Token-basierte Anmeldung (kein OAuth), keine Telemetrie, Zugangsdaten nur verschlüsselt auf dem Gerät.
 
 ### Funktionen
 
-- **Share-Intent:** Link aus einer beliebigen App teilen — die URL landet direkt in ScatterTo.
+- **Share-Intent:** Link aus einer beliebigen App teilen — die URL landet direkt in Scatter.
 - **KI-Generierung** über [Mammouth.ai](https://mammouth.ai): sachlicher Stil, je ein Post für Mastodon und Bluesky in der jeweils gewählten Sprache — eigenständige Texte, keine Übersetzung.
 - **Modellauswahl:** bei Mammouth wählst du erst den Anbieter (**GPT, Claude, Mistral, Gemini, Kimi, Qwen**) und darunter das konkrete Text-Modell; bei den Direkt-Diensten direkt das Modell. Die Modell-Listen kommen **live vom Anbieter** und aktualisieren sich selbst — neue Modelle erscheinen, abgekündigte verschwinden. Reasoning- und Code-Modelle sind ausgeblendet.
 - **Netzwerkauswahl je Post:** Mastodon oder Bluesky einzeln abwählen; abgewählte Netzwerke werden weder generiert noch gesendet.
@@ -34,10 +34,10 @@ Es ist ein **persönlicher Ein-Nutzer-Client**: Token-basierte Anmeldung (kein O
 
 Verteilung über [Obtainium](https://github.com/ImranR98/Obtainium):
 
-1. In Obtainium **App hinzufügen** → `https://github.com/ollrich/ScatterTo`
+1. In Obtainium **App hinzufügen** → `https://github.com/ollrich/Scatter`
 2. Obtainium installiert die neueste signierte APK und meldet künftige Updates.
 
-Alternativ die `scatterto-vX.Y.Z.apk` aus den [Releases](https://github.com/ollrich/ScatterTo/releases) laden und per Sideload installieren.
+Alternativ die `scatterto-vX.Y.Z.apk` aus den [Releases](https://github.com/ollrich/Scatter/releases) laden und per Sideload installieren.
 
 > **Play Protect** zeigt beim Installieren evtl. „App scan recommended" — das ist harmlos (Google kennt den APK-Hash noch nicht), kein Malware-Fund. Auf „Scan app" tippen.
 
@@ -77,13 +77,13 @@ Ein GitHub-Actions-Workflow baut bei jedem `v*`-Tag eine **signierte** Release-A
 
 ## English
 
-ScatterTo is a native Android app for people who share the same article on **Mastodon** and **Bluesky**. Instead of typing twice: share a link → the app fetches the page metadata, an AI model writes one short, factual post per network (in the language you choose per network) → you review, tweak and send.
+Scatter is a native Android app for people who share the same article on **Mastodon** and **Bluesky**. Instead of typing twice: share a link → the app fetches the page metadata, an AI model writes one short, factual post per network (in the language you choose per network) → you review, tweak and send.
 
 It is a **personal single-user client**: token-based sign-in (no OAuth), no telemetry, credentials stored encrypted on the device only.
 
 ### Features
 
-- **Share intent:** share a link from any app — the URL lands straight in ScatterTo.
+- **Share intent:** share a link from any app — the URL lands straight in Scatter.
 - **AI generation** via [Mammouth.ai](https://mammouth.ai): factual tone, one post each for Mastodon and Bluesky in the language you choose per network — independent texts, not a translation.
 - **Model choice:** with Mammouth you first pick the provider (**GPT, Claude, Mistral, Gemini, Kimi, Qwen**) and then the concrete text model below; with the direct services you pick the model directly. The model lists come **live from the provider** and update themselves — new models appear, retired ones disappear. Reasoning and code models are hidden.
 - **Per-post network selection:** disable Mastodon or Bluesky individually; a disabled network is neither generated nor sent.
@@ -97,10 +97,10 @@ It is a **personal single-user client**: token-based sign-in (no OAuth), no tele
 
 Distributed via [Obtainium](https://github.com/ImranR98/Obtainium):
 
-1. In Obtainium, **Add App** → `https://github.com/ollrich/ScatterTo`
+1. In Obtainium, **Add App** → `https://github.com/ollrich/Scatter`
 2. Obtainium installs the latest signed APK and tracks future updates.
 
-Or download `scatterto-vX.Y.Z.apk` from the [Releases](https://github.com/ollrich/ScatterTo/releases) and sideload it.
+Or download `scatterto-vX.Y.Z.apk` from the [Releases](https://github.com/ollrich/Scatter/releases) and sideload it.
 
 > **Play Protect** may show “App scan recommended” on install — this is harmless (Google hasn’t seen the APK hash yet), not a malware finding. Tap “Scan app”.
 

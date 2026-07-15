@@ -18,6 +18,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -73,6 +74,25 @@ fun DisplayScreen(
             RadioRow(stringResource(R.string.theme_system), mode == ThemeMode.SYSTEM) { viewModel.setMode(ThemeMode.SYSTEM) }
             RadioRow(stringResource(R.string.theme_light), mode == ThemeMode.LIGHT) { viewModel.setMode(ThemeMode.LIGHT) }
             RadioRow(stringResource(R.string.theme_dark), mode == ThemeMode.DARK) { viewModel.setMode(ThemeMode.DARK) }
+
+            val dynamic by viewModel.dynamicColor.collectAsStateWithLifecycle()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.dynamic_colors_label))
+                    Text(
+                        stringResource(R.string.dynamic_colors_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Switch(checked = dynamic, onCheckedChange = viewModel::setDynamicColor)
+            }
 
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
 

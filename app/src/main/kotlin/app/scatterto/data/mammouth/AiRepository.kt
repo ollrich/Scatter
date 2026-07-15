@@ -1,5 +1,6 @@
 package app.scatterto.data.mammouth
 
+import app.scatterto.R
 import app.scatterto.data.log.EventLog
 import app.scatterto.data.metadata.PageMetadata
 import app.scatterto.data.model.AiService
@@ -42,7 +43,7 @@ class AiRepository(private val log: EventLog) {
         val service = settings.active
         val token = settings.token(service)
         val model = resolveModel(service, settings, token)
-        log.info("KI: ${service.displayName} / $model, Medium ${medium ?: "unbekannt"}")
+        log.info(R.string.log_ai_generating, service.displayName, model, medium ?: log.string(R.string.log_unknown))
 
         val system = PromptBuilder.system(targets)
         val user = PromptBuilder.user(medium, metadata.title, metadata.description, targets)
@@ -85,14 +86,18 @@ class AiRepository(private val log: EventLog) {
             messages = listOf(ChatMessage("system", system), ChatMessage("user", user)),
             responseFormat = ResponseFormat("json_object"),
         )
-        return try {
-            apiCall { api.chat(bearer(token), request).firstContent() }
-        } catch (e: HttpException) {
-            if (e.code() == 400) {
-                log.info("KI: HTTP 400 – Retry ohne response_format/temperature")
-                apiCall { api.chat(bearer(token), request.copy(responseFormat = null, temperature = null)).firstContent() }
-            } else {
-                throw e
+        // apiCall MUSS außen liegen: sonst ist die HttpException schon zur ApiException geworden und
+        // der 400-Fallback (Retry ohne response_format/temperature) griffe nie.
+        return apiCall {
+            try {
+                api.chat(bearer(token), request).firstContent()
+            } catch (e: HttpException) {
+                if (e.code() == 400) {
+                    log.info(R.string.log_ai_retry_400)
+                    api.chat(bearer(token), request.copy(responseFormat = null, temperature = null)).firstContent()
+                } else {
+                    throw e
+                }
             }
         }
     }

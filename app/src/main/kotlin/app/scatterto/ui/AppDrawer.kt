@@ -62,7 +62,7 @@ fun AppDrawerContent(state: MainUiState, onClose: () -> Unit, onOpen: (String) -
                     modifier = Modifier.size(32.dp).clip(RoundedCornerShape(8.dp)),
                 )
                 Text(
-                    "ScatterTo",
+                    stringResource(R.string.app_name),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f),

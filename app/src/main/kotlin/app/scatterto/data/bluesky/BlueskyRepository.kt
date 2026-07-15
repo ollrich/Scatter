@@ -1,5 +1,6 @@
 package app.scatterto.data.bluesky
 
+import app.scatterto.R
 import app.scatterto.core.Facet
 import app.scatterto.core.domainOf
 import app.scatterto.data.CredentialStore
@@ -91,7 +92,7 @@ class BlueskyRepository(
                 val body = jpeg.toRequestBody("image/jpeg".toMediaType())
                 authed { auth -> api.uploadBlob(auth, body).blob }
             }.onFailure {
-                log.info("Bluesky: Thumbnail-Upload fehlgeschlagen – Karte ohne Bild")
+                log.info(R.string.log_bsky_thumb_failed)
             }.getOrNull()
         }
 
@@ -115,7 +116,7 @@ class BlueskyRepository(
             // §6: Die Link-Karte darf das Posten nie blockieren — lehnt der Server das Embed ab,
             // denselben Post ohne Karte absetzen. Auth-Fehler sind hier bereits behandelt.
             if (e.error.status == 400 && record.embed != null) {
-                log.error("Bluesky: Embed abgelehnt (${e.error.readable}) – sende ohne Karte")
+                log.error(R.string.log_bsky_embed_rejected, e.error.readable)
                 authed { auth ->
                     api.createRecord(
                         auth,
@@ -161,11 +162,11 @@ class BlueskyRepository(
 
     /** Refresh über refreshJwt; scheitert das, neue Session aus dem App-Password (§12.1 Nr. 4). */
     private suspend fun refreshSession(api: BlueskyApi, account: BlueskyAccount): BlueskyAccount {
-        log.info("Bluesky: Zugriffstoken abgelaufen – erneuere Session automatisch")
+        log.info(R.string.log_bsky_token_expired)
         val session = runCatching {
             api.refreshSession("Bearer ${account.refreshJwt}")
         }.getOrElse {
-            log.info("Bluesky: Refresh fehlgeschlagen – neue Session aus App-Password")
+            log.info(R.string.log_bsky_refresh_failed)
             // Auch dieser Pfad meldet HTTP-Fehler einheitlich als ApiException.
             apiCall { api.createSession(CreateSessionRequest(account.identifier, account.appPassword)) }
         }
