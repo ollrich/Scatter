@@ -38,6 +38,13 @@ data class MainUiState(
 
     val generationPhase: GenerationPhase = GenerationPhase.Idle,
 
+    // Bluesky-Link-Karte (§6): genau das, was gesendet wird — editierbar und damit auch die
+    // Notbremse, wenn die KI die Karte schlecht trifft oder der Sprachhinweis fehlt.
+    // Mastodon hat kein Gegenstück: dort baut der Server die Karte selbst aus den OG-Tags.
+    val cardTitle: String = "",
+    val cardDescription: String = "",
+    val cardImageUrl: String? = null,
+
     val mastodonConnected: Boolean = false,
     val blueskyConnected: Boolean = false,
     // Pro-Post-Auswahl (§5): standardmäßig beide an, einzeln abwählbar.
@@ -109,4 +116,12 @@ data class MainUiState(
         (!aiEnabled || metadataPhase != MetadataPhase.NeedsManual || hasMetadata)
 
     val isDone: Boolean get() = generationPhase is GenerationPhase.Done
+
+    /**
+     * Karten-Vorschau nur, solange sie noch etwas ändern kann: Bluesky ist Ziel, der Post ist noch
+     * nicht raus, und es gibt überhaupt eine Karte. Bewusst an [activeBluesky] statt an
+     * [blueskySendable] — ohne KI ist der Text anfangs leer, die Karte steht aber schon.
+     */
+    val showCardPreview: Boolean get() = activeBluesky && blueskyStatus !is PostStatus.Success &&
+        (cardTitle.isNotBlank() || cardDescription.isNotBlank())
 }

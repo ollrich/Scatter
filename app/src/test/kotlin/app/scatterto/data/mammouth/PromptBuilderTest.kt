@@ -1,5 +1,6 @@
 package app.scatterto.data.mammouth
 
+import app.scatterto.data.model.Tonality
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -10,9 +11,9 @@ class PromptBuilderTest {
     private fun mastodon(budget: Int = 400) = GenTarget("mastodon", "Mastodon", "German", budget, wantsCard = false)
     private fun bluesky(budget: Int = 240) = GenTarget("bluesky", "Bluesky", "English", budget, wantsCard = true)
 
-    @Test fun blueskyBudgetSubtractsUrlGraphemesAndReserve() {
-        val url = "https://a.de/x" // 14 Zeichen
-        assertEquals(236, PromptBuilder.blueskyTextBudget(url)) // 300 - 14 - 50
+    /** Die URL steht bei Bluesky nur in der Link-Karte, nicht im Text — sie kostet kein Budget. */
+    @Test fun blueskyBudgetSubtractsOnlyReserve() {
+        assertEquals(250, PromptBuilder.blueskyTextBudget()) // 300 - 50
     }
 
     @Test fun mastodonBudgetUsesFixedUrlWeight() {
@@ -46,5 +47,22 @@ class PromptBuilderTest {
         assertTrue(onlyMastodon.contains(""""mastodon""""))
         assertFalse(onlyMastodon.contains(""""bluesky":{"""))
         assertFalse(onlyMastodon.contains("card_title")) // ohne Bluesky keine Karte
+    }
+
+    @Test fun systemCarriesTheSelectedTonalityOnly() {
+        val marcel = PromptBuilder.system(listOf(mastodon()), Tonality.MARCEL)
+        assertTrue(marcel.contains(Tonality.MARCEL.promptBlock))
+        assertFalse(marcel.contains(Tonality.HAPE.promptBlock))
+    }
+
+    /** Standard ist die Vorgabe — ohne Argument darf kein anderer Ton in den Prompt geraten. */
+    @Test fun systemDefaultsToStandardTonality() {
+        assertTrue(PromptBuilder.system(listOf(mastodon())).contains(Tonality.STANDARD.promptBlock))
+    }
+
+    /** Die Karte beschreibt den Artikel, nicht den Poster: sie bleibt auch bei Marcel sachlich. */
+    @Test fun cardStaysNeutralRegardlessOfTonality() {
+        val marcel = PromptBuilder.system(listOf(mastodon(), bluesky()), Tonality.MARCEL)
+        assertTrue(marcel.contains("Die Karte gehört zum ARTIKEL"))
     }
 }

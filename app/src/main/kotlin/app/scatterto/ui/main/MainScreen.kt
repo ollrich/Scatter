@@ -17,6 +17,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Card
 import androidx.compose.material3.AlertDialog
@@ -46,10 +48,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -87,6 +92,9 @@ fun MainScreen(
 
     LaunchedEffect(sharedText) {
         if (sharedText != null) {
+            // Der Drawer ist saveable und käme sonst offen zurück — er würde die Einstiegsseite
+            // mit dem frisch geteilten Link verdecken.
+            drawerState.close()
             viewModel.onSharedText(sharedText, sharedSubject)
             onSharedConsumed()
         }
@@ -104,7 +112,8 @@ fun MainScreen(
 
     // Zusammengesetzte Posts + Limits einmal berechnen (Sektionen + Bottom-Bar nutzen sie).
     val mastodonPost = composePost(state.mastodon.text, state.mastodon.extraHashtags, state.mastodon.url)
-    val blueskyPost = composePost(state.bluesky.text, state.bluesky.extraHashtags, state.bluesky.url)
+    // Bluesky: URL nicht im Text — die Link-Karte trägt den Link (spart Budget).
+    val blueskyPost = composePost(state.bluesky.text, state.bluesky.extraHashtags, state.bluesky.url, includeUrl = false)
     val mastodonCount = mastodonLength(mastodonPost)
     val blueskyCount = blueskyLength(blueskyPost)
     val mastoOver = state.mastodonSendable && mastodonCount > state.mastodonMaxChars
@@ -265,6 +274,16 @@ fun MainScreen(
                         )
                     }
 
+                    if (state.showCardPreview) {
+                        BlueskyCardPreview(
+                            title = state.cardTitle,
+                            description = state.cardDescription,
+                            imageUrl = state.cardImageUrl,
+                            onTitle = viewModel::onCardTitleChange,
+                            onDescription = viewModel::onCardDescriptionChange,
+                        )
+                    }
+
                     if (!state.allSent) {
                         SendTargets(state)
                         if (state.isDone && state.hasPartialEmptyTarget) {
@@ -295,6 +314,86 @@ fun MainScreen(
                 TextButton(onClick = { confirmRegenerate = false }) { Text(stringResource(R.string.cancel)) }
             },
         )
+    }
+}
+
+/**
+ * Bluesky-Link-Karte (§6): eingeklappt eine Zeile, aufgeklappt editierbar. Eingeklappt, weil die
+ * Karte im Normalfall stimmt und die Hauptseite sonst zuwächst; editierbar, weil sie sonst die
+ * einzige Sache wäre, die ungeprüft rausgeht.
+ *
+ * Nur Bluesky: Mastodon baut die Karte serverseitig aus den OG-Tags der URL, dort gibt es nichts
+ * zu editieren.
+ */
+@Composable
+private fun BlueskyCardPreview(
+    title: String,
+    description: String,
+    imageUrl: String?,
+    onTitle: (String) -> Unit,
+    onDescription: (String) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = !expanded },
+            ) {
+                if (!imageUrl.isNullOrBlank()) {
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.size(40.dp).clip(RoundedCornerShape(4.dp)),
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        stringResource(R.string.card_preview_label),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        title.ifBlank { stringResource(R.string.card_preview_empty) },
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                Icon(
+                    if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                    contentDescription = stringResource(
+                        if (expanded) R.string.card_preview_collapse else R.string.card_preview_expand,
+                    ),
+                )
+            }
+
+            if (expanded) {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = onTitle,
+                    label = { Text(stringResource(R.string.card_title_label)) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = onDescription,
+                    label = { Text(stringResource(R.string.card_description_label)) },
+                    minLines = 2,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Text(
+                    stringResource(R.string.card_preview_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
     }
 }
 

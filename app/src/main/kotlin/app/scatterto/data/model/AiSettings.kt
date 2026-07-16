@@ -32,7 +32,10 @@ data class AiSettings(
     val activeService: String = AiService.MAMMOUTH.key,
     val tokens: Map<String, String> = emptyMap(),
     val models: Map<String, String> = emptyMap(),
+    /** Tonalität der Texte (§5.3) — global, nicht je Netzwerk. */
+    val tonality: String = Tonality.DEFAULT.key,
 ) {
+    val activeTonality: Tonality get() = Tonality.fromKey(tonality)
     fun token(service: AiService): String = tokens[service.key].orEmpty()
     fun model(service: AiService): String = models[service.key]?.ifBlank { null } ?: service.defaultModel
     val active: AiService get() = AiService.fromKey(activeService)

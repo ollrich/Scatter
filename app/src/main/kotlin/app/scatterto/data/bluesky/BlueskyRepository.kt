@@ -2,6 +2,7 @@ package app.scatterto.data.bluesky
 
 import app.scatterto.R
 import app.scatterto.core.Facet
+import app.scatterto.core.computeFacets
 import app.scatterto.core.domainOf
 import app.scatterto.data.CredentialStore
 import app.scatterto.data.log.EventLog
@@ -117,11 +118,17 @@ class BlueskyRepository(
             // denselben Post ohne Karte absetzen. Auth-Fehler sind hier bereits behandelt.
             if (e.error.status == 400 && record.embed != null) {
                 log.error(R.string.log_bsky_embed_rejected, e.error.readable)
+                // Die URL steht bei Bluesky NICHT im Text (die Karte trägt sie). Fällt die Karte weg,
+                // käme sonst ein Post ganz ohne Link raus — also URL anhängen und die Facets neu
+                // berechnen, damit sie klickbar ist.
+                val fallback = card?.uri?.takeIf { it.isNotBlank() && !text.contains(it) }
+                    ?.let { uri ->
+                        val withUrl = "$text\n\n$uri"
+                        record.copy(embed = null, text = withUrl, facets = computeFacets(withUrl, uri).ifEmpty { null })
+                    }
+                    ?: record.copy(embed = null)
                 authed { auth ->
-                    api.createRecord(
-                        auth,
-                        CreateRecordRequest(repo = current.did!!, record = record.copy(embed = null)),
-                    )
+                    api.createRecord(auth, CreateRecordRequest(repo = current.did!!, record = fallback))
                 }
             } else {
                 throw e

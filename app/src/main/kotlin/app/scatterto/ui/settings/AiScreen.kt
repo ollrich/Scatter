@@ -1,6 +1,7 @@
 package app.scatterto.ui.settings
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,11 +24,13 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -42,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
@@ -50,9 +54,35 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import app.scatterto.R
 import app.scatterto.data.mammouth.MammouthProvider
 import app.scatterto.data.model.AiService
+import app.scatterto.data.model.Tonality
 import app.scatterto.ui.AppViewModelProvider
 
 private const val GUIDE_URL = "https://github.com/ollrich/Scatter/blob/main/docs/ai-setup.md"
+
+// Texte der Tonalitäten hier, nicht im Datenmodell: Tonality kennt den Prompt, nicht die Oberfläche.
+private val Tonality.labelRes: Int
+    get() = when (this) {
+        Tonality.STANDARD -> R.string.tonality_standard
+        Tonality.LOCKER -> R.string.tonality_locker
+        Tonality.HAPE -> R.string.tonality_hape
+        Tonality.MARCEL -> R.string.tonality_marcel
+    }
+
+private val Tonality.descRes: Int
+    get() = when (this) {
+        Tonality.STANDARD -> R.string.tonality_standard_desc
+        Tonality.LOCKER -> R.string.tonality_locker_desc
+        Tonality.HAPE -> R.string.tonality_hape_desc
+        Tonality.MARCEL -> R.string.tonality_marcel_desc
+    }
+
+private val Tonality.exampleRes: Int
+    get() = when (this) {
+        Tonality.STANDARD -> R.string.tonality_example_standard
+        Tonality.LOCKER -> R.string.tonality_example_locker
+        Tonality.HAPE -> R.string.tonality_example_hape
+        Tonality.MARCEL -> R.string.tonality_example_marcel
+    }
 
 /** Wo es den API-Token für den jeweiligen Dienst gibt (für den Info-Dialog). */
 private fun consoleFor(service: AiService): String = when (service) {
@@ -73,6 +103,7 @@ fun AiScreen(
     val active = state.activeAiService
     var tokenVisible by remember { mutableStateOf(false) }
     var showInfo by remember { mutableStateOf(false) }
+    var showTonalityExamples by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -165,6 +196,14 @@ fun AiScreen(
                     is ValidationState.Invalid -> Text(v.message)
                     ValidationState.None -> {}
                 }
+
+                HorizontalDivider()
+
+                TonalitySection(
+                    selected = state.tonality,
+                    onSelect = viewModel::onTonalitySelect,
+                    onHelp = { showTonalityExamples = true },
+                )
             }
         }
     }
@@ -190,6 +229,96 @@ fun AiScreen(
             },
         )
     }
+
+    if (showTonalityExamples) {
+        TonalityExamplesDialog(onDismiss = { showTonalityExamples = false })
+    }
+}
+
+/**
+ * Tonalität (§5.3): Radio-Liste statt Dropdown, weil die Kurzbeschreibung mitlaufen muss — bei vier
+ * Optionen ist die volle Liste kompakt genug. Ein einzelnes „?" für alle vier: die Tonalitäten
+ * versteht man im Vergleich, nicht einzeln.
+ */
+@Composable
+private fun TonalitySection(
+    selected: String,
+    onSelect: (String) -> Unit,
+    onHelp: () -> Unit,
+) {
+    Column {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                stringResource(R.string.tonality_heading),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.weight(1f),
+            )
+            IconButton(onClick = onHelp) {
+                Icon(
+                    Icons.AutoMirrored.Outlined.HelpOutline,
+                    contentDescription = stringResource(R.string.tonality_help),
+                )
+            }
+        }
+        Tonality.entries.forEach { tonality ->
+            val isSelected = tonality.key == selected
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    // Auswahl auf der ganzen Zeile, nicht nur auf dem Radio-Punkt. selectable() mit
+                    // Role.RadioButton macht daraus für TalkBack eine echte Radio-Gruppe.
+                    .selectable(
+                        selected = isSelected,
+                        role = Role.RadioButton,
+                        onClick = { onSelect(tonality.key) },
+                    )
+                    .padding(vertical = 4.dp),
+            ) {
+                RadioButton(selected = isSelected, onClick = null)
+                Column(modifier = Modifier.padding(start = 8.dp)) {
+                    Text(stringResource(tonality.labelRes), style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        stringResource(tonality.descRes),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** Beispiel-Dialog: derselbe Artikel in allen vier Tonalitäten, damit der Unterschied sichtbar wird. */
+@Composable
+private fun TonalityExamplesDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.tonality_examples_title)) },
+        text = {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(
+                    stringResource(R.string.tonality_examples_intro),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Tonality.entries.forEach { tonality ->
+                    Column {
+                        Text(
+                            stringResource(tonality.labelRes),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                        Text(stringResource(tonality.exampleRes), style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) } },
+    )
 }
 
 /** Read-only-Dropdown über eine feste Optionsliste (Dienst bzw. Mammouth-Anbieter). */

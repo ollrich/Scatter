@@ -45,7 +45,7 @@ class AiRepository(private val log: EventLog) {
         val model = resolveModel(service, settings, token)
         log.info(R.string.log_ai_generating, service.displayName, model, medium ?: log.string(R.string.log_unknown))
 
-        val system = PromptBuilder.system(targets)
+        val system = PromptBuilder.system(targets, settings.activeTonality)
         val user = PromptBuilder.user(medium, metadata.title, metadata.description, targets)
 
         val content = when (service) {

@@ -19,6 +19,7 @@ import app.scatterto.data.mammouth.GenTarget
 import app.scatterto.data.mammouth.PromptBuilder
 import app.scatterto.data.metadata.PageMetadata
 import app.scatterto.data.model.PostLanguages
+import app.scatterto.data.model.withSourceLanguageNote
 import app.scatterto.data.net.ApiException
 import app.scatterto.ui.PostStatus
 import kotlinx.coroutines.launch
@@ -47,10 +48,6 @@ class MainViewModel(
     private var siteName: String? = null
     private var imageUrl: String? = null
     private var articleLanguage: String? = null
-
-    // Englische Bluesky-Link-Vorschau aus der KI-Generierung (§6); null -> Fallback auf Metadaten.
-    private var blueskyCardTitle: String? = null
-    private var blueskyCardDescription: String? = null
 
     // Stabiler Idempotency-Key für Mastodon pro Generierung (§12.1 Nr. 5).
     private var mastodonIdempotencyKey: String = UUID.randomUUID().toString()
@@ -97,8 +94,6 @@ class MainViewModel(
         siteName = savedStateHandle[KEY_SITE]
         imageUrl = savedStateHandle[KEY_IMAGE]
         articleLanguage = savedStateHandle[KEY_LANG]
-        blueskyCardTitle = savedStateHandle[KEY_CARD_TITLE]
-        blueskyCardDescription = savedStateHandle[KEY_CARD_DESC]
 
         // Phasen mit wiederherstellen (§12.3 Nr. 4): Sonst wären die geretteten Texte im State,
         // aber unsichtbar — und der nächste Klick würde den bezahlten KI-Call wiederholen.
@@ -114,6 +109,11 @@ class MainViewModel(
             generationPhase = if (hasPosts) GenerationPhase.Done else GenerationPhase.Idle,
             mastodon = mastodon,
             bluesky = bluesky,
+            // Die Karte kommt fertig aufgelöst aus dem State (inkl. etwaiger Hand-Korrekturen) —
+            // hier darf nichts neu abgeleitet werden.
+            cardTitle = savedStateHandle[KEY_CARD_TITLE] ?: "",
+            cardDescription = savedStateHandle[KEY_CARD_DESC] ?: "",
+            cardImageUrl = imageUrl,
         )
     }
 
@@ -134,7 +134,7 @@ class MainViewModel(
         // generierten Texte des VORHERIGEN Artikels stehen und wären sendbar.
         siteName = null
         imageUrl = null
-        resetCard()
+        clearCard()
         val empty = NetworkPost()
         uiState = uiState.copy(
             urlInput = url,
@@ -185,7 +185,7 @@ class MainViewModel(
     fun startNew() {
         siteName = null
         imageUrl = null
-        resetCard()
+        clearCard()
         val empty = NetworkPost()
         uiState = uiState.copy(
             urlInput = "",
@@ -296,7 +296,7 @@ class MainViewModel(
                             key = "bluesky", label = "Bluesky",
                             languageName = PostLanguages.englishName(uiState.blueskyLanguage)
                                 .ifBlank { uiState.blueskyLanguage },
-                            budget = PromptBuilder.blueskyTextBudget(uiState.urlInput),
+                            budget = PromptBuilder.blueskyTextBudget(),
                             wantsCard = true,
                         ),
                     )
@@ -341,7 +341,8 @@ class MainViewModel(
         val mastodon = NetworkPost(url = uiState.urlInput)
         val bluesky = NetworkPost(url = uiState.urlInput)
         persistPosts(mastodon, bluesky)
-        resetCard()
+        // Ohne KI trägt die Karte die Metadaten der Seite — sie bleibt editierbar.
+        setCard(null, null)
         uiState = uiState.copy(
             generationPhase = GenerationPhase.Done,
             generatingWith = null,
@@ -447,19 +448,19 @@ class MainViewModel(
         uiState = uiState.copy(blueskyStatus = PostStatus.Pending)
         log.info(R.string.log_bsky_sending)
         uiState = try {
-            val post = composePost(uiState.bluesky.text, uiState.bluesky.extraHashtags, uiState.bluesky.url)
+            // URL bleibt aus dem Text — die Link-Karte trägt den Link und spart so ~30–40 % Budget.
+            val post = composePost(
+                uiState.bluesky.text, uiState.bluesky.extraHashtags, uiState.bluesky.url, includeUrl = false,
+            )
             val facets = computeFacets(post, uiState.bluesky.url)
             val lang = account.effectiveLanguage
-            // Link-Vorschau aus der KI (§6, in der Bluesky-Sprache); ohne KI Fallback auf die Metadaten.
+            // Link-Vorschau (§6): genau die Werte aus der Vorschau — WYSIWYG, keine Ableitung mehr.
             val card = uiState.bluesky.url.takeIf { it.isNotBlank() }?.let {
                 LinkCard(
                     uri = it,
-                    title = blueskyCardTitle?.ifBlank { null } ?: uiState.metaTitle,
-                    description = withSourceLanguageNote(
-                        blueskyCardDescription?.ifBlank { null } ?: uiState.metaDescription,
-                        lang,
-                    ),
-                    imageUrl = imageUrl,
+                    title = uiState.cardTitle,
+                    description = uiState.cardDescription,
+                    imageUrl = uiState.cardImageUrl,
                 )
             }
             val url = container.blueskyRepository.post(account, post, facets, card, langs = listOf(lang))
@@ -483,26 +484,42 @@ class MainViewModel(
         savedStateHandle[KEY_META_DESC] = uiState.metaDescription
     }
 
-    private fun setCard(title: String?, description: String?) {
-        blueskyCardTitle = title
-        blueskyCardDescription = description
+    /**
+     * Setzt die Karte auf das, was gesendet würde: KI-Werte, sonst Metadaten, inklusive
+     * Sprachhinweis. Bewusst EINMAL beim Generieren aufgelöst statt beim Senden — nur so sieht der
+     * Nutzer die echten Werte und kann sie korrigieren.
+     */
+    private fun setCard(aiTitle: String?, aiDescription: String?) {
+        val title = aiTitle?.ifBlank { null } ?: uiState.metaTitle
+        val description = withSourceLanguageNote(
+            aiDescription?.ifBlank { null } ?: uiState.metaDescription,
+            articleLanguage,
+            uiState.blueskyLanguage,
+        )
+        uiState = uiState.copy(cardTitle = title, cardDescription = description, cardImageUrl = imageUrl)
         savedStateHandle[KEY_CARD_TITLE] = title
         savedStateHandle[KEY_CARD_DESC] = description
     }
 
-    private fun resetCard() = setCard(null, null)
-
     /**
-     * Hängt an die Karten-Beschreibung einen kurzen Sprachhinweis an (z. B. „(in German)"), wenn der
-     * verlinkte Artikel in einer ANDEREN Sprache ist als der Bluesky-Post — Orientierung für die
-     * Leserschaft. Der Hinweis bleibt bewusst englisch (kompakte, breit verständliche Konvention).
+     * Leert die Karte komplett (neuer Share, neuer Artikel). Nicht dasselbe wie [setCard] mit null:
+     * das würde auf die Metadaten zurückfallen — und beim Share stehen dort noch die des VORIGEN
+     * Artikels, weil der Reset vor dem Setzen der neuen läuft.
      */
-    private fun withSourceLanguageNote(description: String, postLanguage: String): String {
-        val article = articleLanguage?.let { PostLanguages.primary(it) } ?: return description
-        if (article == PostLanguages.primary(postLanguage)) return description
-        val name = PostLanguages.englishName(article).ifBlank { return description }
-        val note = "(in $name)"
-        return if (description.isBlank()) note else "$description $note"
+    private fun clearCard() {
+        uiState = uiState.copy(cardTitle = "", cardDescription = "", cardImageUrl = null)
+        savedStateHandle[KEY_CARD_TITLE] = null
+        savedStateHandle[KEY_CARD_DESC] = null
+    }
+
+    fun onCardTitleChange(value: String) {
+        uiState = uiState.copy(cardTitle = value)
+        savedStateHandle[KEY_CARD_TITLE] = value
+    }
+
+    fun onCardDescriptionChange(value: String) {
+        uiState = uiState.copy(cardDescription = value)
+        savedStateHandle[KEY_CARD_DESC] = value
     }
 
     private fun persistPosts(mastodon: NetworkPost, bluesky: NetworkPost) {

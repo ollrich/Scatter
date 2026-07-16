@@ -3,6 +3,7 @@ package app.scatterto.ui.settings
 import app.scatterto.data.mammouth.MammouthProvider
 import app.scatterto.data.model.AccountInfo
 import app.scatterto.data.model.AiService
+import app.scatterto.data.model.Tonality
 
 /** UI-Zustand des Einstellungsmenüs (§4). */
 data class SettingsUiState(
@@ -20,6 +21,7 @@ data class SettingsUiState(
     val modelsLoading: Boolean = false,
     val modelsError: Boolean = false,
     val aiValidation: ValidationState = ValidationState.None,
+    val tonality: String = Tonality.DEFAULT.key,
 
     // Mastodon
     val mastodonInstance: String = "",

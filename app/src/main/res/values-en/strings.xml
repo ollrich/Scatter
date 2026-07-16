@@ -53,6 +53,15 @@
     <string name="label_meta_description">Description</string>
 
     <!-- Regenerate -->
+    <!-- Bluesky link card -->
+    <string name="card_preview_label">Link card</string>
+    <string name="card_preview_empty">No title</string>
+    <string name="card_preview_expand">Edit link card</string>
+    <string name="card_preview_collapse">Collapse link card</string>
+    <string name="card_title_label">Card title</string>
+    <string name="card_description_label">Card description</string>
+    <string name="card_preview_hint">Bluesky only. Mastodon builds the preview itself from the linked page.</string>
+
     <string name="regen_confirm_title">Discard edited texts?</string>
     <string name="regen_confirm_text">You have edited the post texts. “Regenerate” replaces them with new AI texts.</string>
 
@@ -102,13 +111,32 @@
     <string name="validate_invalid">Token/model not verifiable</string>
     <string name="validate_offline">Cannot verify (offline?)</string>
 
+    <!-- Tonality -->
+    <string name="tonality_heading">Tonality</string>
+    <string name="tonality_help">Show examples</string>
+    <string name="tonality_standard">Neutral</string>
+    <string name="tonality_standard_desc">Reporting, no judgement. One sentence, no emojis.</string>
+    <string name="tonality_locker">Casual</string>
+    <string name="tonality_locker_desc">Friendly and inviting, with a few emojis.</string>
+    <string name="tonality_hape">Hape</string>
+    <string name="tonality_hape_desc">Warm, self-deprecating, with a punchline. One emoji at most.</string>
+    <string name="tonality_marcel">Marcel</string>
+    <string name="tonality_marcel_desc">A clear verdict, short sentences, no emojis.</string>
+    <string name="tonality_examples_title">Tonality</string>
+    <string name="tonality_examples_intro">The same article in four tonalities. The link card always stays neutral.</string>
+    <string name="tonality_example_standard">The major streaming services have raised their subscription prices by up to 40 percent within two years.</string>
+    <string name="tonality_example_locker">Up to 40 percent more for a streaming subscription in just two years 📺 This piece does the maths properly.</string>
+    <string name="tonality_example_hape">Let me put it this way: my streaming subscription now costs more than my first car. (Granted, it was a Ford Fiesta.) Up to 40 percent more in two years. Absolutely bonkers. 😄</string>
+    <string name="tonality_example_marcel">Forty percent. In two years. This is not a price adjustment, this is an imposition. Read it.</string>
+    <string name="close">Close</string>
+
     <!-- Display -->
     <string name="theme_heading">Theme</string>
     <string name="theme_system">System</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="dynamic_colors_label">Dynamic colours</string>
-    <string name="dynamic_colors_desc">Colours from the system wallpaper (Material You). Off: fixed app blue.</string>
+    <string name="dynamic_colors_desc">Colours from the system wallpaper (Material You). Gives higher contrast, especially in dark mode.</string>
     <string name="language_heading">Language</string>
     <string name="language_system">System language</string>
 

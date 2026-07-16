@@ -1,7 +1,7 @@
 package app.scatterto.data.mammouth
 
 import app.scatterto.core.MASTODON_URL_WEIGHT
-import app.scatterto.core.graphemeCount
+import app.scatterto.data.model.Tonality
 
 /**
  * Ein Ziel-Netzwerk der Generierung: sein Schema-Key, Anzeigename, die Post-Sprache (englischer
@@ -16,11 +16,12 @@ data class GenTarget(
 )
 
 /**
- * Baut System- und User-Prompt für den einen KI-Call (§5.3). Sachlich-referierender Stil ohne
- * Wertung; der Satz enthält NUR den Inhalt (kein Vorspann), sämtliche Hashtags stehen in
- * `extra_hashtags` und werden hinten angehängt. Sprache und Budget je Netzwerk konfigurierbar.
+ * Baut System- und User-Prompt für den einen KI-Call (§5.3). Der Satz enthält NUR den Inhalt
+ * (kein Vorspann), sämtliche Hashtags stehen in `extra_hashtags` und werden hinten angehängt.
+ * Sprache und Budget je Netzwerk konfigurierbar.
  *
  * Sprachbewusst: Es werden nur die aktiven Netzwerke angefordert, jeweils in ihrer Post-Sprache.
+ * Der Stil kommt aus der global gewählten [Tonality] und gilt für alle Netzwerke gleich.
  */
 object PromptBuilder {
 
@@ -28,13 +29,16 @@ object PromptBuilder {
     private const val RESERVE = 50
     private const val MIN_BUDGET = 60
 
-    fun blueskyTextBudget(url: String): Int =
-        (300 - graphemeCount(url) - RESERVE).coerceAtLeast(MIN_BUDGET)
+    /**
+     * Bluesky zählt Grapheme, Limit 300. Die URL wird **nicht** abgezogen: sie steht nicht im Text,
+     * sondern nur in der Link-Karte (`app.bsky.embed.external`) — das gibt ~30–40 % mehr Platz.
+     */
+    fun blueskyTextBudget(): Int = 300 - RESERVE
 
     fun mastodonTextBudget(maxCharacters: Int): Int =
         (maxCharacters - MASTODON_URL_WEIGHT - RESERVE).coerceAtLeast(MIN_BUDGET)
 
-    fun system(targets: List<GenTarget>): String {
+    fun system(targets: List<GenTarget>, tonality: Tonality = Tonality.DEFAULT): String {
         val schemaParts = targets.map { t ->
             val base = """"${t.key}":{"text":"...","extra_hashtags":["#..."]"""
             if (t.wantsCard) "$base,\"card_title\":\"...\",\"card_description\":\"...\"}" else "$base}"
@@ -42,7 +46,7 @@ object PromptBuilder {
         val targetsDesc = targets.joinToString(" und ") { "${it.label} (${it.languageName})" }
 
         return buildString {
-            appendLine("Du formulierst kurze, sachliche Hinweis-Posts zu einem Artikel — $targetsDesc.")
+            appendLine("Du formulierst kurze Hinweis-Posts zu einem Artikel — $targetsDesc.")
             appendLine("Antworte AUSSCHLIESSLICH mit diesem JSON, ohne weiteren Text:")
             appendLine("{${schemaParts.joinToString(",")}}")
             appendLine()
@@ -50,12 +54,13 @@ object PromptBuilder {
             targets.forEach { appendLine("- ${it.key}: ${it.languageName}") }
             appendLine()
             appendLine("Aufbau von \"text\":")
-            appendLine("- GENAU EIN sachlicher Satz, der den INHALT des Artikels zusammenfasst.")
+            appendLine("- Gib den INHALT des Artikels wieder.")
             appendLine("- KEIN einleitender Vorspann wie \"Bei #Medium wurde über #Thema geschrieben\" und")
             appendLine("  keine Quellenformel — beginne direkt mit dem Inhalt.")
-            appendLine("- Referierend, KEINE Wertung, kein \"interessant/lesenswert/spannend\", keine")
-            appendLine("  Empfehlung, keine Meinung, nicht persönlich.")
             appendLine("- KEINE Hashtags und KEINE URL im Satz.")
+            appendLine()
+            appendLine("Tonfall (gilt für alle Netzwerke):")
+            appendLine(tonality.promptBlock)
             appendLine()
             appendLine("Hashtags — ALLE in \"extra_hashtags\" (werden hinten angehängt, NICHT in den Satz):")
             appendLine("- Reihenfolge: (1) Medium als Hashtag (Eigenname/Kürzel, z. B. #NDR, #mobiFlip),")
@@ -65,6 +70,8 @@ object PromptBuilder {
             if (targets.any { it.wantsCard }) {
                 appendLine()
                 appendLine("Link-Vorschau (nur wo im Schema \"card_...\" steht):")
+                appendLine("- Die Karte gehört zum ARTIKEL, nicht zum Post: immer sachlich-neutral,")
+                appendLine("  ohne Emojis, unabhängig vom Tonfall oben.")
                 appendLine("- \"card_title\": knapper Titel des Artikels in der Netzwerk-Sprache,")
                 appendLine("  höchstens rund 70 Zeichen, ohne Hashtags.")
                 appendLine("- \"card_description\": EIN Satz in der Netzwerk-Sprache, der den Artikel")

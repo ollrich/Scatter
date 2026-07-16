@@ -52,6 +52,15 @@
     <string name="label_meta_title">Titel</string>
     <string name="label_meta_description">Beschreibung</string>
 
+    <!-- Bluesky-Link-Karte -->
+    <string name="card_preview_label">Link-Karte</string>
+    <string name="card_preview_empty">Ohne Titel</string>
+    <string name="card_preview_expand">Link-Karte bearbeiten</string>
+    <string name="card_preview_collapse">Link-Karte einklappen</string>
+    <string name="card_title_label">Karten-Titel</string>
+    <string name="card_description_label">Karten-Beschreibung</string>
+    <string name="card_preview_hint">Nur bei Bluesky. Mastodon baut die Vorschau selbst aus der verlinkten Seite.</string>
+
     <!-- Neu generieren -->
     <string name="regen_confirm_title">Bearbeitete Texte verwerfen?</string>
     <string name="regen_confirm_text">Du hast die Post-Texte bearbeitet. „Neu schreiben“ ersetzt sie durch neue KI-Texte.</string>
@@ -102,13 +111,32 @@
     <string name="validate_invalid">Token/Modell nicht prüfbar</string>
     <string name="validate_offline">Nicht prüfbar (offline?)</string>
 
+    <!-- Tonalität -->
+    <string name="tonality_heading">Tonalität</string>
+    <string name="tonality_help">Beispiele ansehen</string>
+    <string name="tonality_standard">Sachlich</string>
+    <string name="tonality_standard_desc">Referierend, ohne Wertung. Ein Satz, keine Emojis.</string>
+    <string name="tonality_locker">Locker</string>
+    <string name="tonality_locker_desc">Freundlich und einladend, mit ein paar Emojis.</string>
+    <string name="tonality_hape">Hape</string>
+    <string name="tonality_hape_desc">Warmherzig, selbstironisch, mit Pointe. Höchstens ein Emoji.</string>
+    <string name="tonality_marcel">Marcel</string>
+    <string name="tonality_marcel_desc">Klares Urteil, kurze Sätze, keine Emojis.</string>
+    <string name="tonality_examples_title">Tonalität</string>
+    <string name="tonality_examples_intro">Derselbe Artikel, vier Tonalitäten. Die Link-Karte bleibt immer sachlich.</string>
+    <string name="tonality_example_standard">Die großen Streamingdienste haben ihre Abo-Preise binnen zwei Jahren um bis zu 40 Prozent angehoben.</string>
+    <string name="tonality_example_locker">Bis zu 40 Prozent mehr fürs Streaming-Abo in nur zwei Jahren 📺 Der Beitrag rechnet das sauber durch.</string>
+    <string name="tonality_example_hape">Ich sag mal so: Mein Streaming-Abo kostet inzwischen mehr als mein erstes Auto. (Gut, das war ein Ford Fiesta.) Bis zu 40 Prozent teurer in zwei Jahren. Ist ja irre. 😄</string>
+    <string name="tonality_example_marcel">Vierzig Prozent. In zwei Jahren. Das ist keine Preisanpassung, das ist eine Zumutung. Lesen Sie das.</string>
+    <string name="close">Schließen</string>
+
     <!-- Anzeige -->
     <string name="theme_heading">Design</string>
     <string name="theme_system">System</string>
     <string name="theme_light">Hell</string>
     <string name="theme_dark">Dunkel</string>
     <string name="dynamic_colors_label">Dynamische Farben</string>
-    <string name="dynamic_colors_desc">Farben aus dem System-Hintergrund (Material You). Aus: festes App-Blau.</string>
+    <string name="dynamic_colors_desc">Farben aus dem System-Hintergrund (Material You). Sorgt für höheren Kontrast, besonders im Dunkel-Modus.</string>
     <string name="language_heading">Sprache</string>
     <string name="language_system">Systemsprache</string>
 

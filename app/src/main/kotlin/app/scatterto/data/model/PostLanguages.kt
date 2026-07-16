@@ -33,3 +33,21 @@ object PostLanguages {
         return if (p in TAGS) p else "en"
     }
 }
+
+/**
+ * Stellt der Bluesky-Karten-Beschreibung einen Sprachhinweis voran (z. B. „(in German)"), wenn der
+ * verlinkte Artikel in einer anderen Sprache ist als der Post — Orientierung für die Leserschaft.
+ * Der Hinweis bleibt englisch (kompakte, breit verständliche Konvention).
+ *
+ * Vorangestellt, nicht angehängt: Bluesky kürzt die Beschreibung in der Anzeige; am Ende wäre der
+ * Hinweis genau der Teil, der wegfällt. Ist [articleLanguage] unbekannt (viele Seiten setzen weder
+ * `<html lang>` noch `og:locale`), gibt es keinen Hinweis — dann hilft nur die Hand-Korrektur in
+ * der Karten-Vorschau.
+ */
+fun withSourceLanguageNote(description: String, articleLanguage: String?, postLanguage: String): String {
+    val article = articleLanguage?.takeIf { it.isNotBlank() }?.let { PostLanguages.primary(it) } ?: return description
+    if (article == PostLanguages.primary(postLanguage)) return description
+    val name = PostLanguages.englishName(article).ifBlank { return description }
+    val note = "(in $name)"
+    return if (description.isBlank()) note else "$note $description"
+}

@@ -53,6 +53,15 @@
     <string name="label_meta_description">Beskrivelse</string>
 
     <!-- Generér igen -->
+    <!-- Bluesky-linkkort -->
+    <string name="card_preview_label">Linkkort</string>
+    <string name="card_preview_empty">Uden titel</string>
+    <string name="card_preview_expand">Rediger linkkort</string>
+    <string name="card_preview_collapse">Fold linkkort sammen</string>
+    <string name="card_title_label">Korttitel</string>
+    <string name="card_description_label">Kortbeskrivelse</string>
+    <string name="card_preview_hint">Kun på Bluesky. Mastodon bygger selv forhåndsvisningen ud fra den linkede side.</string>
+
     <string name="regen_confirm_title">Kassér redigerede tekster?</string>
     <string name="regen_confirm_text">Du har redigeret opslagsteksterne. “Generér igen” erstatter dem med nye AI-tekster.</string>
 
@@ -102,13 +111,32 @@
     <string name="validate_invalid">Token/model kan ikke bekræftes</string>
     <string name="validate_offline">Kan ikke bekræftes (offline?)</string>
 
+    <!-- Tonalitet -->
+    <string name="tonality_heading">Tonalitet</string>
+    <string name="tonality_help">Se eksempler</string>
+    <string name="tonality_standard">Saglig</string>
+    <string name="tonality_standard_desc">Refererende, uden vurdering. Én sætning, ingen emojis.</string>
+    <string name="tonality_locker">Afslappet</string>
+    <string name="tonality_locker_desc">Venlig og indbydende, med et par emojis.</string>
+    <string name="tonality_hape">Hape</string>
+    <string name="tonality_hape_desc">Varm, selvironisk, med en pointe. Højst én emoji.</string>
+    <string name="tonality_marcel">Marcel</string>
+    <string name="tonality_marcel_desc">En klar dom, korte sætninger, ingen emojis.</string>
+    <string name="tonality_examples_title">Tonalitet</string>
+    <string name="tonality_examples_intro">Den samme artikel i fire tonaliteter. Linkkortet forbliver altid sagligt.</string>
+    <string name="tonality_example_standard">De store streamingtjenester har hævet deres abonnementspriser med op til 40 procent på to år.</string>
+    <string name="tonality_example_locker">Op til 40 procent mere for et streamingabonnement på bare to år 📺 Artiklen regner det grundigt igennem.</string>
+    <string name="tonality_example_hape">Lad mig sige det sådan: Mit streamingabonnement koster efterhånden mere end min første bil. (Ganske vist en Ford Fiesta.) Op til 40 procent dyrere på to år. Det er jo vanvittigt. 😄</string>
+    <string name="tonality_example_marcel">Fyrre procent. På to år. Det er ikke en prisjustering, det er en tilsnigelse. Læs det.</string>
+    <string name="close">Luk</string>
+
     <!-- Visning -->
     <string name="theme_heading">Tema</string>
     <string name="theme_system">System</string>
     <string name="theme_light">Lyst</string>
     <string name="theme_dark">Mørkt</string>
     <string name="dynamic_colors_label">Dynamiske farver</string>
-    <string name="dynamic_colors_desc">Farver fra systemets baggrund (Material You). Fra: fast app-blå.</string>
+    <string name="dynamic_colors_desc">Farver fra systemets baggrund (Material You). Giver højere kontrast, især i mørk tilstand.</string>
     <string name="language_heading">Sprog</string>
     <string name="language_system">Systemsprog</string>
 

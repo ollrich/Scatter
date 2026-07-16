@@ -47,6 +47,7 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
             aiService = ai.activeService,
             aiTokens = ai.tokens,
             aiModels = ai.models,
+            tonality = ai.activeTonality.key,
             mammouthProvider = provider.key,
             mastodonInstance = mastodon?.instanceUrl.orEmpty(),
             mastodonConnected = mastodon != null,
@@ -74,6 +75,17 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
         uiState = uiState.copy(aiEnabled = enabled)
         val stored = container.credentialStore.loadAiSettings()
         container.credentialStore.saveAiSettings(stored.copy(enabled = enabled))
+    }
+
+    /**
+     * Tonalität wirkt sofort und wird sofort persistiert — wie der Master-Schalter. Eine Radio-
+     * Auswahl, die erst nach „Speichern" gilt, wäre nicht erwartbar; sie hängt auch an keinem
+     * halb editierten Token.
+     */
+    fun onTonalitySelect(key: String) {
+        uiState = uiState.copy(tonality = key)
+        val stored = container.credentialStore.loadAiSettings()
+        container.credentialStore.saveAiSettings(stored.copy(tonality = key))
     }
 
     fun onServiceSelect(key: String) {
@@ -175,6 +187,7 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
             activeService = uiState.aiService,
             tokens = tokens,
             models = models,
+            tonality = uiState.tonality,
         )
     }
 
