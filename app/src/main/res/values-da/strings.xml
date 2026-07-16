@@ -114,7 +114,7 @@
 
     <!-- Om -->
     <string name="version">Version %1$s</string>
-    <string name="about_description">Del et artikel-link, og ScatterTo opretter et kort AI-opslag til hver af Mastodon og Bluesky, i det sprog du vælger pr. netværk. Gennemse, tilpas, send.</string>
+    <string name="about_description">Del et artikel-link, og Scatter opretter et kort AI-opslag til hver af Mastodon og Bluesky, i det sprog du vælger pr. netværk. Gennemse, tilpas, send.</string>
     <string name="about_privacy">Ingen telemetri, ingen deling med tredjeparter ud over de anvendte API\'er. Loginoplysninger gemmes udelukkende krypteret på enheden.</string>
     <string name="about_source">Kildekode på GitHub</string>
     <string name="about_author_prefix">Et privat projekt af</string>

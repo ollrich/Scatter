@@ -92,11 +92,78 @@ class ModelCatalogTest {
         assertEquals(null, MammouthProvider.ofModel("deepseek-v4-pro"))
     }
 
-    @Test fun directModelsFilterByProvider() {
-        val claude = ModelCatalog.directModels(AiService.CLAUDE, catalog)
-        assertTrue(claude.all { it.startsWith("claude") })
-        assertEquals(9, claude.size)
-        val gemini = ModelCatalog.directModels(AiService.GEMINI, catalog)
-        assertFalse(gemini.any { "image" in it || "preview" in it })
+    // --- Direkt-Dienste: je Stufe die letzten zwei, echte Kataloge vom 2026-07-15 ---
+
+    @Test fun claudeDirectKeepsLatestTwoPerFamily() {
+        val real = listOf(
+            "claude-sonnet-5", "claude-fable-5", "claude-opus-4-8", "claude-opus-4-7",
+            "claude-sonnet-4-6", "claude-opus-4-6", "claude-opus-4-5-20251101",
+            "claude-haiku-4-5-20251001", "claude-sonnet-4-5-20250929",
+        )
+        assertEquals(
+            listOf(
+                "claude-fable-5",
+                "claude-sonnet-5", "claude-sonnet-4-6",
+                "claude-opus-4-8", "claude-opus-4-7",
+                // Haiku gibt es NUR datiert -> bleibt, sonst verlöre man die Stufe ganz.
+                "claude-haiku-4-5-20251001",
+            ),
+            ModelCatalog.directModels(AiService.CLAUDE, real),
+        )
+    }
+
+    @Test fun openAiDirectKeepsTiersAndDropsNoise() {
+        val real = listOf(
+            "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna",
+            "gpt-5.5", "gpt-5.5-2026-04-23", "gpt-5.5-pro",
+            "gpt-5.4", "gpt-5.4-2026-03-05", "gpt-5.4-mini", "gpt-5.4-nano",
+            "gpt-5.3-chat-latest", "gpt-5.2-codex", "gpt-5-search-api", "gpt-4o",
+            "gpt-3.5-turbo", "gpt-3.5-turbo-instruct",
+            "gpt-image-2", "gpt-audio", "gpt-realtime", "o3", "text-embedding-3-large",
+        )
+        // Stufen Sol/Terra/Luna + Basis (letzte zwei). pro/mini/nano/chat/codex/search/Legacy raus.
+        assertEquals(
+            listOf("gpt-5.6-sol", "gpt-5.6-luna", "gpt-5.6-terra", "gpt-5.5", "gpt-5.4"),
+            ModelCatalog.directModels(AiService.OPENAI, real),
+        )
+    }
+
+    @Test fun geminiDirectPrefersLatestAliasesPerTier() {
+        // Bereits auf generateContent gefiltert + „models/" entfernt (macht das Repository).
+        val real = listOf(
+            "gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash", "gemini-2.0-flash-001",
+            "gemini-2.0-flash-lite-001", "gemini-2.0-flash-lite", "gemini-flash-latest",
+            "gemini-flash-lite-latest", "gemini-pro-latest", "gemini-2.5-flash-lite",
+            "gemini-3.1-flash-lite", "gemini-3.5-flash",
+            "gemini-2.5-flash-image", "gemini-3.1-pro-preview", "gemini-2.5-flash-preview-tts",
+            "gemini-3.1-pro-preview-customtools", "gemini-robotics-er-1.6-preview",
+        )
+        assertEquals(
+            listOf(
+                "gemini-pro-latest", "gemini-2.5-pro",
+                "gemini-flash-latest", "gemini-3.5-flash",
+                "gemini-flash-lite-latest", "gemini-3.1-flash-lite",
+            ),
+            ModelCatalog.directModels(AiService.GEMINI, real),
+        )
+    }
+
+    @Test fun datedSnapshotsCollapseOnlyWhenAliasExists() {
+        // Alias vorhanden -> datierter fliegt; ohne Alias bleibt er (Claude Haiku).
+        val ids = listOf("gpt-5.5", "gpt-5.5-2026-04-23")
+        assertEquals(listOf("gpt-5.5"), ModelCatalog.directModels(AiService.OPENAI, ids))
+        assertEquals(
+            listOf("claude-haiku-4-5-20251001"),
+            ModelCatalog.directModels(AiService.CLAUDE, listOf("claude-haiku-4-5-20251001")),
+        )
+    }
+
+    @Test fun mammouthKeepsMiniNanoChatUnlikeOpenAiDirect() {
+        // Bei Mammouth bleiben mini/nano/chat wählbar (Nutzer-Entscheidung) …
+        val gpt = ModelCatalog.mammouthModels(MammouthProvider.GPT, catalog)
+        assertTrue("gpt-5.4-nano" in gpt)
+        assertTrue("gpt-5.2-chat" in gpt)
+        // … und „instruct" darf NICHT global fliegen, sonst verlöre Mistral sein Modell.
+        assertTrue("mistral-small-3.2-24b-instruct" in ModelCatalog.mammouthModels(MammouthProvider.MISTRAL, catalog))
     }
 }

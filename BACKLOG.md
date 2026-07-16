@@ -10,12 +10,7 @@ Offene Punkte, nach Aufwand und Priorität gruppiert. Die verbindliche Spezifika
   in ihrer Ursprungssprache). Präferenz: an App-Sprache anpassen, nicht fix Englisch.
 - **Dynamische Farben abschaltbar** + feste Akzentfarbe: Material You (Dynamic Color) ist aktuell
   immer an; Schalter unter **Anzeige**, bei „aus" das App-Blau als festes Schema.
-- **Direkt-Anbieter-Modelllisten feintunen:** die Live-Filter für Claude/OpenAI/Gemini sind
-  „best effort" (nur Mammouths echter Katalog ist bekannt). Gegen die realen `models`-Ausgaben der
-  Anbieter prüfen (wie bei Mammouth) — nur für die Dienste relevant, die man direkt nutzt.
-  **Achtung: die Direkt-API-Anbindung (Generieren via Claude/OpenAI/Gemini) ist noch NIE getestet**
-  (nur Mammouth läuft in der Praxis) — beim Feintunen zugleich end-to-end testen: Auth-Header,
-  Request-/Response-Schema, `apiCall`-Fehlerpfad. Realer Bug-Risiko-Kandidat.
+- ~~Direkt-Anbieter-Modelllisten feintunen~~ → Spec steht, Umsetzung nach v0.9.5 verschoben (s. u.).
 - **Umbenennung ScatterTo → Scatter** (Nutzer-Wunsch 2026-07-14): nur der **Anzeigename**
   (`app_name` in 3 Sprachen, Top-Bar-Text, About, README), `applicationId app.scatterto` bleibt
   (unveränderlich, Update-/Cert-Identität). **GitHub-Repo wird mit umbenannt** (`ollrich/Scatter`;
@@ -41,6 +36,32 @@ Danach: als **0.9.0** taggen.
   **Mastodon geht nicht:** dort baut der Server die Link-Karte selbst aus den OG-Tags der Quellseite
   (kein `card`-Feld in der Status-API, nicht mitsendbar/editierbar) — höchstens read-only, aber
   redundant zur bestehenden Metadaten-Karte. Also Vorschau Bluesky-only.
+- **Dynamische Farben — Variante 1** (entschieden 2026-07-14): Schalter *aus* = Markenblau #1A80B6
+  überall + sauberes blau-basiertes Festschema (kein Material-Baseline-Violett); *an* = **volles**
+  Material You (Akzent UND Flächen aus dem Wallpaper, kein Primär-Override mehr).
+- **About-Text-Fix** „ScatterTo" → „Scatter" in `about_description` (3 Sprachen): bereits umgesetzt,
+  uncommittet — geht mit v0.9.5 mit rein.
+- **Direkt-Anbieter-Modelllisten — Filter-Spec steht** (echte Kataloge geprüft 2026-07-15, alle
+  Entscheidungen getroffen; nur noch umzusetzen):
+  - **Prinzip: Ausschlussliste** (Nutzer-Entscheidung) — neue Modelle/Stufen erscheinen dadurch
+    automatisch, ohne App-Update. Ein App-Update braucht es nur, wenn eine neue *Beiwerk*-Kategorie
+    auftaucht, die wir verstecken wollen.
+  - **Raus:** Bild/Audio/Realtime/TTS/Transcribe/Whisper/Moderation/Embedding/Codex/Coder/**Search**/
+    Sora/**Instruct**/**Chat**/Pro/Mini/Nano/o-Serie/Legacy (gpt-3.5, babbage, davinci)/**Preview**/
+    customtools/Robotics/Computer-Use/Deep-Research/Live/Native-Audio.
+  - **Datums-Snapshots einklappen:** `X-YYYY-MM-DD` bzw. `X-NNNNNNNN` fliegt raus, wenn der Alias `X`
+    existiert; sonst bleibt er (sonst verlöre man z. B. Claude Haiku, das es nur datiert gibt).
+  - **Je Stufe/Familie die letzten zwei.** **`-latest`-Aliase gelten als neueste** (ranken vorn) —
+    sie haben keine Versionsnummer und würden sonst hinten rausfallen.
+  - **Soll-Ergebnis:** Claude 6 (`sonnet-5`, `sonnet-4-6`, `fable-5`, `opus-4-8`, `opus-4-7`,
+    `haiku-4-5-20251001`) · OpenAI 4 (`gpt-5.6-sol/terra/luna`, `gpt-5.5`) · Gemini 6 (`pro-latest`,
+    `2.5-pro`, `flash-latest`, `3.5-flash`, `flash-lite-latest`, `3.1-flash-lite`).
+  - **Gefundene Filter-Lücken (real):** `search` und `instruct` fehlten, gpt-3.5-Legacy kam durch,
+    Datums-Snapshots doppelten die Aliase.
+  - **Kontext:** OpenAI-Stufen sind seit 5.6 **Sol/Terra/Luna** (Flaggschiff/ausgewogen/günstig,
+    analog Opus/Sonnet/Haiku); Geminis Stufen sind Pro/Flash/Flash-Lite (Tier-Erkennung muss
+    `flash-lite` vor `flash` matchen). Neueste Gemini-**Pro** sind preview-only → stabiles Pro bleibt
+    2.5; für kurze Posts ist Flash ohnehin ausreichend.
 
 Danach: als **0.9.5** taggen.
 
