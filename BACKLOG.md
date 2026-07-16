@@ -36,11 +36,8 @@ Danach: als **0.9.0** taggen.
   **Mastodon geht nicht:** dort baut der Server die Link-Karte selbst aus den OG-Tags der Quellseite
   (kein `card`-Feld in der Status-API, nicht mitsendbar/editierbar) — höchstens read-only, aber
   redundant zur bestehenden Metadaten-Karte. Also Vorschau Bluesky-only.
-- **Dynamische Farben — Variante 1** (entschieden 2026-07-14): Schalter *aus* = Markenblau #1A80B6
-  überall + sauberes blau-basiertes Festschema (kein Material-Baseline-Violett); *an* = **volles**
-  Material You (Akzent UND Flächen aus dem Wallpaper, kein Primär-Override mehr).
-- **About-Text-Fix** „ScatterTo" → „Scatter" in `about_description` (3 Sprachen): bereits umgesetzt,
-  uncommittet — geht mit v0.9.5 mit rein.
+- ~~Dynamische Farben — Variante 1~~ → **erledigt in v0.9.2**.
+- ~~About-Text-Fix „Scatter"~~ → **erledigt in v0.9.1**.
 - **Direkt-Anbieter-Modelllisten — Filter-Spec steht** (echte Kataloge geprüft 2026-07-15, alle
   Entscheidungen getroffen; nur noch umzusetzen):
   - **Prinzip: Ausschlussliste** (Nutzer-Entscheidung) — neue Modelle/Stufen erscheinen dadurch

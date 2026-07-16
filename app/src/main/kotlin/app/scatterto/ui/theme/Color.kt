@@ -6,7 +6,5 @@ import androidx.compose.ui.graphics.Color
 val MastodonViolet = Color(0xFF6364FF)
 val BlueskyBlue = Color(0xFF0085FF)
 
-// Statische Fallback-Palette, falls Dynamic Color nicht greift — App-Blau (Icon #1A80B6).
-// Zugleich Basis für das spätere Akzentfarben-Feature (Backlog).
+/** Marken-Blau aus dem App-Icon — Primärfarbe des festen Schemas („dynamische Farben aus"). */
 val SeedPrimary = Color(0xFF1A80B6)
-val SeedSecondary = Color(0xFF0085FF)

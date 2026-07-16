@@ -15,14 +15,60 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-private val DarkColors = darkColorScheme(
-    primary = SeedPrimary,
-    secondary = SeedSecondary,
-)
-
+/**
+ * Festes Marken-Schema für „dynamische Farben AUS" — vollständig aus dem Icon-Blau #1A80B6
+ * (Hue ≈ 201°) abgeleitet, damit keine Material-Baseline-Violetttöne in Containern/Tertiär
+ * durchschlagen. Flächen bewusst neutral-kühl statt violett getönt.
+ */
 private val LightColors = lightColorScheme(
     primary = SeedPrimary,
-    secondary = SeedSecondary,
+    onPrimary = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFFCAE6FF),
+    onPrimaryContainer = Color(0xFF001E2F),
+    secondary = Color(0xFF4E616D),
+    onSecondary = Color(0xFFFFFFFF),
+    secondaryContainer = Color(0xFFD1E5F4),
+    onSecondaryContainer = Color(0xFF0A1E28),
+    tertiary = Color(0xFF00687B),
+    onTertiary = Color(0xFFFFFFFF),
+    tertiaryContainer = Color(0xFFAEECFF),
+    onTertiaryContainer = Color(0xFF001F26),
+    background = Color(0xFFFBFCFE),
+    onBackground = Color(0xFF191C1E),
+    surface = Color(0xFFFBFCFE),
+    onSurface = Color(0xFF191C1E),
+    surfaceVariant = Color(0xFFDDE3EA),
+    onSurfaceVariant = Color(0xFF41484D),
+    outline = Color(0xFF71787E),
+    outlineVariant = Color(0xFFC1C7CE),
+)
+
+/**
+ * Dunkel-Variante desselben Marken-Blaus. Die Primärfarbe ist bewusst eine **hellere Tonstufe**
+ * des Icon-Blaus: #1A80B6 auf dunklem Grund käme nur auf ~3,9:1 Kontrast und wäre für Link-Text
+ * zu schwach. Gleicher Farbton, lesbare Helligkeit — so macht es Material selbst auch.
+ */
+private val DarkColors = darkColorScheme(
+    primary = Color(0xFF8CCEFF),
+    onPrimary = Color(0xFF00344E),
+    primaryContainer = Color(0xFF004C6F),
+    onPrimaryContainer = Color(0xFFCAE6FF),
+    secondary = Color(0xFFB5C9D7),
+    onSecondary = Color(0xFF20333E),
+    secondaryContainer = Color(0xFF374955),
+    onSecondaryContainer = Color(0xFFD1E5F4),
+    tertiary = Color(0xFF54D7F2),
+    onTertiary = Color(0xFF003641),
+    tertiaryContainer = Color(0xFF004E5D),
+    onTertiaryContainer = Color(0xFFAEECFF),
+    background = Color(0xFF191C1E),
+    onBackground = Color(0xFFE1E2E5),
+    surface = Color(0xFF191C1E),
+    onSurface = Color(0xFFE1E2E5),
+    surfaceVariant = Color(0xFF41484D),
+    onSurfaceVariant = Color(0xFFC1C7CE),
+    outline = Color(0xFF8B9198),
+    outlineVariant = Color(0xFF41484D),
 )
 
 /**
@@ -36,16 +82,15 @@ fun ScatterToTheme(
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
-    val base = when {
+    // Schalter AN: volles Material You (Akzent UND Flächen aus dem Wallpaper).
+    // Schalter AUS: festes Marken-Schema im Icon-Blau. Kein Primär-Override mehr — sonst wäre der
+    // Schalter wirkungslos, weil der Akzent in beiden Zuständen gleich aussähe.
+    val colorScheme = when {
         dynamicColor && context is Activity ->
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         darkTheme -> DarkColors
         else -> LightColors
     }
-    // Alle Blau-Akzente (Buttons, Switch, Radiobuttons, Links, Feld-Fokus) auf das Icon-Blau #1A80B6
-    // festlegen — in Hell UND Dunkel, statt der aus dem Wallpaper abgeleiteten Primärfarbe. Die
-    // Menü-Icons werden separat und nur im Hell-Modus getönt (siehe AppDrawer).
-    val colorScheme = base.copy(primary = SeedPrimary, onPrimary = Color.White)
 
     // Systemleisten-Icons an das App-Theme koppeln (nicht ans System): sonst sind die Statusbar-Icons
     // im erzwungenen Hell-Modus unsichtbar, wenn das Gerät im Dunkel-Modus läuft.
