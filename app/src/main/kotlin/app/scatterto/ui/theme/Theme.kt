@@ -44,13 +44,15 @@ private val LightColors = lightColorScheme(
 )
 
 /**
- * Dunkel-Variante desselben Marken-Blaus. Die Primärfarbe ist bewusst eine **hellere Tonstufe**
- * des Icon-Blaus: #1A80B6 auf dunklem Grund käme nur auf ~3,9:1 Kontrast und wäre für Link-Text
- * zu schwach. Gleicher Farbton, lesbare Helligkeit — so macht es Material selbst auch.
+ * Dunkel-Variante desselben Marken-Blaus — bewusst der **exakte** Icon-Hex #1A80B6 (Nutzer-
+ * Entscheidung 2026-07-16), obwohl er auf dunklem Grund nur ~3,9:1 Kontrast erreicht und damit
+ * für Link-Text unter AA (4,5:1) liegt. Markentreue schlägt hier den Normwert; wer vollen
+ * Kontrast will, schaltet „dynamische Farben" an (Material You wählt lesbare Tonstufen).
+ * `onPrimary` bleibt Weiß (~4,4:1 auf dem Blau) — für Button-Beschriftung ausreichend.
  */
 private val DarkColors = darkColorScheme(
-    primary = Color(0xFF8CCEFF),
-    onPrimary = Color(0xFF00344E),
+    primary = SeedPrimary,
+    onPrimary = Color(0xFFFFFFFF),
     primaryContainer = Color(0xFF004C6F),
     onPrimaryContainer = Color(0xFFCAE6FF),
     secondary = Color(0xFFB5C9D7),
