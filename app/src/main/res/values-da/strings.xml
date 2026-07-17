@@ -152,7 +152,7 @@
 
     <!-- Om -->
     <string name="version">Version %1$s</string>
-    <string name="about_description">Del et artikel-link, og Scatter opretter et kort AI-opslag til hver af Mastodon og Bluesky, i det sprog du vælger pr. netværk. Gennemse, tilpas, send.</string>
+    <string name="about_description">Del et artikellink. Scatter forbereder ét opslag til hver af Mastodon og Bluesky, valgfrit via AI på det sprog og i den tonalitet, du vælger pr. netværk. Gennemse, tilpas, send.</string>
     <string name="about_privacy">Ingen telemetri, ingen analytics. Loginoplysninger gemmes udelukkende krypteret på enheden. Dine opslag går til din Mastodon-instans og til Bluesky. Er AI slået til, sendes artiklens titel og beskrivelse til den udbyder, du vælger (Mammouth, OpenAI, Anthropic eller Google). Uden AI forlader intet af det enheden.</string>
     <string name="about_source">Kildekode på GitHub</string>
     <string name="about_author_prefix">Et privat projekt af</string>

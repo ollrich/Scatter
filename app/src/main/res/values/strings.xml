@@ -152,7 +152,7 @@
 
     <!-- Über -->
     <string name="version">Version %1$s</string>
-    <string name="about_description">Teile einen Artikel-Link und Scatter erstellt per KI je einen kurzen Post für Mastodon und Bluesky, in der pro Netzwerk gewählten Sprache. Prüfen, anpassen, absenden.</string>
+    <string name="about_description">Teile einen Artikel-Link. Scatter bereitet je einen Post für Mastodon und Bluesky vor, auf Wunsch per KI in der pro Netzwerk gewählten Sprache und Tonalität. Prüfen, anpassen, absenden.</string>
     <string name="about_privacy">Keine Telemetrie, kein Analytics. Zugangsdaten liegen ausschließlich verschlüsselt auf dem Gerät. Deine Posts gehen an deine Mastodon-Instanz und an Bluesky. Ist die KI aktiv, werden Titel und Beschreibung des Artikels an den von dir gewählten Anbieter gesendet (Mammouth, OpenAI, Anthropic oder Google). Ohne KI verlässt nichts davon das Gerät.</string>
     <string name="about_source">Quellcode auf GitHub</string>
     <string name="about_author_prefix">Ein privates Projekt von</string>

@@ -152,7 +152,7 @@
 
     <!-- About -->
     <string name="version">Version %1$s</string>
-    <string name="about_description">Share an article link and Scatter creates a short AI post each for Mastodon and Bluesky, in the language you choose per network. Review, adjust, send.</string>
+    <string name="about_description">Share an article link. Scatter prepares one post each for Mastodon and Bluesky, optionally via AI in the language and tonality you choose per network. Review, adjust, send.</string>
     <string name="about_privacy">No telemetry, no analytics. Credentials are stored encrypted on the device only. Your posts go to your Mastodon instance and to Bluesky. If AI is enabled, the article\'s title and description are sent to the provider you choose (Mammouth, OpenAI, Anthropic or Google). Without AI, none of that leaves the device.</string>
     <string name="about_source">Source code on GitHub</string>
     <string name="about_author_prefix">A personal project by</string>

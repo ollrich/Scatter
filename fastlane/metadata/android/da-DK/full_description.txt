@@ -1,13 +1,14 @@
 Scatter er til folk, der deler den samme artikel på Mastodon og Bluesky uden at skrive den to gange.
 
-Del et link fra en hvilken som helst app, og Scatter henter sidens metadata og forbereder ét opslag pr. netværk. Hvis du vil, skriver en AI-model efter eget valg teksterne, hver på det sprog, der er sat pr. netværk, og i en af fire tonaliteter. Du gennemser, tilpasser og sender.
+Del et link fra en hvilken som helst app, og Scatter henter sidens metadata og forbereder ét opslag pr. netværk. Hvis du vil, skriver en AI-model efter eget valg teksterne, hver på det sprog, der er sat pr. netværk, og i en af fem tonaliteter. Du gennemser, tilpasser og sender.
 
 Funktioner:
 
 * Delingsmål for artikellinks, eller indsæt en URL
 * Ét selvstændigt opslag til hver af Mastodon og Bluesky, som kan redigeres hver for sig
-* AI valgfrit: Mammouth, OpenAI, Anthropic eller Google med din egen API-token, kan slås helt fra
-* Fire tonaliteter, fra saglig til skarp
+* AI valgfrit og slået fra som standard: Mammouth, OpenAI, Anthropic eller Google med din egen API-token
+* Mest omfattende med Mammouth: seks udbyderfamilier under én token (GPT, Claude, Mistral, Gemini, Kimi, Qwen) og visning af din resterende API-kredit
+* Fem tonaliteter, fra saglig til skarp
 * Redigerbart Bluesky-linkkort med forhåndsvisning
 * Netværksbevidst tegnoptælling (Mastodon-URL-vægtning, Bluesky-grafemer)
 * Opslagssprog pr. netværk, appsprog tysk, engelsk eller dansk
