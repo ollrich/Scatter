@@ -71,6 +71,7 @@ private val Tonality.labelRes: Int
         Tonality.STANDARD -> R.string.tonality_standard
         Tonality.LOCKER -> R.string.tonality_locker
         Tonality.HAPE -> R.string.tonality_hape
+        Tonality.HAZEL -> R.string.tonality_hazel
         Tonality.MARCEL -> R.string.tonality_marcel
     }
 
@@ -79,6 +80,7 @@ private val Tonality.descRes: Int
         Tonality.STANDARD -> R.string.tonality_standard_desc
         Tonality.LOCKER -> R.string.tonality_locker_desc
         Tonality.HAPE -> R.string.tonality_hape_desc
+        Tonality.HAZEL -> R.string.tonality_hazel_desc
         Tonality.MARCEL -> R.string.tonality_marcel_desc
     }
 
@@ -87,6 +89,7 @@ private val Tonality.exampleRes: Int
         Tonality.STANDARD -> R.string.tonality_example_standard
         Tonality.LOCKER -> R.string.tonality_example_locker
         Tonality.HAPE -> R.string.tonality_example_hape
+        Tonality.HAZEL -> R.string.tonality_example_hazel
         Tonality.MARCEL -> R.string.tonality_example_marcel
     }
 
@@ -282,8 +285,8 @@ private fun BudgetRow(budget: AiBudget) {
 }
 
 /**
- * Tonalität (§5.3): Radio-Liste statt Dropdown, weil die Kurzbeschreibung mitlaufen muss — bei vier
- * Optionen ist die volle Liste kompakt genug. Ein einzelnes „?" für alle vier: die Tonalitäten
+ * Tonalität (§5.3): Radio-Liste statt Dropdown, weil die Kurzbeschreibung mitlaufen muss — bei
+ * fünf Optionen ist die volle Liste kompakt genug. Ein einzelnes „?" für alle: die Tonalitäten
  * versteht man im Vergleich, nicht einzeln.
  */
 @Composable

@@ -128,13 +128,16 @@
     <string name="tonality_locker_desc">Friendly and inviting, with a few emojis.</string>
     <string name="tonality_hape">Hans-Peter</string>
     <string name="tonality_hape_desc">Warm, self-deprecating, with a punchline. One emoji at most.</string>
+    <string name="tonality_hazel">Hazel</string>
+    <string name="tonality_hazel_desc">Dry and deadpan, with an absurd twist. One ironic emoji at most.</string>
     <string name="tonality_marcel">Marcel</string>
     <string name="tonality_marcel_desc">A clear verdict, short sentences, no emojis.</string>
     <string name="tonality_examples_title">Tonality</string>
-    <string name="tonality_examples_intro">The same article in four tonalities. The link card always stays neutral.</string>
+    <string name="tonality_examples_intro">The same article in five tonalities. The link card always stays neutral.</string>
     <string name="tonality_example_standard">The major streaming services have raised their subscription prices by up to 40 percent within two years.</string>
     <string name="tonality_example_locker">Up to 40 percent more for a streaming subscription in just two years 📺 This piece does the maths properly.</string>
     <string name="tonality_example_hape">Let me put it this way: my streaming subscription now costs more than my first car. (Granted, it was a Ford Fiesta.) Up to 40 percent more in two years. Absolutely bonkers. 😄</string>
+    <string name="tonality_example_hazel">Streaming subscriptions cost 40 percent more than two years ago. The catalogue is unchanged. So you now pay a premium to keep finding nothing worth watching. 💸</string>
     <string name="tonality_example_marcel">Forty percent. In two years. This is not a price adjustment, this is an imposition. Read it.</string>
     <string name="close">Close</string>
 

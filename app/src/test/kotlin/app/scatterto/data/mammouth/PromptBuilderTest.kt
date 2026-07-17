@@ -55,6 +55,15 @@ class PromptBuilderTest {
         assertFalse(marcel.contains(Tonality.HAPE.promptBlock))
     }
 
+    /** Jede Tonalität muss einen Stil-Block liefern (sonst käme ein leerer Tonfall-Abschnitt). */
+    @Test fun everyTonalityHasAPromptBlock() {
+        assertTrue(Tonality.entries.all { it.promptBlock.isNotBlank() })
+    }
+
+    @Test fun systemCarriesHazelWhenSelected() {
+        assertTrue(PromptBuilder.system(listOf(mastodon()), Tonality.HAZEL).contains(Tonality.HAZEL.promptBlock))
+    }
+
     /** Standard ist die Vorgabe — ohne Argument darf kein anderer Ton in den Prompt geraten. */
     @Test fun systemDefaultsToStandardTonality() {
         assertTrue(PromptBuilder.system(listOf(mastodon())).contains(Tonality.STANDARD.promptBlock))

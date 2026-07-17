@@ -128,13 +128,16 @@
     <string name="tonality_locker_desc">Freundlich und einladend, mit ein paar Emojis.</string>
     <string name="tonality_hape">Hans-Peter</string>
     <string name="tonality_hape_desc">Warmherzig, selbstironisch, mit Pointe. Höchstens ein Emoji.</string>
+    <string name="tonality_hazel">Hazel</string>
+    <string name="tonality_hazel_desc">Trocken und lakonisch, mit absurder Pointe. Höchstens ein ironisches Emoji.</string>
     <string name="tonality_marcel">Marcel</string>
     <string name="tonality_marcel_desc">Klares Urteil, kurze Sätze, keine Emojis.</string>
     <string name="tonality_examples_title">Tonalität</string>
-    <string name="tonality_examples_intro">Derselbe Artikel, vier Tonalitäten. Die Link-Karte bleibt immer sachlich.</string>
+    <string name="tonality_examples_intro">Derselbe Artikel, fünf Tonalitäten. Die Link-Karte bleibt immer sachlich.</string>
     <string name="tonality_example_standard">Die großen Streamingdienste haben ihre Abo-Preise binnen zwei Jahren um bis zu 40 Prozent angehoben.</string>
     <string name="tonality_example_locker">Bis zu 40 Prozent mehr fürs Streaming-Abo in nur zwei Jahren 📺 Der Beitrag rechnet das sauber durch.</string>
     <string name="tonality_example_hape">Ich sag mal so: Mein Streaming-Abo kostet inzwischen mehr als mein erstes Auto. (Gut, das war ein Ford Fiesta.) Bis zu 40 Prozent teurer in zwei Jahren. Ist ja irre. 😄</string>
+    <string name="tonality_example_hazel">Streaming-Abos kosten in zwei Jahren 40 Prozent mehr. Das Angebot ist dasselbe geblieben. Man zahlt jetzt also Aufpreis, um weiterhin nichts Passendes zu finden. 💸</string>
     <string name="tonality_example_marcel">Vierzig Prozent. In zwei Jahren. Das ist keine Preisanpassung, das ist eine Zumutung. Lesen Sie das.</string>
     <string name="close">Schließen</string>
 

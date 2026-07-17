@@ -5,19 +5,21 @@ package app.scatterto.data.model
  * [app.scatterto.data.mammouth.PromptBuilder] eingesetzt und ersetzt die Stil-Regeln.
  *
  * Wichtig: Die Stil-Regel „keine Wertung" gehört NUR zu [STANDARD]/[LOCKER] — [MARCEL] ist per
- * Definition Wertung, [HAPE] färbt. Deshalb steckt sie im jeweiligen Baustein und nicht global.
- * Ebenso ist die Satzanzahl tonalitätsabhängig: ein Hape braucht Aufbau + Pointe, ein Marcel den
- * Hack-Rhythmus — mit „genau einem Satz" funktioniert beides nicht.
- */
-/**
- * Die [key]s sind der in [app.scatterto.data.model.AiSettings] persistierte Wert — sie bleiben
- * stabil, auch wenn sich das Label ändert (Umbenennen würde jede gespeicherte Auswahl still auf
- * [STANDARD] zurücksetzen). Die Anzeigenamen stehen in `strings.xml`.
+ * Definition Wertung, [HAPE] färbt, [HAZEL] kippt ins Absurde. Deshalb steckt sie im jeweiligen
+ * Baustein und nicht global. Ebenso ist die Satzanzahl tonalitätsabhängig: ein Hans-Peter braucht
+ * Aufbau + Pointe, ein Marcel den Hack-Rhythmus — mit „genau einem Satz" funktioniert das nicht.
+ *
+ * Die [key]s sind der in [AiSettings] persistierte Wert — sie bleiben stabil, auch wenn sich das
+ * Label ändert (Umbenennen würde jede gespeicherte Auswahl still auf [STANDARD] zurücksetzen).
+ * Die Anzeigenamen stehen in `strings.xml`.
  */
 enum class Tonality(val key: String) {
+    // Reihenfolge = UI-Reihenfolge; die benannten Personae stehen alphabetisch (Hans-Peter, Hazel,
+    // Marcel). Der key ist der persistierte Wert und bleibt fix, egal wo die Zeile in der Liste steht.
     STANDARD("standard"),
     LOCKER("locker"),
     HAPE("hape"),
+    HAZEL("hazel"),
     MARCEL("marcel");
 
     companion object {
@@ -54,6 +56,22 @@ enum class Tonality(val key: String) {
                   (deutsch etwa "Ist ja irre."). Ende mit einer freundlichen Pointe.
                 - Nie zynisch, nie auf Kosten anderer, nicht herablassend gegenüber dem Medium.
                 - Höchstens 1 Emoji, gern augenzwinkernd.
+                - Zwei bis drei kurze Sätze (Aufbau + Pointe).
+            """.trimIndent()
+
+            HAZEL -> """
+                - Trockene, lakonische Deadpan-Komikerin. Kurze, nüchterne Sätze, die eine
+                  Beobachtung sachlich aufbauen und am Ende mit einer überraschenden, leicht
+                  absurden Pointe kippen.
+                - Genau EIN Twist am Schluss, der die vorher genannten Fakten in ein absurdes Licht
+                  rückt. Keine Ausrufe, keine sichtbare Begeisterung; die Komik entsteht aus dem
+                  ungerührten Ton. Understatement statt Übertreibung.
+                - Gibt das Thema keine absurde Pointe her, bleib bei einer trocken-beiläufigen
+                  Feststellung, statt einen Witz zu erzwingen.
+                - Nie zynisch gegen Personen, immer über die Situation.
+                - Höchstens 1 Emoji. Wenn eins, dann ironisch und mit Bezug zum Thema, nie
+                  dekorativ oder gut gelaunt; die trockene Distanz bleibt gewahrt. Lieber keins
+                  als ein beliebiges.
                 - Zwei bis drei kurze Sätze (Aufbau + Pointe).
             """.trimIndent()
 
