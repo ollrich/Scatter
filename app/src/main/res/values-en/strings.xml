@@ -133,7 +133,6 @@
     <string name="tonality_marcel">Marcel</string>
     <string name="tonality_marcel_desc">A clear verdict, short sentences, no emojis.</string>
     <string name="tonality_examples_title">Tonality</string>
-    <string name="tonality_examples_intro">The same article in five tonalities. The link card always stays neutral.</string>
     <string name="tonality_example_standard">The major streaming services have raised their subscription prices by up to 40 percent within two years.</string>
     <string name="tonality_example_locker">Up to 40 percent more for a streaming subscription in just two years 📺 This piece does the maths properly.</string>
     <string name="tonality_example_hape">Let me put it this way: my streaming subscription now costs more than my first car. (Granted, it was a Ford Fiesta.) Up to 40 percent more in two years. Absolutely bonkers. 😄</string>

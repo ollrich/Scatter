@@ -349,11 +349,6 @@ private fun TonalityExamplesDialog(onDismiss: () -> Unit) {
                 modifier = Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text(
-                    stringResource(R.string.tonality_examples_intro),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
                 Tonality.entries.forEach { tonality ->
                     Column {
                         Text(
