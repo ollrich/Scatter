@@ -1,7 +1,7 @@
 package app.scatterto.data.net
 
 import app.scatterto.BuildConfig
-import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -36,7 +36,14 @@ object Network {
 
         if (BuildConfig.DEBUG) {
             builder.addInterceptor(
-                HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY },
+                HttpLoggingInterceptor().apply {
+                    level = HttpLoggingInterceptor.Level.BODY
+                    // Auch im Debug-Log haben Credentials nichts verloren (§8) — alle drei
+                    // Auth-Header-Varianten der angebundenen APIs schwärzen.
+                    redactHeader("Authorization")
+                    redactHeader("x-api-key")
+                    redactHeader("x-goog-api-key")
+                },
             )
         }
         builder.build()

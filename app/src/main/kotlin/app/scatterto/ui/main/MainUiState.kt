@@ -44,6 +44,8 @@ data class MainUiState(
     val cardTitle: String = "",
     val cardDescription: String = "",
     val cardImageUrl: String? = null,
+    /** Schalter „Karte mitsenden"; bei aus wandert die URL zurück in den Post-Text. */
+    val cardEnabled: Boolean = true,
 
     val mastodonConnected: Boolean = false,
     val blueskyConnected: Boolean = false,
@@ -118,10 +120,19 @@ data class MainUiState(
     val isDone: Boolean get() = generationPhase is GenerationPhase.Done
 
     /**
+     * Es wird nur dann eine Karte gesendet, wenn sie eingeschaltet ist UND Inhalt hat — eine
+     * komplett leere Karte (kein Titel, keine Beschreibung) wäre nur eine nackte Domain-Box;
+     * dann lieber die URL in den Text (siehe includeUrl in composePost).
+     */
+    val effectiveCard: Boolean get() = cardEnabled &&
+        (cardTitle.isNotBlank() || cardDescription.isNotBlank())
+
+    /**
      * Karten-Vorschau nur, solange sie noch etwas ändern kann: Bluesky ist Ziel, der Post ist noch
-     * nicht raus, und es gibt überhaupt eine Karte. Bewusst an [activeBluesky] statt an
-     * [blueskySendable] — ohne KI ist der Text anfangs leer, die Karte steht aber schon.
+     * nicht raus, und es gibt eine Karte ODER sie wurde abgeschaltet (sonst käme man nicht mehr an
+     * den Schalter). Bewusst an [activeBluesky] statt an [blueskySendable] — ohne KI ist der Text
+     * anfangs leer, die Karte steht aber schon.
      */
     val showCardPreview: Boolean get() = activeBluesky && blueskyStatus !is PostStatus.Success &&
-        (cardTitle.isNotBlank() || cardDescription.isNotBlank())
+        (cardTitle.isNotBlank() || cardDescription.isNotBlank() || !cardEnabled)
 }

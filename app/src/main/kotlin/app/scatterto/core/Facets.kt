@@ -12,8 +12,9 @@ import kotlinx.serialization.Serializable
 const val FACET_LINK_TYPE = "app.bsky.richtext.facet#link"
 const val FACET_TAG_TYPE = "app.bsky.richtext.facet#tag"
 
-// Hashtag = # gefolgt von Unicode-Buchstaben, dann Buchstaben/Ziffern/Unterstrich.
-private val HASHTAG_REGEX = Regex("""#\p{L}[\p{L}\p{N}_]*""")
+// Hashtag = # plus Buchstaben/Ziffern/Unterstrich mit MINDESTENS einem Buchstaben: „#2026wahl"
+// ist ein Tag, „#2026" allein nicht (rein numerisch verlinken weder Mastodon noch Bluesky).
+private val HASHTAG_REGEX = Regex("""#[\p{N}_]*\p{L}[\p{L}\p{N}_]*""")
 
 @Serializable
 data class ByteSlice(val byteStart: Int, val byteEnd: Int)

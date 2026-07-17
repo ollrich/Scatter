@@ -1,19 +1,18 @@
 [versions]
-agp = "8.7.3"
-kotlin = "2.0.21"
-coreKtx = "1.15.0"
-activityCompose = "1.9.3"
-composeBom = "2024.12.01"
-lifecycle = "2.8.7"
-navigationCompose = "2.8.5"
-securityCrypto = "1.1.0-alpha06"
-retrofit = "2.11.0"
-retrofitSerialization = "1.0.0"
-okhttp = "4.12.0"
-serializationJson = "1.7.3"
-jsoup = "1.18.3"
-coroutines = "1.9.0"
-coil = "2.7.0"
+agp = "9.3.0"
+kotlin = "2.4.10"
+coreKtx = "1.19.0"
+activityCompose = "1.13.0"
+composeBom = "2026.06.01"
+lifecycle = "2.11.0"
+navigationCompose = "2.9.8"
+securityCrypto = "1.1.0"
+retrofit = "3.0.0"
+okhttp = "5.4.0"
+serializationJson = "1.11.0"
+jsoup = "1.22.2"
+coroutines = "1.11.0"
+coil = "3.5.0"
 junit = "4.13.2"
 
 [libraries]
@@ -31,18 +30,18 @@ androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lif
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 androidx-security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
-retrofit-serialization = { group = "com.jakewharton.retrofit", name = "retrofit2-kotlinx-serialization-converter", version.ref = "retrofitSerialization" }
+retrofit-serialization = { group = "com.squareup.retrofit2", name = "converter-kotlinx-serialization", version.ref = "retrofit" }
 okhttp-bom = { group = "com.squareup.okhttp3", name = "okhttp-bom", version.ref = "okhttp" }
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp" }
 okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serializationJson" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
 jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
-coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
+coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

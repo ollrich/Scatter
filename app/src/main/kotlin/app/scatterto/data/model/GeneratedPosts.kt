@@ -1,9 +1,9 @@
 package app.scatterto.data.model
 
 /**
- * Ergebnis eines KI-Calls (§5.3). Je Sprache ein Text mit bereits eingebetteten
- * Rahmen-Hashtags (Medium + Thema) plus optionale ergänzende Hashtags (als Pills editierbar).
- * Für EN zusätzlich Titel/Beschreibung der englischen Bluesky-Link-Vorschau (§6); sonst null.
+ * Ergebnis eines KI-Calls (§5.3). Je Netzwerk ein reiner Post-Text (ohne Hashtags, ohne URL)
+ * plus die Hashtags als Liste (als Pills editierbar, werden beim Zusammensetzen angehängt).
+ * Für Bluesky zusätzlich Titel/Beschreibung der Link-Vorschau (§6); sonst null.
  */
 data class GeneratedPost(
     val text: String,

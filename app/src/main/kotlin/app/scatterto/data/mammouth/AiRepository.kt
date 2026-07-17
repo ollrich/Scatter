@@ -70,9 +70,10 @@ class AiRepository(private val log: EventLog) {
             AiService.MAMMOUTH, AiService.OPENAI -> {
                 val api = if (service == AiService.MAMMOUTH) mammouthApi else openAiApi
                 val ids = runCatching { api.models(bearer(token)).data.map { it.id } }.getOrDefault(emptyList())
-                if (ids.isEmpty()) return false
                 val model = settings.model(service)
-                if (service == AiService.MAMMOUTH || model in ids) true else model in ids || model.isBlank()
+                // Liste abrufbar = Token gültig; bei OpenAI zusätzlich das gewählte Modell prüfen
+                // (leer = noch keins gewählt, zählt nicht als Fehler).
+                ids.isNotEmpty() && (service == AiService.MAMMOUTH || model.isBlank() || model in ids)
             }
             else -> true // Claude/Gemini: erst beim Generieren geprüft
         }
@@ -107,7 +108,7 @@ class AiRepository(private val log: EventLog) {
     private suspend fun claudeComplete(token: String, model: String, system: String, user: String): String? = apiCall {
         anthropicApi.messages(
             apiKey = token,
-            version = "2023-06-01",
+            version = ANTHROPIC_VERSION,
             request = AnthropicRequest(
                 model = model,
                 maxTokens = 1024,

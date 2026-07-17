@@ -19,10 +19,19 @@ Offene Punkte, nach Aufwand und Priorität gruppiert. Die verbindliche Spezifika
     ihn weg) und ist in der Vorschau korrigierbar. Bleibt: fehlt `<html lang>`/`og:locale`, gibt es
     keinen automatischen Hinweis — dann hilft nur die Hand-Korrektur.
 
+- **v0.9.6** — Audit-Fixes (Code-Audit 2026-07-17, komplett): Regenerieren überschreibt nur noch
+  angeforderte, nicht erfolgreich gepostete Netzwerke (Teilerfolg bleibt erhalten); Datums- und
+  KI-Fehlertexte lokalisiert; „HTTP 400 (…)" statt Gedankenstrich; Karten-Schalter „Karte
+  mitsenden" (aus = URL zurück in den Bluesky-Text); Metadaten-Retry bei Fehlschlag;
+  Ziffern-Hashtags (#2026wahl) als Facets; tote Symbole/Strings/Doppel-Import entfernt;
+  `dataExtractionRules` (kein Cloud-Backup/D2D), Auth-Header im Debug-Log geschwärzt,
+  CredentialStore crash-fest; Fastlane-Texte (de/en/da); README-Privacy/Roadmap berichtigt.
+  **Dependency-Refresh komplett:** AGP 9.3 (Kotlin 2.4 eingebaut), Gradle 9.6.1, `compileSdk` 37,
+  Compose BOM 2026.06, OkHttp 5, Retrofit 3 (offizieller kotlinx-Converter), Coil 3,
+  security-crypto 1.1.0 stabil, neue Clipboard-API. Lint 23 → 4 Findings, 0 Errors.
+
 ## Weg zu V1
 
-- **Vollständiger Code-Audit** — vor dem Play-Protect-Schritt einmal komplett durch den Code
-  (Korrektheit, Robustheit, tote Pfade, Sicherheit), analog zu den Audits v0.6.0.
 - **Google Play Protect / Sideload-Warnung angehen** (Stand recherchiert 2026-07-14): Der Hinweis ist
   reputationsbasiert (App unbekannt, frischer Signing-Key, kleine Installbasis) — **kein Malware-Fund**.
   ScatterTo nutzt KEINE der hart geblockten Sensibel-Permissions (SMS/Notification-Listener/
@@ -44,8 +53,9 @@ Offene Punkte, nach Aufwand und Priorität gruppiert. Die verbindliche Spezifika
     andere Signatur als die GitHub/Obtainium-APK → Nutzer müssten zum Wechseln deinstallieren.
     **Ziel daher: Reproducible Builds** (F-Droid baut nach, vergleicht byte-genau, veröffentlicht
     die **eigene signierte** APK) → eine Signatur für alle, Fingerprint `36b474d5…` bleibt stabil.
-  - Vorarbeit: Merge-Request ins `fdroiddata`-Repo (Build-Rezept), Beschreibungstexte, Screenshots
-    (Doppelnutzen mit der README). Tag-Schema `v*` passt bereits.
+  - Vorarbeit: Merge-Request ins `fdroiddata`-Repo (Build-Rezept) und Screenshots (Doppelnutzen
+    mit der README). Beschreibungstexte liegen seit v0.9.6 unter `fastlane/metadata/android/`
+    (de/en/da). Tag-Schema `v*` passt bereits.
   - **Ersetzt die Google-Entwicklerverifizierung nicht** — ab 2027 fallen alt. Stores auch darunter.
 - **README / alle `.md` / GitHub-Repo auf Stand bringen** (KI optional/Standard-aus, Menü „KI",
   mehrere Anbieter, Post-Sprache) + **Screenshots** → `docs/screenshots/`.

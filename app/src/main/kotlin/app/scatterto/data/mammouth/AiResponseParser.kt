@@ -1,13 +1,20 @@
 package app.scatterto.data.mammouth
 
+import androidx.annotation.StringRes
+import app.scatterto.R
 import app.scatterto.core.normalizeHashtag
 import app.scatterto.data.model.GeneratedPost
 import app.scatterto.data.model.GeneratedPosts
 import app.scatterto.data.net.Network
 import kotlinx.serialization.SerializationException
 
-/** Wird geworfen, wenn die KI-Antwort nicht als erwartetes JSON interpretierbar ist (§5.3). */
-class AiParseException(message: String, cause: Throwable? = null) : Exception(message, cause)
+/**
+ * Wird geworfen, wenn die KI-Antwort nicht als erwartetes JSON interpretierbar ist (§5.3).
+ * Trägt eine String-Ressource statt Text, damit die Meldung in der App-Sprache erscheint —
+ * die (englische) Exception-Message ist nur für Stacktraces.
+ */
+class AiParseException(@StringRes val resId: Int, cause: Throwable? = null) :
+    Exception("AI response not parseable", cause)
 
 /**
  * Defensives Parsen der KI-Antwort (§5.3, §12.2 Nr. 4): extrahiert das JSON-Objekt auch aus
@@ -19,17 +26,17 @@ object AiResponseParser {
      * @param wantMastodon / [wantBluesky] welche Netzwerke angefordert wurden — nur diese müssen da sein.
      */
     fun parse(content: String?, wantMastodon: Boolean = true, wantBluesky: Boolean = true): GeneratedPosts {
-        if (content.isNullOrBlank()) throw AiParseException("Leere KI-Antwort")
+        if (content.isNullOrBlank()) throw AiParseException(R.string.error_ai_empty)
 
         val jsonObject = extractJsonObject(content)
         val raw = try {
             Network.json.decodeFromString<AiResult>(jsonObject)
         } catch (e: SerializationException) {
-            throw AiParseException("Antwort nicht im erwarteten JSON-Format", e)
+            throw AiParseException(R.string.error_ai_bad_json, e)
         }
 
         if ((wantMastodon && raw.mastodon.text.isBlank()) || (wantBluesky && raw.bluesky.text.isBlank())) {
-            throw AiParseException("KI-Antwort ohne Post-Text")
+            throw AiParseException(R.string.error_ai_no_text)
         }
 
         return GeneratedPosts(

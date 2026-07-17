@@ -1,10 +1,10 @@
 # KI-Einrichtung / AI setup
 
-ScatterTo erzeugt die Post-Texte über einen KI-Dienst deiner Wahl. Du brauchst dafür nur einen
+Scatter erzeugt die Post-Texte über einen KI-Dienst deiner Wahl. Du brauchst dafür nur einen
 API-Token des jeweiligen Anbieters und fügst ihn in der App unter **KI** ein. Der Token bleibt
 verschlüsselt auf dem Gerät und wird ausschließlich an den gewählten Anbieter gesendet.
 
-Du kannst die KI in der App auch komplett abschalten. Dann bereitet ScatterTo nur URL, Link-Vorschau
+Du kannst die KI in der App auch komplett abschalten. Dann bereitet Scatter nur URL, Link-Vorschau
 und Netzwerke vor, und du schreibst die Posts selbst.
 
 > [English version below.](#english)
@@ -30,7 +30,7 @@ einzugeben.
 1. Konto anlegen auf [mammouth.ai](https://mammouth.ai).
 2. Im Dashboard einen **API-Token** erzeugen.
 3. Token in der App unter **KI → Mammouth** einfügen.
-4. Bei **Modell** einen Anbieter wählen (Mistral, Claude, GPT oder Gemini). ScatterTo löst daraus
+4. Bei **Modell** einen Anbieter wählen (Mistral, Claude, GPT oder Gemini). Scatter löst daraus
    automatisch das aktuelle Flaggschiff-Modell auf. Alternativ eine eigene Modell-ID eintragen.
 
 ## Claude (Anthropic)
@@ -64,11 +64,11 @@ Google bietet für Gemini ein kostenloses Kontingent, das für gelegentliches Po
 
 ## English
 
-ScatterTo writes the post texts through an AI service of your choice. All you need is an API token
+Scatter writes the post texts through an AI service of your choice. All you need is an API token
 from that provider, which you paste into the app under **AI**. The token stays encrypted on the
 device and is only ever sent to the provider you selected.
 
-You can also turn the AI off entirely. ScatterTo then only prepares the URL, link preview and
+You can also turn the AI off entirely. Scatter then only prepares the URL, link preview and
 networks, and you write the posts yourself.
 
 ### Which service?
@@ -87,7 +87,7 @@ Each service keeps its own token, so you can switch at any time without re-enter
 1. Create an account at [mammouth.ai](https://mammouth.ai).
 2. Generate an **API token** in the dashboard.
 3. Paste it into the app under **AI → Mammouth**.
-4. Pick a provider under **Model** (Mistral, Claude, GPT or Gemini). ScatterTo resolves the current
+4. Pick a provider under **Model** (Mistral, Claude, GPT or Gemini). Scatter resolves the current
    flagship model automatically, or enter your own model ID.
 
 ### Claude (Anthropic)

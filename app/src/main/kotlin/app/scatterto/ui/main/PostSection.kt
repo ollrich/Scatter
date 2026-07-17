@@ -1,5 +1,6 @@
 package app.scatterto.ui.main
 
+import android.content.ClipData
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,6 +30,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -37,10 +39,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.toClipEntry
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -48,6 +50,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.scatterto.R
+import kotlinx.coroutines.launch
 import app.scatterto.ui.PostStatus
 import app.scatterto.ui.components.NetworkHeader
 
@@ -68,14 +71,19 @@ internal fun NetworkPostSection(
     onUrl: (String) -> Unit,
     onRetry: () -> Unit,
 ) {
-    val clipboard = LocalClipboardManager.current
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
 
     AccentCard(color) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.weight(1f)) {
                 NetworkHeader(name, color, avatarUrl)
             }
-            IconButton(onClick = { clipboard.setText(AnnotatedString(composedPost)) }) {
+            IconButton(onClick = {
+                scope.launch {
+                    clipboard.setClipEntry(ClipData.newPlainText("post", composedPost).toClipEntry())
+                }
+            }) {
                 Icon(Icons.Filled.ContentCopy, contentDescription = stringResource(R.string.copy_post))
             }
         }

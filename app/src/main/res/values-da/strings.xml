@@ -32,7 +32,6 @@
     <string name="generating_with">%1$s skriver …</string>
     <string name="to_settings">Åbn indstillinger</string>
     <string name="banner_no_ai">Ingen AI-token gemt. Tilføj en i indstillingerne.</string>
-    <string name="banner_no_network">Intet netværk forbundet. Forbind et i indstillingerne.</string>
 
     <!-- Opslags-sektion -->
     <string name="label_text">Tekst</string>
@@ -49,6 +48,7 @@
     <!-- Metadata -->
     <string name="metadata_title">Metadata</string>
     <string name="metadata_missing">Ingen metadata fundet. Udfyld venligst manuelt:</string>
+    <string name="metadata_retry">Indlæs igen</string>
     <string name="label_meta_title">Titel</string>
     <string name="label_meta_description">Beskrivelse</string>
 
@@ -61,6 +61,9 @@
     <string name="card_title_label">Korttitel</string>
     <string name="card_description_label">Kortbeskrivelse</string>
     <string name="card_preview_hint">Kun på Bluesky. Mastodon bygger selv forhåndsvisningen ud fra den linkede side.</string>
+    <string name="card_preview_off">Sendes ikke med</string>
+    <string name="card_include_label">Send kort med</string>
+    <string name="card_include_off_hint">Uden kortet flyttes linket ind i indlægsteksten.</string>
 
     <string name="regen_confirm_title">Kassér redigerede tekster?</string>
     <string name="regen_confirm_text">Du har redigeret opslagsteksterne. “Generér igen” erstatter dem med nye AI-tekster.</string>
@@ -154,7 +157,7 @@
 
     <!-- Log-beskeder (app-sprog) -->
     <string name="log_meta_loading">Indlæser metadata: %1$s</string>
-    <string name="log_meta_ok">Metadata ok (og:site_name: %1$s)</string>
+    <string name="log_meta_ok">Metadata OK (og:site_name: %1$s)</string>
     <string name="log_site_missing">mangler, bruger domænet</string>
     <string name="log_meta_unusable">Metadata ubrugelig, manuel indtastning nødvendig</string>
     <string name="log_ai_error">AI: %1$s</string>
@@ -187,6 +190,10 @@
     <string name="error_generation_failed">Generering mislykkedes</string>
     <string name="error_post_failed">Fejl ved opslag</string>
     <string name="error_connect_failed">Forbindelse mislykkedes</string>
+    <string name="error_ai_empty">Tomt AI-svar.</string>
+    <string name="error_ai_bad_json">AI-svaret er ikke i det forventede format.</string>
+    <string name="error_ai_no_text">AI-svaret indeholder ingen indlægstekst.</string>
+    <string name="error_bsky_no_did">Bluesky-kontoen mangler et gemt ID. Forbind venligst igen.</string>
     <string name="status_timeout_safe">Timeout. Det er sikkert at prøve igen.</string>
     <string name="status_uncertain">Uklart. Tjek venligst din Bluesky-profil.</string>
 </resources>

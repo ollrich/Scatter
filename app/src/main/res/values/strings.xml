@@ -32,7 +32,6 @@
     <string name="generating_with">%1$s schreibt …</string>
     <string name="to_settings">Zu den Einstellungen</string>
     <string name="banner_no_ai">Kein KI-Token gespeichert. Bitte in den Einstellungen hinterlegen.</string>
-    <string name="banner_no_network">Kein Netzwerk verbunden. Bitte in den Einstellungen verbinden.</string>
 
     <!-- Post-Sektion -->
     <string name="label_text">Text</string>
@@ -49,6 +48,7 @@
     <!-- Metadaten -->
     <string name="metadata_title">Metadaten</string>
     <string name="metadata_missing">Keine Metadaten gefunden. Bitte manuell ergänzen:</string>
+    <string name="metadata_retry">Erneut laden</string>
     <string name="label_meta_title">Titel</string>
     <string name="label_meta_description">Beschreibung</string>
 
@@ -60,6 +60,9 @@
     <string name="card_title_label">Karten-Titel</string>
     <string name="card_description_label">Karten-Beschreibung</string>
     <string name="card_preview_hint">Nur bei Bluesky. Mastodon baut die Vorschau selbst aus der verlinkten Seite.</string>
+    <string name="card_preview_off">Wird nicht mitgesendet</string>
+    <string name="card_include_label">Karte mitsenden</string>
+    <string name="card_include_off_hint">Ohne Karte wandert der Link in den Post-Text.</string>
 
     <!-- Neu generieren -->
     <string name="regen_confirm_title">Bearbeitete Texte verwerfen?</string>
@@ -154,7 +157,7 @@
 
     <!-- Log-Meldungen (App-Sprache) -->
     <string name="log_meta_loading">Metadaten laden: %1$s</string>
-    <string name="log_meta_ok">Metadaten ok (og:site_name: %1$s)</string>
+    <string name="log_meta_ok">Metadaten OK (og:site_name: %1$s)</string>
     <string name="log_site_missing">fehlt, Domain wird genutzt</string>
     <string name="log_meta_unusable">Metadaten unbrauchbar, manuelle Eingabe nötig</string>
     <string name="log_ai_error">KI: %1$s</string>
@@ -187,6 +190,10 @@
     <string name="error_generation_failed">Generierung fehlgeschlagen</string>
     <string name="error_post_failed">Fehler beim Posten</string>
     <string name="error_connect_failed">Verbindung fehlgeschlagen</string>
+    <string name="error_ai_empty">Leere KI-Antwort.</string>
+    <string name="error_ai_bad_json">KI-Antwort nicht im erwarteten Format.</string>
+    <string name="error_ai_no_text">KI-Antwort ohne Post-Text.</string>
+    <string name="error_bsky_no_did">Bluesky-Konto ohne gespeicherte ID. Bitte neu verbinden.</string>
     <string name="status_timeout_safe">Zeitüberschreitung. Erneut versuchen ist sicher.</string>
     <string name="status_uncertain">Unklar. Bitte im Bluesky-Profil prüfen.</string>
 </resources>

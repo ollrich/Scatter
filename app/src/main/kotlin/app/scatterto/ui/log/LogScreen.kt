@@ -1,5 +1,6 @@
 package app.scatterto.ui.log
 
+import android.content.ClipData
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,10 +19,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.toClipEntry
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -30,6 +32,7 @@ import app.scatterto.R
 import app.scatterto.data.log.EventLog
 import app.scatterto.data.log.LogLevel
 import app.scatterto.ui.AppViewModelProvider
+import kotlinx.coroutines.launch
 
 /**
  * Protokoll der letzten Aktionen — zum Nachvollziehen und Teilen bei Problemen.
@@ -42,7 +45,8 @@ fun LogScreen(
     viewModel: LogViewModel = viewModel(factory = AppViewModelProvider.Factory),
 ) {
     val entries = viewModel.entries.collectAsStateWithLifecycle().value
-    val clipboard = LocalClipboardManager.current
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -68,7 +72,11 @@ fun LogScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 OutlinedButton(
-                    onClick = { clipboard.setText(AnnotatedString(viewModel.formatted())) },
+                    onClick = {
+                        scope.launch {
+                            clipboard.setClipEntry(ClipData.newPlainText("log", viewModel.formatted()).toClipEntry())
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth(),
                 ) { Text(stringResource(R.string.log_copy)) }
                 OutlinedButton(

@@ -19,7 +19,8 @@ data class ApiError(val status: Int, val errorName: String?, val detail: String?
     val readable: String
         get() {
             val parts = listOfNotNull(errorName, detail).joinToString(": ")
-            return if (parts.isBlank()) "HTTP $status" else "HTTP $status – $parts"
+            // Klammern statt Gedankenstrich: nutzersichtbarer Text, App-Regel „keine Gedankenstriche".
+            return if (parts.isBlank()) "HTTP $status" else "HTTP $status ($parts)"
         }
 
     /**
@@ -54,8 +55,6 @@ fun HttpException.toApiError(): ApiError {
     return ApiError(code(), name, detail ?: body.trim().take(300).ifBlank { null })
 }
 
-fun HttpException.readableMessage(): String = toApiError().readable
-
 /** Reine Extraktion aus dem Body — ohne Netzwerk, daher unit-testbar. */
 internal fun parseErrorParts(body: String): Pair<String?, String?> {
     if (body.isBlank()) return null to null
@@ -69,9 +68,4 @@ internal fun parseErrorParts(body: String): Pair<String?, String?> {
     val detail = (root["message"] as? JsonPrimitive)?.contentOrNull ?: nestedMessage
 
     return errorName to detail
-}
-
-internal fun parseApiError(body: String): String? {
-    val (name, detail) = parseErrorParts(body)
-    return listOfNotNull(name, detail).joinToString(": ").ifBlank { null }
 }

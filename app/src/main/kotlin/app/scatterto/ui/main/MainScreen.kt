@@ -28,11 +28,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -54,7 +56,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -112,8 +114,12 @@ fun MainScreen(
 
     // Zusammengesetzte Posts + Limits einmal berechnen (Sektionen + Bottom-Bar nutzen sie).
     val mastodonPost = composePost(state.mastodon.text, state.mastodon.extraHashtags, state.mastodon.url)
-    // Bluesky: URL nicht im Text — die Link-Karte trägt den Link (spart Budget).
-    val blueskyPost = composePost(state.bluesky.text, state.bluesky.extraHashtags, state.bluesky.url, includeUrl = false)
+    // Bluesky: mit wirksamer Karte bleibt die URL aus dem Text (die Karte trägt den Link);
+    // ohne Karte muss sie hinein — der Zähler rechnet exakt das, was gesendet würde.
+    val blueskyPost = composePost(
+        state.bluesky.text, state.bluesky.extraHashtags, state.bluesky.url,
+        includeUrl = !state.effectiveCard,
+    )
     val mastodonCount = mastodonLength(mastodonPost)
     val blueskyCount = blueskyLength(blueskyPost)
     val mastoOver = state.mastodonSendable && mastodonCount > state.mastodonMaxChars
@@ -279,8 +285,10 @@ fun MainScreen(
                             title = state.cardTitle,
                             description = state.cardDescription,
                             imageUrl = state.cardImageUrl,
+                            enabled = state.cardEnabled,
                             onTitle = viewModel::onCardTitleChange,
                             onDescription = viewModel::onCardDescriptionChange,
+                            onEnabled = viewModel::onCardEnabledChange,
                         )
                     }
 
@@ -330,8 +338,10 @@ private fun BlueskyCardPreview(
     title: String,
     description: String,
     imageUrl: String?,
+    enabled: Boolean,
     onTitle: (String) -> Unit,
     onDescription: (String) -> Unit,
+    onEnabled: (Boolean) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -359,8 +369,13 @@ private fun BlueskyCardPreview(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Text(
-                        title.ifBlank { stringResource(R.string.card_preview_empty) },
+                        if (enabled) {
+                            title.ifBlank { stringResource(R.string.card_preview_empty) }
+                        } else {
+                            stringResource(R.string.card_preview_off)
+                        },
                         style = MaterialTheme.typography.bodyMedium,
+                        color = if (enabled) LocalContentColor.current else MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -374,24 +389,40 @@ private fun BlueskyCardPreview(
             }
 
             if (expanded) {
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = onTitle,
-                    label = { Text(stringResource(R.string.card_title_label)) },
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                )
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = onDescription,
-                    label = { Text(stringResource(R.string.card_description_label)) },
-                    minLines = 2,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Text(
-                    stringResource(R.string.card_preview_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(stringResource(R.string.card_include_label))
+                    Switch(checked = enabled, onCheckedChange = onEnabled)
+                }
+                if (enabled) {
+                    OutlinedTextField(
+                        value = title,
+                        onValueChange = onTitle,
+                        label = { Text(stringResource(R.string.card_title_label)) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    OutlinedTextField(
+                        value = description,
+                        onValueChange = onDescription,
+                        label = { Text(stringResource(R.string.card_description_label)) },
+                        minLines = 2,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Text(
+                        stringResource(R.string.card_preview_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                } else {
+                    Text(
+                        stringResource(R.string.card_include_off_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
     }

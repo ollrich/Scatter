@@ -2,6 +2,7 @@ package app.scatterto.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import app.scatterto.data.model.AiSettings
@@ -58,15 +59,19 @@ class CredentialStore(context: Context) {
     fun saveBluesky(account: BlueskyAccount) = write(KEY_BLUESKY, account)
     fun clearBluesky() = remove(KEY_BLUESKY)
 
+    // Defensiv: ein korrupter Eintrag (Schema-Drift, beschädigte Prefs) darf die App nicht schon
+    // beim Start crashen — er verhält sich wie „nicht vorhanden", der Nutzer verbindet neu.
     private inline fun <reified T> read(key: String): T? =
-        prefs.getString(key, null)?.let { json.decodeFromString<T>(it) }
+        prefs.getString(key, null)?.let { stored ->
+            runCatching { json.decodeFromString<T>(stored) }.getOrNull()
+        }
 
     private inline fun <reified T> write(key: String, value: T) {
-        prefs.edit().putString(key, json.encodeToString(value)).apply()
+        prefs.edit { putString(key, json.encodeToString(value)) }
     }
 
     private fun remove(key: String) {
-        prefs.edit().remove(key).apply()
+        prefs.edit { remove(key) }
     }
 
     private companion object {

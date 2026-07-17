@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -38,7 +39,7 @@ import app.scatterto.data.ThemeMode
 import app.scatterto.ui.AppLocale
 import app.scatterto.ui.AppViewModelProvider
 
-/** Anzeige-Einstellungen (§2): Theme + App-Sprache. Später: dynamische Farben abschaltbar. */
+/** Anzeige-Einstellungen (§2): Theme, dynamische Farben und App-Sprache. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DisplayScreen(
@@ -113,12 +114,14 @@ private fun RadioRow(label: String, selected: Boolean, onSelect: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .selectable(selected = selected, onClick = onSelect)
+            // Role.RadioButton + onClick=null am Button: für TalkBack ist die ganze Zeile EIN
+            // Radio-Element statt zwei getrennt fokussierbarer Ziele.
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onSelect)
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        RadioButton(selected = selected, onClick = onSelect)
+        RadioButton(selected = selected, onClick = null)
         Text(label)
     }
 }

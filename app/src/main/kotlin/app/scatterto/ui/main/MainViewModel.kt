@@ -15,6 +15,7 @@ import app.scatterto.core.stripTrackingParams
 import app.scatterto.data.AppContainer
 import app.scatterto.data.bluesky.LinkCard
 import app.scatterto.R
+import app.scatterto.data.mammouth.AiParseException
 import app.scatterto.data.mammouth.GenTarget
 import app.scatterto.data.mammouth.PromptBuilder
 import app.scatterto.data.metadata.PageMetadata
@@ -114,6 +115,7 @@ class MainViewModel(
             cardTitle = savedStateHandle[KEY_CARD_TITLE] ?: "",
             cardDescription = savedStateHandle[KEY_CARD_DESC] ?: "",
             cardImageUrl = imageUrl,
+            cardEnabled = savedStateHandle[KEY_CARD_ENABLED] ?: true,
         )
     }
 
@@ -134,6 +136,7 @@ class MainViewModel(
         // generierten Texte des VORHERIGEN Artikels stehen und wären sendbar.
         siteName = null
         imageUrl = null
+        articleLanguage = null
         clearCard()
         val empty = NetworkPost()
         uiState = uiState.copy(
@@ -152,6 +155,7 @@ class MainViewModel(
         savedStateHandle[KEY_URL] = url
         savedStateHandle[KEY_SITE] = null
         savedStateHandle[KEY_IMAGE] = null
+        savedStateHandle[KEY_LANG] = null
         persistMeta()
         persistPosts(empty, empty)
     }
@@ -175,10 +179,23 @@ class MainViewModel(
     fun onGenerateClick() {
         if (!uiState.canGenerate) return
         val url = stripTrackingParams(uiState.urlInput.trim())
-        uiState = uiState.copy(urlInput = url)
+        val isNewUrl = url != uiState.fetchedUrl
+        // Neue URL = neuer Artikel: alte Sende-Status gehören zum vorigen Artikel und dürfen
+        // die Erfolgs-Erhaltung in generate() nicht täuschen.
+        uiState = uiState.copy(
+            urlInput = url,
+            mastodonStatus = if (isNewUrl) PostStatus.Idle else uiState.mastodonStatus,
+            blueskyStatus = if (isNewUrl) PostStatus.Idle else uiState.blueskyStatus,
+        )
         savedStateHandle[KEY_URL] = url
 
-        if (url != uiState.fetchedUrl) loadMetadataThenGenerate() else generate()
+        if (isNewUrl) loadMetadataThenGenerate() else generate()
+    }
+
+    /** Erneuter Metadaten-Abruf derselben URL (NeedsManual, z. B. nach Funkloch). */
+    fun retryMetadata() {
+        if (uiState.urlInput.isBlank() || uiState.isGenerating) return
+        loadMetadataThenGenerate()
     }
 
     /** Setzt alles für einen neuen Artikel zurück (Abschluss-Aktion nach erfolgreichem Senden). */
@@ -203,7 +220,7 @@ class MainViewModel(
         )
         listOf(
             KEY_URL, KEY_META_TITLE, KEY_META_DESC, KEY_SITE, KEY_IMAGE, KEY_LANG,
-            KEY_CARD_TITLE, KEY_CARD_DESC,
+            KEY_CARD_TITLE, KEY_CARD_DESC, KEY_CARD_ENABLED,
             KEY_M_TEXT, KEY_M_TAGS, KEY_B_TEXT, KEY_B_TAGS,
         ).forEach { savedStateHandle[it] = null }
     }
@@ -269,6 +286,13 @@ class MainViewModel(
             return
         }
 
+        // Nur Netzwerke, die aktiv sind UND noch nicht erfolgreich gepostet wurden: Neu-Generieren
+        // darf weder einen bereits abgesetzten Post „vergessen" (Doppelpost-Falle) noch den Text
+        // eines gerade abgewählten Netzwerks mit der leeren Parser-Antwort überschreiben.
+        val wantMastodon = uiState.activeMastodon && uiState.mastodonStatus !is PostStatus.Success
+        val wantBluesky = uiState.activeBluesky && uiState.blueskyStatus !is PostStatus.Success
+        if (!wantMastodon && !wantBluesky) return
+
         uiState = uiState.copy(
             generationPhase = GenerationPhase.Generating,
             generatingWith = settings.active.displayName,
@@ -282,7 +306,7 @@ class MainViewModel(
                     siteName = siteName,
                 )
                 val targets = buildList {
-                    if (uiState.activeMastodon) add(
+                    if (wantMastodon) add(
                         GenTarget(
                             key = "mastodon", label = "Mastodon",
                             languageName = PostLanguages.englishName(uiState.mastodonLanguage)
@@ -291,7 +315,7 @@ class MainViewModel(
                             wantsCard = false,
                         ),
                     )
-                    if (uiState.activeBluesky) add(
+                    if (wantBluesky) add(
                         GenTarget(
                             key = "bluesky", label = "Bluesky",
                             languageName = PostLanguages.englishName(uiState.blueskyLanguage)
@@ -303,11 +327,15 @@ class MainViewModel(
                 }
                 val medium = siteName ?: mediumNameFrom(uiState.urlInput)
                 val posts = container.aiRepository.generate(settings, metadata, medium, targets)
-                mastodonIdempotencyKey = UUID.randomUUID().toString()
-                val mastodon = NetworkPost(posts.mastodon.text, posts.mastodon.extraHashtags, uiState.urlInput)
-                val bluesky = NetworkPost(posts.bluesky.text, posts.bluesky.extraHashtags, uiState.urlInput)
+                if (wantMastodon) mastodonIdempotencyKey = UUID.randomUUID().toString()
+                val mastodon = if (wantMastodon) {
+                    NetworkPost(posts.mastodon.text, posts.mastodon.extraHashtags, uiState.urlInput)
+                } else uiState.mastodon
+                val bluesky = if (wantBluesky) {
+                    NetworkPost(posts.bluesky.text, posts.bluesky.extraHashtags, uiState.urlInput)
+                } else uiState.bluesky
                 persistPosts(mastodon, bluesky)
-                setCard(posts.bluesky.cardTitle, posts.bluesky.cardDescription)
+                if (wantBluesky) setCard(posts.bluesky.cardTitle, posts.bluesky.cardDescription)
                 uiState.copy(
                     generationPhase = GenerationPhase.Done,
                     generatingWith = null,
@@ -320,12 +348,17 @@ class MainViewModel(
                     },
                     mastodon = mastodon,
                     bluesky = bluesky,
-                    mastodonStatus = PostStatus.Idle,
-                    blueskyStatus = PostStatus.Idle,
+                    mastodonStatus = if (wantMastodon) PostStatus.Idle else uiState.mastodonStatus,
+                    blueskyStatus = if (wantBluesky) PostStatus.Idle else uiState.blueskyStatus,
                 )
             } catch (e: ApiException) {
                 log.error(R.string.log_ai_error, e.error.readable)
                 uiState.copy(generationPhase = GenerationPhase.Error(e.error.readable), generatingWith = null)
+            } catch (e: AiParseException) {
+                // Eigener Zweig: die Meldung kommt als String-Ressource in der App-Sprache,
+                // nicht als hartes Deutsch aus der Exception-Message.
+                log.error(R.string.log_ai_error, str(e.resId))
+                uiState.copy(generationPhase = GenerationPhase.Error(str(e.resId)), generatingWith = null)
             } catch (e: Exception) {
                 log.error(R.string.log_ai_error, e.message.orEmpty())
                 uiState.copy(
@@ -448,21 +481,26 @@ class MainViewModel(
         uiState = uiState.copy(blueskyStatus = PostStatus.Pending)
         log.info(R.string.log_bsky_sending)
         uiState = try {
-            // URL bleibt aus dem Text — die Link-Karte trägt den Link und spart so ~30–40 % Budget.
+            // Mit Karte bleibt die URL aus dem Text (die Karte trägt den Link, spart ~30–40 %
+            // Budget); ohne wirksame Karte (Schalter aus oder leer) wandert sie in den Text —
+            // ein Post ganz ohne Link darf nie entstehen.
+            val withCard = uiState.effectiveCard
             val post = composePost(
-                uiState.bluesky.text, uiState.bluesky.extraHashtags, uiState.bluesky.url, includeUrl = false,
+                uiState.bluesky.text, uiState.bluesky.extraHashtags, uiState.bluesky.url, includeUrl = !withCard,
             )
             val facets = computeFacets(post, uiState.bluesky.url)
             val lang = account.effectiveLanguage
             // Link-Vorschau (§6): genau die Werte aus der Vorschau — WYSIWYG, keine Ableitung mehr.
-            val card = uiState.bluesky.url.takeIf { it.isNotBlank() }?.let {
-                LinkCard(
-                    uri = it,
-                    title = uiState.cardTitle,
-                    description = uiState.cardDescription,
-                    imageUrl = uiState.cardImageUrl,
-                )
-            }
+            val card = if (withCard) {
+                uiState.bluesky.url.takeIf { it.isNotBlank() }?.let {
+                    LinkCard(
+                        uri = it,
+                        title = uiState.cardTitle,
+                        description = uiState.cardDescription,
+                        imageUrl = uiState.cardImageUrl,
+                    )
+                }
+            } else null
             val url = container.blueskyRepository.post(account, post, facets, card, langs = listOf(lang))
             log.info(R.string.log_bsky_posted, facets.size)
             uiState.copy(blueskyStatus = PostStatus.Success(url))
@@ -496,9 +534,14 @@ class MainViewModel(
             articleLanguage,
             uiState.blueskyLanguage,
         )
-        uiState = uiState.copy(cardTitle = title, cardDescription = description, cardImageUrl = imageUrl)
+        // Neue Generierung = frische Karte: der Mitsenden-Schalter geht zurück auf an.
+        uiState = uiState.copy(
+            cardTitle = title, cardDescription = description,
+            cardImageUrl = imageUrl, cardEnabled = true,
+        )
         savedStateHandle[KEY_CARD_TITLE] = title
         savedStateHandle[KEY_CARD_DESC] = description
+        savedStateHandle[KEY_CARD_ENABLED] = true
     }
 
     /**
@@ -507,9 +550,10 @@ class MainViewModel(
      * Artikels, weil der Reset vor dem Setzen der neuen läuft.
      */
     private fun clearCard() {
-        uiState = uiState.copy(cardTitle = "", cardDescription = "", cardImageUrl = null)
+        uiState = uiState.copy(cardTitle = "", cardDescription = "", cardImageUrl = null, cardEnabled = true)
         savedStateHandle[KEY_CARD_TITLE] = null
         savedStateHandle[KEY_CARD_DESC] = null
+        savedStateHandle[KEY_CARD_ENABLED] = null
     }
 
     fun onCardTitleChange(value: String) {
@@ -520,6 +564,11 @@ class MainViewModel(
     fun onCardDescriptionChange(value: String) {
         uiState = uiState.copy(cardDescription = value)
         savedStateHandle[KEY_CARD_DESC] = value
+    }
+
+    fun onCardEnabledChange(value: Boolean) {
+        uiState = uiState.copy(cardEnabled = value)
+        savedStateHandle[KEY_CARD_ENABLED] = value
     }
 
     private fun persistPosts(mastodon: NetworkPost, bluesky: NetworkPost) {
@@ -541,6 +590,7 @@ class MainViewModel(
         const val KEY_LANG = "article_lang"
         const val KEY_CARD_TITLE = "card_title"
         const val KEY_CARD_DESC = "card_desc"
+        const val KEY_CARD_ENABLED = "card_enabled"
         const val KEY_M_TEXT = "m_text"
         const val KEY_M_TAGS = "m_tags"
         const val KEY_B_TEXT = "b_text"

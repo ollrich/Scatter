@@ -22,7 +22,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -37,9 +37,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -56,7 +56,6 @@ import app.scatterto.ui.components.NetworkHeader
 import app.scatterto.ui.theme.BlueskyBlue
 import app.scatterto.ui.theme.MastodonViolet
 import java.text.NumberFormat
-import java.util.Locale
 
 /** Account-Verbindungen (§4.2). Trennen mit Rückfrage, da destruktiv (Token geht verloren). */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -197,11 +196,13 @@ private fun BlueskyCard(state: SettingsUiState, viewModel: SettingsViewModel, on
 @Composable
 private fun AccountDetails(serverLabel: String, info: AccountInfo?, loading: Boolean) {
     val uriHandler = LocalUriHandler.current
+    // Beobachtbar statt Locale.getDefault(): so formatiert ein Sprachwechsel sofort um.
+    val locale = LocalConfiguration.current.locales[0]
     when {
         info != null -> Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             DetailRow(serverLabel, info.server)
             info.followersCount?.let {
-                DetailRow(stringResource(R.string.followers), NumberFormat.getInstance(Locale.getDefault()).format(it))
+                DetailRow(stringResource(R.string.followers), NumberFormat.getInstance(locale).format(it))
             }
             info.memberSince?.let { DetailRow(stringResource(R.string.member_since), it) }
             info.lastPost?.let { DetailRow(stringResource(R.string.last_post), it) }
@@ -235,7 +236,7 @@ private fun DetailRow(label: String, value: String) {
 private fun LanguageDropdown(selected: String, onSelect: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     var showInfo by remember { mutableStateOf(false) }
-    val locale = Locale.getDefault()
+    val locale = LocalConfiguration.current.locales[0]
     Row(verticalAlignment = Alignment.CenterVertically) {
         ExposedDropdownMenuBox(
             expanded = expanded,
@@ -250,7 +251,7 @@ private fun LanguageDropdown(selected: String, onSelect: (String) -> Unit) {
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
             )
             ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 PostLanguages.TAGS.forEach { tag ->

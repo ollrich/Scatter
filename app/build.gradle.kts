@@ -2,7 +2,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
 }
@@ -13,14 +12,14 @@ val signingStoreFile: String? = System.getenv("SIGNING_STORE_FILE")
 
 android {
     namespace = "app.scatterto"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "app.scatterto"
         minSdk = 34
         targetSdk = 35
-        versionCode = 26
-        versionName = "0.9.5"
+        versionCode = 27
+        versionName = "0.9.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -89,6 +88,9 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.jsoup)
     implementation(libs.coil.compose)
+    // Coil 3: Netzwerk-Loading steckt nicht mehr im Kern — ohne dieses Artefakt lädt AsyncImage
+    // keine https-Bilder (Avatare, Karten-Thumbnail).
+    implementation(libs.coil.network.okhttp)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

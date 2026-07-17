@@ -151,7 +151,9 @@ class BlueskyRepository(
             apiCall { call("Bearer ${current.accessJwt}") }
         }
 
-        val did = current.did ?: error("Bluesky-Account ohne DID")
+        // Kann nur bei einem Alt-Account ohne gespeicherte DID auftreten; nutzersichtbar,
+        // daher lokalisiert über den Log-Resolver (das Repository hat keinen Context).
+        val did = current.did ?: throw IllegalStateException(log.string(R.string.error_bsky_no_did))
         val profile = authed { auth -> api.getProfile(auth, did) }
         // Letztes Posting best-effort — schlägt es fehl, bleibt das Feld leer.
         val lastPost = runCatching {

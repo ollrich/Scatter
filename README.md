@@ -51,17 +51,14 @@ Im Menü (Hamburger oben links):
 
 ### Datenschutz
 
-Keine Telemetrie, kein Analytics. Zugangsdaten (Tokens, App-Password, JWTs) liegen ausschließlich verschlüsselt auf dem Gerät (Android Keystore). Daten verlassen das Gerät nur zu den drei von dir konfigurierten Diensten: Mammouth, deine Mastodon-Instanz und Bluesky.
+Keine Telemetrie, kein Analytics. Zugangsdaten (Tokens, App-Password, JWTs) liegen ausschließlich verschlüsselt auf dem Gerät (Android Keystore). Daten verlassen das Gerät nur zu den von dir konfigurierten Diensten: deine Mastodon-Instanz, Bluesky und, falls du die KI nutzt, der gewählte KI-Anbieter (Mammouth, OpenAI, Anthropic oder Google). Ohne KI werden keine Artikel-Daten an Dritte gesendet, nur die Posts an deine Netzwerke.
 
 ### Roadmap
 
 Grobe Aussicht, ohne festen Termin:
 
-- **Bluesky-Link-Karte in der Post-Sprache** (Karten-Titel/-Text), inkl. Hinweis, wenn der verlinkte Artikel in einer anderen Sprache ist.
-- **App-Oberfläche in mehreren Sprachen** (Deutsch, Englisch, Dänisch).
 - **Mehrere Accounts** je Netzwerk, mit Sprachzuweisung pro Konto.
-- **Weitere KI-Anbieter** direkt (OpenAI, Claude, Gemini), KI optional abschaltbar.
-- **Eigene Akzentfarbe** als Alternative zu Material You.
+- **F-Droid-Veröffentlichung.**
 
 ### Technik
 
@@ -114,17 +111,14 @@ In the menu (hamburger, top left):
 
 ### Privacy
 
-No telemetry, no analytics. Credentials (tokens, app password, JWTs) are stored encrypted on the device only (Android Keystore). Data leaves the device only to the three services you configure: Mammouth, your Mastodon instance and Bluesky.
+No telemetry, no analytics. Credentials (tokens, app password, JWTs) are stored encrypted on the device only (Android Keystore). Data leaves the device only to the services you configure: your Mastodon instance, Bluesky and, if you use AI, the chosen AI provider (Mammouth, OpenAI, Anthropic or Google). Without AI, no article data is sent to third parties, only the posts to your networks.
 
 ### Roadmap
 
 Rough outlook, no fixed timeline:
 
-- **Bluesky link card in the post language** (card title/text), with a hint when the linked article is in a different language.
-- **App interface in multiple languages** (German, English, Danish).
 - **Multiple accounts** per network, with a language assigned per account.
-- **More AI providers** directly (OpenAI, Claude, Gemini), AI optionally disableable.
-- **Custom accent color** as an alternative to Material You.
+- **F-Droid release.**
 
 ### Tech
 

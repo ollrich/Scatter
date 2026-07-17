@@ -1,0 +1,18 @@
+Scatter is for people who share the same article on Mastodon and Bluesky without typing it twice.
+
+Share a link from any app and Scatter fetches the page metadata and prepares one post per network. Optionally, an AI model of your choice writes the texts, each in the language configured per network and in one of four tonalities. You review, adjust and send.
+
+Features:
+
+* Share target for article links, or paste a URL
+* One independent post each for Mastodon and Bluesky, individually editable
+* AI optional: Mammouth, OpenAI, Anthropic or Google with your own API token, can be switched off entirely
+* Four tonalities, from factual to opinionated
+* Editable Bluesky link card with preview
+* Network-aware character counting (Mastodon URL weighting, Bluesky graphemes)
+* Post language per network, app language German, English or Danish
+* Tracking parameters are stripped from shared URLs
+
+Privacy: no telemetry, no analytics. Credentials are stored encrypted on the device. Data only goes to the services you configure; without AI, no article data is sent to third parties.
+
+Note: the AI integration uses proprietary network services (your own API token required); the app also works without it.

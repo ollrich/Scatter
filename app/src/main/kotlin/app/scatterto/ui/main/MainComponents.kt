@@ -27,12 +27,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -42,6 +43,7 @@ import app.scatterto.R
 import app.scatterto.core.extractUrl
 import app.scatterto.ui.theme.BlueskyBlue
 import app.scatterto.ui.theme.MastodonViolet
+import kotlinx.coroutines.launch
 
 /** Auswahl, welche verbundenen Netzwerke bespielt werden (§5). Mindestens eins bleibt aktiv. */
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
@@ -94,7 +96,9 @@ private fun TargetLabel(network: String, handle: String?, color: Color) {
  */
 @Composable
 internal fun MetadataCard(state: MainUiState, viewModel: MainViewModel) {
-    var expandedByUser by rememberSaveable { mutableStateOf(false) }
+    // Pro Artikel gemerkt (Key = geladene URL): Aufklappen für Artikel A soll Artikel B
+    // nicht aufgeklappt starten lassen.
+    var expandedByUser by rememberSaveable(state.fetchedUrl) { mutableStateOf(false) }
     val expanded = expandedByUser || state.metadataPhase == MetadataPhase.NeedsManual
 
     Card(modifier = Modifier.fillMaxWidth()) {
@@ -143,6 +147,13 @@ internal fun MetadataCard(state: MainUiState, viewModel: MainViewModel) {
                     label = { Text(stringResource(R.string.label_meta_description)) },
                     modifier = Modifier.fillMaxWidth(),
                 )
+                if (state.metadataPhase == MetadataPhase.NeedsManual) {
+                    // Zweiter Abruf derselben URL (z. B. Funkloch) — sonst gäbe es dafür
+                    // keinen Weg außer Handeingabe oder URL-Änderung.
+                    OutlinedButton(onClick = viewModel::retryMetadata) {
+                        Text(stringResource(R.string.metadata_retry))
+                    }
+                }
             }
         }
     }
@@ -150,7 +161,7 @@ internal fun MetadataCard(state: MainUiState, viewModel: MainViewModel) {
 
 /** Feedback während des KI-Calls: Spinner + welches Modell gerade schreibt. */
 @Composable
-internal fun GeneratingIndicator(modelLabel: String?) {
+internal fun GeneratingIndicator(modelLabel: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -158,7 +169,7 @@ internal fun GeneratingIndicator(modelLabel: String?) {
     ) {
         CircularProgressIndicator(modifier = Modifier.size(20.dp))
         Text(
-            stringResource(R.string.generating_with, modelLabel ?: "KI"),
+            stringResource(R.string.generating_with, modelLabel),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
@@ -167,17 +178,22 @@ internal fun GeneratingIndicator(modelLabel: String?) {
 /** Bietet an, eine URL aus der Zwischenablage zu übernehmen (Zugriff erst beim Tippen). */
 @Composable
 internal fun ClipboardSuggestion(onUrlFound: (String) -> Unit) {
-    val clipboard = LocalClipboardManager.current
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val missMessage = stringResource(R.string.clipboard_no_url)
 
     AssistChip(
         onClick = {
-            val url = clipboard.getText()?.text?.let(::extractUrl)
-            if (url != null) {
-                onUrlFound(url)
-            } else {
-                Toast.makeText(context, missMessage, Toast.LENGTH_SHORT).show()
+            scope.launch {
+                val text = clipboard.getClipEntry()?.clipData
+                    ?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.text?.toString()
+                val url = text?.let(::extractUrl)
+                if (url != null) {
+                    onUrlFound(url)
+                } else {
+                    Toast.makeText(context, missMessage, Toast.LENGTH_SHORT).show()
+                }
             }
         },
         label = { Text(stringResource(R.string.paste_from_clipboard)) },

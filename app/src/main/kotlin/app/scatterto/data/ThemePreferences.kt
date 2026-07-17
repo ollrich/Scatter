@@ -1,6 +1,7 @@
 package app.scatterto.data
 
 import android.content.Context
+import androidx.core.content.edit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,12 +27,12 @@ class ThemePreferences(context: Context) {
 
     fun setMode(mode: ThemeMode) {
         _mode.value = mode
-        prefs.edit().putString(KEY, mode.name).apply()
+        prefs.edit { putString(KEY, mode.name) }
     }
 
     fun setDynamicColor(enabled: Boolean) {
         _dynamicColor.value = enabled
-        prefs.edit().putBoolean(KEY_DYNAMIC, enabled).apply()
+        prefs.edit { putBoolean(KEY_DYNAMIC, enabled) }
     }
 
     private fun load(): ThemeMode =

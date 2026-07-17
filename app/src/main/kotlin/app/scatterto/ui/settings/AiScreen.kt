@@ -28,7 +28,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -341,7 +341,7 @@ private fun ChoiceDropdown(
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier
                 .fillMaxWidth()
-                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
         )
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             options.forEach { (key, text) ->
@@ -377,6 +377,11 @@ private fun ModelField(state: SettingsUiState, viewModel: SettingsViewModel) {
                 onValueChange = {},
                 readOnly = true,
                 label = { Text(stringResource(R.string.model_label)) },
+                placeholder = {
+                    // Vor dem ersten Listen-Laden gilt das eingebaute Default-Modell — das Feld
+                    // soll nicht leer wirken, wenn tatsächlich eines wirksam ist.
+                    state.activeAiService.defaultModel.takeIf { it.isNotBlank() }?.let { Text(it) }
+                },
                 trailingIcon = {
                     if (state.modelsLoading) {
                         CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
@@ -386,7 +391,7 @@ private fun ModelField(state: SettingsUiState, viewModel: SettingsViewModel) {
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
             )
             ExposedDropdownMenu(expanded = menuOpen, onDismissRequest = { expanded = false }) {
                 models.forEach { id ->

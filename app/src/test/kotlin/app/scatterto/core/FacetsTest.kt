@@ -48,4 +48,11 @@ class FacetsTest {
         assertEquals(5, tag.index.byteStart) // "🎉 " = 4 + 1 = 5 Bytes
         assertEquals(7, tag.index.byteEnd)   // + "#x" (2 Bytes)
     }
+
+    /** Ziffern-Anlaut ist erlaubt („#2026wahl"), rein numerisch nicht („#2026"). */
+    @Test fun digitLeadingTagsGetFacetsButPureNumbersDoNot() {
+        val facets = computeFacets("#2026wahl und #2026", url = null)
+        val tags = facets.filter { it.features[0].type == FACET_TAG_TYPE }.mapNotNull { it.features[0].tag }
+        assertEquals(listOf("2026wahl"), tags)
+    }
 }

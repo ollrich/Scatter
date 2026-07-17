@@ -2,6 +2,7 @@ package app.scatterto.data.bluesky
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import androidx.core.graphics.scale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -29,7 +30,7 @@ class ImageThumbnailer(private val client: OkHttpClient) {
         val response = client.newCall(Request.Builder().url(url).build()).execute()
         response.use {
             if (!it.isSuccessful) return null
-            val body = it.body ?: return null
+            val body = it.body
             // Download begrenzen: riesige og:image-Dateien würden sonst komplett in den Speicher
             // geladen (OOM-Risiko). Über dem Limit -> Karte ohne Bild (Fallback existiert).
             if (body.contentLength() > MAX_DOWNLOAD_BYTES) return null
@@ -45,7 +46,7 @@ class ImageThumbnailer(private val client: OkHttpClient) {
         val ratio = maxDimension.toFloat() / largest
         val width = (bitmap.width * ratio).toInt().coerceAtLeast(1)
         val height = (bitmap.height * ratio).toInt().coerceAtLeast(1)
-        return Bitmap.createScaledBitmap(bitmap, width, height, true)
+        return bitmap.scale(width, height)
     }
 
     private fun compressUnderLimit(bitmap: Bitmap): ByteArray {
