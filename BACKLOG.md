@@ -46,18 +46,23 @@ Offene Punkte, nach Aufwand und Priorität gruppiert. Die verbindliche Spezifika
   Endpoint, Anthropic nur mit Admin-Key (zu viele Rechte für eine Client-App), Google nur über die
   Cloud Billing API mit OAuth.
 
-## Weg zu V1
+## V1 ✅ (v1.0.0, 2026-07-17)
 
-- **Google Play Protect / Sideload-Warnung angehen** (Stand recherchiert 2026-07-14): Der Hinweis ist
-  reputationsbasiert (App unbekannt, frischer Signing-Key, kleine Installbasis) — **kein Malware-Fund**.
-  ScatterTo nutzt KEINE der hart geblockten Sensibel-Permissions (SMS/Notification-Listener/
-  Accessibility), wird also nicht install-geblockt, nur „unverifiziert" gewarnt. Google verlangt
-  zunehmend **Entwickler-Identitätsverifizierung auch für Sideload** (Rollout ab Sept. 2026 in
-  einzelnen Regionen, global bis 2027 — betrifft dann auch alt. Stores/F-Droid).
-  **Entscheidung (Nutzer 2026-07-14): Google-Entwicklerverifizierung** — Identitätsverifizierung/
-  App-Registrierung ohne Play-Veröffentlichung. (Alternativen wären F-Droid, Reputation-abwarten
-  oder Warnung-akzeptieren; vollständig Google-frei wird durch die 2026/2027-Regeln ohnehin schwerer.)
-- dann **V1** raus.
+Auf dem Gerät validiert (alle vier KI-Dienste, beide Netzwerke, R8-Build). README/About/F-Droid-Texte
+auf Stand, Screenshots (hell + dunkel) eingebunden, fünf Tonalitäten, Mammouth-Guthaben. Die
+ursprüngliche Reihenfolge (erst Google, dann V1) wurde umgedreht: V1 ist raus, Google läuft parallel.
+
+## Offen nach V1
+
+- **Google-Entwicklerverifizierung** — läuft (Identität wird geprüft, Stand 2026-07-17). Löst die
+  reputationsbasierte Play-Protect-Warnung („unverifiziert", kein Malware-Fund); Scatter nutzt keine
+  hart geblockten Sensibel-Permissions, wird also nur gewarnt, nicht install-geblockt. Rollout der
+  Sideload-Verifizierungspflicht ab Sept. 2026 regional, global bis 2027.
+- **F-Droid-Veröffentlichung** — nach der Google-Verifizierung. Vorarbeit steht (fastlane-Metadaten
+  + Screenshots liegen); zu tun: Build-Rezept (`app.scatterto.yml`) und Reproducible-Build-Setup
+  vorbereiten, dann Merge-Request ins `fdroiddata`-Repo (macht der Nutzer über seinen GitLab-Account).
+  Risiko: sehr neuer Stack (AGP 9.3 / compileSdk 37) könnte F-Droids Build-Server überholen; RB mit
+  R8 ist machbar, aber fummelig.
 
 ## Nach V1
 

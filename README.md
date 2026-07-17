@@ -59,7 +59,26 @@ Keine Telemetrie, kein Analytics. Zugangsdaten (Tokens, App-Password, JWTs) lieg
 
 ### Screenshots
 
-_Werden mit dem 1.0.0-Release eingebunden._
+<p align="center">
+  <img src="docs/screenshots/light/1-main.jpg" width="220" alt="Generierte Posts">
+  <img src="docs/screenshots/light/2-card.jpg" width="220" alt="Bluesky-Link-Karte">
+  <img src="docs/screenshots/light/3-ai.jpg" width="220" alt="KI-Menü mit Mammouth und Guthaben">
+</p>
+<p align="center">
+  <img src="docs/screenshots/light/4-tonality.jpg" width="220" alt="Tonalitäten">
+  <img src="docs/screenshots/light/5-sent.jpg" width="220" alt="Erfolgreich gesendet">
+</p>
+
+<details>
+<summary>Dunkelmodus</summary>
+
+<p align="center">
+  <img src="docs/screenshots/dark/1-main.jpg" width="220" alt="Generierte Posts (dunkel)">
+  <img src="docs/screenshots/dark/3-ai.jpg" width="220" alt="KI-Menü (dunkel)">
+  <img src="docs/screenshots/dark/4-tonality.jpg" width="220" alt="Tonalitäten (dunkel)">
+</p>
+
+</details>
 
 ### Roadmap
 
