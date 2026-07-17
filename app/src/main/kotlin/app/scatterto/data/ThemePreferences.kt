@@ -21,8 +21,10 @@ class ThemePreferences(context: Context) {
     private val _mode = MutableStateFlow(load())
     val mode: StateFlow<ThemeMode> = _mode.asStateFlow()
 
-    // Material-You-Dynamic-Color; aus = festes App-Blau (§2, Backlog v0.9.0). Standard an.
-    private val _dynamicColor = MutableStateFlow(prefs.getBoolean(KEY_DYNAMIC, true))
+    // Material-You-Dynamic-Color; aus = festes App-Blau (§2). Standard AUS (Nutzer-Entscheidung
+    // 2026-07-17): frisch installiert soll Scatter in den Markenfarben erscheinen, nicht in einer
+    // vom Wallpaper abgeleiteten Palette. Wer Material You will, schaltet es unter „Anzeige" an.
+    private val _dynamicColor = MutableStateFlow(prefs.getBoolean(KEY_DYNAMIC, false))
     val dynamicColor: StateFlow<Boolean> = _dynamicColor.asStateFlow()
 
     fun setMode(mode: ThemeMode) {

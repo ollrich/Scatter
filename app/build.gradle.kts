@@ -18,8 +18,8 @@ android {
         applicationId = "app.scatterto"
         minSdk = 34
         targetSdk = 35
-        versionCode = 27
-        versionName = "0.9.6"
+        versionCode = 28
+        versionName = "0.9.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -37,7 +37,11 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false // v1: §12.3 Nr. 3
+            // R8 an (weicht bewusst von §12.3 Nr. 3 ab, entschieden 2026-07-17): ohne Shrinking
+            // wiegt die APK 49 MiB, mit 3,5 — fast alles davon sind ungenutzte Icons aus
+            // material-icons-extended, das seine ~11.400 Vektoren als Bytecode mitbringt.
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",

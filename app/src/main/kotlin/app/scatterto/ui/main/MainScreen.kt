@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -17,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Menu
@@ -344,6 +346,18 @@ private fun BlueskyCardPreview(
     onEnabled: (Boolean) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
+    var showCardHelp by remember { mutableStateOf(false) }
+
+    if (showCardHelp) {
+        AlertDialog(
+            onDismissRequest = { showCardHelp = false },
+            title = { Text(stringResource(R.string.card_include_label)) },
+            text = { Text(stringResource(R.string.card_include_help_text)) },
+            confirmButton = {
+                TextButton(onClick = { showCardHelp = false }) { Text(stringResource(R.string.close)) }
+            },
+        )
+    }
 
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -391,10 +405,16 @@ private fun BlueskyCardPreview(
             if (expanded) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(stringResource(R.string.card_include_label))
+                    IconButton(onClick = { showCardHelp = true }) {
+                        Icon(
+                            Icons.AutoMirrored.Outlined.HelpOutline,
+                            contentDescription = stringResource(R.string.card_include_help),
+                        )
+                    }
+                    Spacer(Modifier.weight(1f))
                     Switch(checked = enabled, onCheckedChange = onEnabled)
                 }
                 if (enabled) {

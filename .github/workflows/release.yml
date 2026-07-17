@@ -45,6 +45,16 @@ jobs:
       - name: APK versioniert benennen
         run: cp app/build/outputs/apk/release/app-release.apk "scatterto-${{ github.ref_name }}.apk"
 
+      # R8 obfuskiert seit v0.9.7 — ohne diese Datei ist ein Stacktrace aus einem Release-Build
+      # nicht entzifferbar. Bewusst NUR als Workflow-Artifact, nicht als Release-Asset: das
+      # Release trägt genau eine APK (Obtainium-Kontrakt, §9.4).
+      - name: R8-Mapping sichern
+        uses: actions/upload-artifact@v5
+        with:
+          name: mapping-${{ github.ref_name }}
+          path: app/build/outputs/mapping/release/mapping.txt
+          retention-days: 90
+
       - name: GitHub Release erstellen
         uses: softprops/action-gh-release@v3
         with:

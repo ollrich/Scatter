@@ -9,6 +9,11 @@ package app.scatterto.data.model
  * Ebenso ist die Satzanzahl tonalitätsabhängig: ein Hape braucht Aufbau + Pointe, ein Marcel den
  * Hack-Rhythmus — mit „genau einem Satz" funktioniert beides nicht.
  */
+/**
+ * Die [key]s sind der in [app.scatterto.data.model.AiSettings] persistierte Wert — sie bleiben
+ * stabil, auch wenn sich das Label ändert (Umbenennen würde jede gespeicherte Auswahl still auf
+ * [STANDARD] zurücksetzen). Die Anzeigenamen stehen in `strings.xml`.
+ */
 enum class Tonality(val key: String) {
     STANDARD("standard"),
     LOCKER("locker"),

@@ -80,7 +80,8 @@ private val DarkColors = darkColorScheme(
 @Composable
 fun ScatterToTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    // Standard aus, wie in ThemePreferences — die Marken-Palette ist der Auslieferungszustand.
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current

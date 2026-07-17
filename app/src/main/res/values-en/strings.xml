@@ -64,6 +64,8 @@
     <string name="card_preview_off">Will not be sent</string>
     <string name="card_include_label">Send card</string>
     <string name="card_include_off_hint">Without the card, the link moves into the post text.</string>
+    <string name="card_include_help">What does “Send card” do?</string>
+    <string name="card_include_help_text">Bluesky does not build the link preview itself, Scatter sends it along. With the switch on, a card with image, title and description appears below the post, and the link is NOT in the text. That saves about 50 characters.\n\nWith the switch off, the post goes out without a card and the URL moves back into the text. Useful when the card does not fit or the page has no usable image.\n\nMastodon has no such switch: there the server builds the preview itself from the linked page.</string>
 
     <string name="regen_confirm_title">Discard edited texts?</string>
     <string name="regen_confirm_text">You have edited the post texts. “Regenerate” replaces them with new AI texts.</string>
@@ -121,7 +123,7 @@
     <string name="tonality_standard_desc">Reporting, no judgement. One sentence, no emojis.</string>
     <string name="tonality_locker">Casual</string>
     <string name="tonality_locker_desc">Friendly and inviting, with a few emojis.</string>
-    <string name="tonality_hape">Hape</string>
+    <string name="tonality_hape">Hans-Peter</string>
     <string name="tonality_hape_desc">Warm, self-deprecating, with a punchline. One emoji at most.</string>
     <string name="tonality_marcel">Marcel</string>
     <string name="tonality_marcel_desc">A clear verdict, short sentences, no emojis.</string>
@@ -146,7 +148,7 @@
     <!-- About -->
     <string name="version">Version %1$s</string>
     <string name="about_description">Share an article link and Scatter creates a short AI post each for Mastodon and Bluesky, in the language you choose per network. Review, adjust, send.</string>
-    <string name="about_privacy">No telemetry, no sharing with third parties other than the APIs you use. Credentials are stored encrypted on the device only.</string>
+    <string name="about_privacy">No telemetry, no analytics. Credentials are stored encrypted on the device only. Your posts go to your Mastodon instance and to Bluesky. If AI is enabled, the article\'s title and description are sent to the provider you choose (Mammouth, OpenAI, Anthropic or Google). Without AI, none of that leaves the device.</string>
     <string name="about_source">Source code on GitHub</string>
     <string name="about_author_prefix">A personal project by</string>
 

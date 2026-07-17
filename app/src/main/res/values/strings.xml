@@ -63,6 +63,8 @@
     <string name="card_preview_off">Wird nicht mitgesendet</string>
     <string name="card_include_label">Karte mitsenden</string>
     <string name="card_include_off_hint">Ohne Karte wandert der Link in den Post-Text.</string>
+    <string name="card_include_help">Was macht „Karte mitsenden“?</string>
+    <string name="card_include_help_text">Bluesky baut die Link-Vorschau nicht selbst, Scatter schickt sie mit. Ist der Schalter an, erscheint unter dem Post eine Karte mit Bild, Titel und Beschreibung, und der Link steht NICHT im Text. Das spart rund 50 Zeichen.\n\nIst der Schalter aus, geht der Post ohne Karte raus und die URL wandert zurück in den Text. Sinnvoll, wenn die Karte nicht passt oder die Seite kein brauchbares Bild liefert.\n\nBei Mastodon gibt es den Schalter nicht: dort baut der Server die Vorschau selbst aus der verlinkten Seite.</string>
 
     <!-- Neu generieren -->
     <string name="regen_confirm_title">Bearbeitete Texte verwerfen?</string>
@@ -121,7 +123,7 @@
     <string name="tonality_standard_desc">Referierend, ohne Wertung. Ein Satz, keine Emojis.</string>
     <string name="tonality_locker">Locker</string>
     <string name="tonality_locker_desc">Freundlich und einladend, mit ein paar Emojis.</string>
-    <string name="tonality_hape">Hape</string>
+    <string name="tonality_hape">Hans-Peter</string>
     <string name="tonality_hape_desc">Warmherzig, selbstironisch, mit Pointe. Höchstens ein Emoji.</string>
     <string name="tonality_marcel">Marcel</string>
     <string name="tonality_marcel_desc">Klares Urteil, kurze Sätze, keine Emojis.</string>
@@ -146,7 +148,7 @@
     <!-- Über -->
     <string name="version">Version %1$s</string>
     <string name="about_description">Teile einen Artikel-Link und Scatter erstellt per KI je einen kurzen Post für Mastodon und Bluesky, in der pro Netzwerk gewählten Sprache. Prüfen, anpassen, absenden.</string>
-    <string name="about_privacy">Keine Telemetrie, keine Weitergabe an Dritte außer den genutzten APIs. Zugangsdaten liegen ausschließlich verschlüsselt auf dem Gerät.</string>
+    <string name="about_privacy">Keine Telemetrie, kein Analytics. Zugangsdaten liegen ausschließlich verschlüsselt auf dem Gerät. Deine Posts gehen an deine Mastodon-Instanz und an Bluesky. Ist die KI aktiv, werden Titel und Beschreibung des Artikels an den von dir gewählten Anbieter gesendet (Mammouth, OpenAI, Anthropic oder Google). Ohne KI verlässt nichts davon das Gerät.</string>
     <string name="about_source">Quellcode auf GitHub</string>
     <string name="about_author_prefix">Ein privates Projekt von</string>
 

@@ -30,6 +30,17 @@ Offene Punkte, nach Aufwand und Priorität gruppiert. Die verbindliche Spezifika
   Compose BOM 2026.06, OkHttp 5, Retrofit 3 (offizieller kotlinx-Converter), Coil 3,
   security-crypto 1.1.0 stabil, neue Clipboard-API. Lint 23 → 4 Findings, 0 Errors.
 
+- **v0.9.7** — Tonalität „Hape" heißt jetzt „Hans-Peter" (Enum-Key bleibt `hape`, sonst würde
+  jede gespeicherte Auswahl zurückgesetzt). **R8/Shrinking an** (weicht bewusst von §12.3 Nr. 3 ab):
+  APK 49 MiB → 3,5 MiB, weil `material-icons-extended` seine ~11.400 Vektoren als Bytecode
+  mitbringt und R8 exakt die 20 genutzten übrig lässt. Nötig war eine einzige Regel
+  (`-dontwarn com.google.errorprone.**` für Tink); die CI sichert jetzt `mapping.txt` als
+  Workflow-Artifact (90 Tage), sonst wären Stacktraces aus Release-Builds unlesbar.
+  Dynamische Farben standardmäßig **aus** (frisch installiert = Markenfarben). „Karte mitsenden"
+  hat ein „?" mit Modal. Karten-Prompt: näher an den Meta-Tags, max. ~100 Zeichen statt 150,
+  Meta-Einleitungen („Der Artikel beschreibt …") explizit verboten. About-Datenschutztext benennt
+  die vier KI-Anbieter konkret.
+
 ## Weg zu V1
 
 - **Google Play Protect / Sideload-Warnung angehen** (Stand recherchiert 2026-07-14): Der Hinweis ist

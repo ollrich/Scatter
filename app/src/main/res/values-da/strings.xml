@@ -64,6 +64,8 @@
     <string name="card_preview_off">Sendes ikke med</string>
     <string name="card_include_label">Send kort med</string>
     <string name="card_include_off_hint">Uden kortet flyttes linket ind i indlægsteksten.</string>
+    <string name="card_include_help">Hvad gør “Send kort med”?</string>
+    <string name="card_include_help_text">Bluesky bygger ikke selv linkforhåndsvisningen, Scatter sender den med. Når kontakten er slået til, vises et kort med billede, titel og beskrivelse under opslaget, og linket står IKKE i teksten. Det sparer omkring 50 tegn.\n\nEr kontakten slået fra, sendes opslaget uden kort, og URL\'en flyttes tilbage i teksten. Nyttigt, når kortet ikke passer, eller siden ikke har et brugbart billede.\n\nMastodon har ikke den kontakt: dér bygger serveren selv forhåndsvisningen ud fra den linkede side.</string>
 
     <string name="regen_confirm_title">Kassér redigerede tekster?</string>
     <string name="regen_confirm_text">Du har redigeret opslagsteksterne. “Generér igen” erstatter dem med nye AI-tekster.</string>
@@ -121,7 +123,7 @@
     <string name="tonality_standard_desc">Refererende, uden vurdering. Én sætning, ingen emojis.</string>
     <string name="tonality_locker">Afslappet</string>
     <string name="tonality_locker_desc">Venlig og indbydende, med et par emojis.</string>
-    <string name="tonality_hape">Hape</string>
+    <string name="tonality_hape">Hans-Peter</string>
     <string name="tonality_hape_desc">Varm, selvironisk, med en pointe. Højst én emoji.</string>
     <string name="tonality_marcel">Marcel</string>
     <string name="tonality_marcel_desc">En klar dom, korte sætninger, ingen emojis.</string>
@@ -146,7 +148,7 @@
     <!-- Om -->
     <string name="version">Version %1$s</string>
     <string name="about_description">Del et artikel-link, og Scatter opretter et kort AI-opslag til hver af Mastodon og Bluesky, i det sprog du vælger pr. netværk. Gennemse, tilpas, send.</string>
-    <string name="about_privacy">Ingen telemetri, ingen deling med tredjeparter ud over de anvendte API\'er. Loginoplysninger gemmes udelukkende krypteret på enheden.</string>
+    <string name="about_privacy">Ingen telemetri, ingen analytics. Loginoplysninger gemmes udelukkende krypteret på enheden. Dine opslag går til din Mastodon-instans og til Bluesky. Er AI slået til, sendes artiklens titel og beskrivelse til den udbyder, du vælger (Mammouth, OpenAI, Anthropic eller Google). Uden AI forlader intet af det enheden.</string>
     <string name="about_source">Kildekode på GitHub</string>
     <string name="about_author_prefix">Et privat projekt af</string>
 
