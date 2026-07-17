@@ -115,6 +115,9 @@
     <string name="validate_valid">Token gyldig ✓</string>
     <string name="validate_invalid">Token/model kan ikke bekræftes</string>
     <string name="validate_offline">Kan ikke bekræftes (offline?)</string>
+    <string name="ai_budget_label">API-kredit</string>
+    <string name="ai_budget_value">%1$s af %2$s brugt</string>
+    <string name="ai_budget_reset">Nulstilles den %1$s</string>
 
     <!-- Tonalitet -->
     <string name="tonality_heading">Tonalitet</string>

@@ -39,7 +39,12 @@ Offene Punkte, nach Aufwand und Priorität gruppiert. Die verbindliche Spezifika
   Dynamische Farben standardmäßig **aus** (frisch installiert = Markenfarben). „Karte mitsenden"
   hat ein „?" mit Modal. Karten-Prompt: näher an den Meta-Tags, max. ~100 Zeichen statt 150,
   Meta-Einleitungen („Der Artikel beschreibt …") explizit verboten. About-Datenschutztext benennt
-  die vier KI-Anbieter konkret.
+  die vier KI-Anbieter konkret. **Mammouth-Guthaben** im KI-Menü: Mammouth fährt LiteLLM und legt
+  dessen Endpoints offen, deshalb `spend`/`max_budget` abrufbar (zwei Calls: `/key/info` liefert die
+  `user_id`, `/user/info` das Account-Budget; beide NICHT unter `/v1`). Best-effort, das Schema ist
+  undokumentiert und die Doku zeigt fälschlich `0.0.0.0:4000`. **Nur Mammouth:** OpenAI hat keinen
+  Endpoint, Anthropic nur mit Admin-Key (zu viele Rechte für eine Client-App), Google nur über die
+  Cloud Billing API mit OAuth.
 
 ## Weg zu V1
 

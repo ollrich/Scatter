@@ -115,6 +115,9 @@
     <string name="validate_valid">Token gültig ✓</string>
     <string name="validate_invalid">Token/Modell nicht prüfbar</string>
     <string name="validate_offline">Nicht prüfbar (offline?)</string>
+    <string name="ai_budget_label">API-Guthaben</string>
+    <string name="ai_budget_value">%1$s von %2$s verbraucht</string>
+    <string name="ai_budget_reset">Neues Kontingent am %1$s</string>
 
     <!-- Tonalität -->
     <string name="tonality_heading">Tonalität</string>

@@ -3,6 +3,7 @@ package app.scatterto.data.mammouth
 import app.scatterto.R
 import app.scatterto.data.log.EventLog
 import app.scatterto.data.metadata.PageMetadata
+import app.scatterto.data.model.AiBudget
 import app.scatterto.data.model.AiService
 import app.scatterto.data.model.AiSettings
 import app.scatterto.data.model.GeneratedPosts
@@ -129,6 +130,26 @@ class AiRepository(private val log: EventLog) {
                 contents = listOf(GeminiContent(role = "user", parts = listOf(GeminiPart(user)))),
             ),
         ).firstText()
+    }
+
+    // --- Guthaben (nur Mammouth) ---
+
+    /**
+     * Guthabenstand des Accounts, oder null wenn der Dienst das nicht hergibt bzw. der Abruf
+     * scheitert. Bewusst nicht werfend: die Anzeige ist Beiwerk und darf nie das Menü stören —
+     * das Schema ist undokumentiert und kann jederzeit brechen.
+     *
+     * Zwei Calls, weil das Budget am Account hängt und nicht am Key: erst die `user_id` aus
+     * `/key/info` holen, dann damit `/user/info` abfragen.
+     */
+    suspend fun budget(service: AiService, token: String): AiBudget? {
+        if (service != AiService.MAMMOUTH || token.isBlank()) return null
+        return runCatching {
+            val userId = mammouthApi.keyInfo(bearer(token)).info.userId ?: return null
+            val info = mammouthApi.userInfo(bearer(token), userId).userInfo
+            val max = info.maxBudget ?: return null // ohne Limit gibt es nichts anzuzeigen
+            AiBudget(spent = info.spend, max = max, resetAt = info.budgetResetAt)
+        }.getOrNull()
     }
 
     // --- Modell-Listen (für die Einstellungs-Dropdowns) ---

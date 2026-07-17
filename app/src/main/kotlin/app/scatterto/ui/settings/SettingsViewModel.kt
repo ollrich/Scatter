@@ -96,6 +96,8 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
             aiValidation = ValidationState.None,
             availableModels = emptyList(),
             modelsError = false,
+            // Das Guthaben gehört zum vorigen Dienst — sonst stünde Mammouths Stand unter Claude.
+            aiBudget = null,
         )
         if (uiState.currentToken.isNotBlank()) refreshModels()
     }
@@ -113,11 +115,26 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
         uiState = uiState.copy(aiModels = uiState.aiModels + (uiState.aiService to id))
     }
 
+    /**
+     * Guthaben des aktiven Dienstes nachladen (nur Mammouth liefert eins). Still: schlägt es fehl,
+     * verschwindet die Anzeige einfach — sie ist Beiwerk, kein Teil der Einrichtung.
+     */
+    private fun refreshBudget() {
+        val service = uiState.activeAiService
+        val token = uiState.currentToken.trim()
+        viewModelScope.launch {
+            val budget = container.aiRepository.budget(service, token)
+            // Dienst/Token zwischenzeitlich gewechselt? Dann gehört das Ergebnis nicht mehr hierher.
+            if (uiState.aiService == service.key) uiState = uiState.copy(aiBudget = budget)
+        }
+    }
+
     /** Modell-Liste des aktiven Dienstes laden — nur nach Token-Eingabe (§4.1). */
     fun refreshModels() {
         val service = uiState.activeAiService
         val token = uiState.currentToken.trim()
         if (token.isBlank()) return
+        refreshBudget()
         uiState = uiState.copy(modelsLoading = true, modelsError = false)
         viewModelScope.launch {
             val result = runCatching { container.aiRepository.availableModels(service, token) }

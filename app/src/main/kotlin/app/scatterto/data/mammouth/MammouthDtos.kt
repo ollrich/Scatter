@@ -34,6 +34,31 @@ data class ModelsResponse(val data: List<ModelData> = emptyList())
 @Serializable
 data class ModelData(val id: String)
 
+// --- LiteLLM-Verwaltung (nur Mammouth): Guthaben ---
+// Bewusst nur die Felder, die wir brauchen — die echte Antwort hat gut 40, und
+// `ignoreUnknownKeys` lässt den Rest fallen.
+
+@Serializable
+data class KeyInfoResponse(val info: KeyInfo = KeyInfo())
+
+@Serializable
+data class KeyInfo(@SerialName("user_id") val userId: String? = null)
+
+@Serializable
+data class UserInfoResponse(@SerialName("user_info") val userInfo: UserInfo = UserInfo())
+
+/**
+ * `max_budget` ist das Limit der laufenden Periode (bei Mammouth Abo-Kontingent plus zugekaufte
+ * Credits), `spend` der über ALLE Keys des Accounts aufsummierte Verbrauch — deshalb ist das hier
+ * und nicht `/key/info` die richtige Quelle.
+ */
+@Serializable
+data class UserInfo(
+    @SerialName("max_budget") val maxBudget: Double? = null,
+    val spend: Double = 0.0,
+    @SerialName("budget_reset_at") val budgetResetAt: String? = null,
+)
+
 /**
  * Rohschema der KI-Antwort (§5.3): je Netzwerk ein Post-Text plus ergänzende Hashtags (werden
  * hinten angehängt). Für Bluesky zusätzlich Titel/Beschreibung der Link-Vorschau (§6),

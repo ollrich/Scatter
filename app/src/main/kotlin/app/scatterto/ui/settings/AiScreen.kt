@@ -27,6 +27,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.OutlinedTextField
@@ -43,6 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -53,9 +55,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.scatterto.R
 import app.scatterto.data.mammouth.MammouthProvider
+import app.scatterto.data.model.AiBudget
 import app.scatterto.data.model.AiService
 import app.scatterto.data.model.Tonality
+import app.scatterto.data.util.DateDisplay
 import app.scatterto.ui.AppViewModelProvider
+import java.text.NumberFormat
+import java.util.Currency
 
 private const val GUIDE_URL = "https://github.com/ollrich/Scatter/blob/main/docs/ai-setup.md"
 
@@ -186,6 +192,9 @@ fun AiScreen(
 
                 ModelField(state, viewModel)
 
+                // Nur Mammouth liefert einen Guthabenstand; bei den anderen bleibt die Zeile weg.
+                state.aiBudget?.let { BudgetRow(it) }
+
                 Button(onClick = viewModel::saveAi, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.save))
                 }
@@ -232,6 +241,43 @@ fun AiScreen(
 
     if (showTonalityExamples) {
         TonalityExamplesDialog(onDismiss = { showTonalityExamples = false })
+    }
+}
+
+/**
+ * Guthaben des API-Tokens (§4.1) — es gibt ihn nur bei Mammouth, dessen LiteLLM-Backend den Stand
+ * offenlegt. Die Beträge kommen als USD aus der API, unabhängig von der App-Sprache; formatiert
+ * wird in der Anzeige-Locale (deutsch also „0,54 $", englisch „$0.54").
+ */
+@Composable
+private fun BudgetRow(budget: AiBudget) {
+    val locale = LocalConfiguration.current.locales[0]
+    val money = remember(locale) {
+        NumberFormat.getCurrencyInstance(locale).apply { currency = Currency.getInstance("USD") }
+    }
+    val color = if (budget.isLow) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(stringResource(R.string.ai_budget_label), style = MaterialTheme.typography.labelMedium)
+            Text(
+                stringResource(R.string.ai_budget_value, money.format(budget.spent), money.format(budget.max)),
+                style = MaterialTheme.typography.labelMedium,
+                color = color,
+            )
+        }
+        LinearProgressIndicator(
+            progress = { budget.fraction },
+            color = color,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        DateDisplay.date(budget.resetAt)?.let {
+            Text(
+                stringResource(R.string.ai_budget_reset, it),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 

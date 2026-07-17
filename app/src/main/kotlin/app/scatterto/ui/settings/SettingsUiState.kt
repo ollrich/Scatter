@@ -2,6 +2,7 @@ package app.scatterto.ui.settings
 
 import app.scatterto.data.mammouth.MammouthProvider
 import app.scatterto.data.model.AccountInfo
+import app.scatterto.data.model.AiBudget
 import app.scatterto.data.model.AiService
 import app.scatterto.data.model.Tonality
 
@@ -22,6 +23,8 @@ data class SettingsUiState(
     val modelsError: Boolean = false,
     val aiValidation: ValidationState = ValidationState.None,
     val tonality: String = Tonality.DEFAULT.key,
+    /** Guthaben des aktiven Dienstes; null = nicht abrufbar (alle außer Mammouth) oder noch nicht da. */
+    val aiBudget: AiBudget? = null,
 
     // Mastodon
     val mastodonInstance: String = "",

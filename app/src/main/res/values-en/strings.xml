@@ -115,6 +115,9 @@
     <string name="validate_valid">Token valid ✓</string>
     <string name="validate_invalid">Token/model not verifiable</string>
     <string name="validate_offline">Cannot verify (offline?)</string>
+    <string name="ai_budget_label">API credit</string>
+    <string name="ai_budget_value">%1$s of %2$s used</string>
+    <string name="ai_budget_reset">Resets on %1$s</string>
 
     <!-- Tonality -->
     <string name="tonality_heading">Tonality</string>
