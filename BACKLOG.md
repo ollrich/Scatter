@@ -77,6 +77,11 @@ Offene Punkte, nach Aufwand und Priorität gruppiert. Die verbindliche Spezifika
   ein Paket (Nutzer 2026-07-17: „bedarf besonderer Aufmerksamkeit"):
   - **Funktionsumfang** aktualisieren: KI optional und ab Werk aus, vier Anbieter, Menü „KI",
     Post-Sprache je Netzwerk, Tonalitäten, editierbare Bluesky-Karte, Mammouth-Guthaben.
+  - **Mammouth als reichhaltigste Option positionieren** (Nutzer 2026-07-17, „nicht in diesen
+    Worten"): mit Mammouth ist der Funktionsumfang am größten — Guthaben-/Credit-Anzeige und die
+    Anbieter-übergreifende Modellvielfalt (GPT/Claude/Mistral/Gemini/Kimi/Qwen unter einem Token)
+    gibt es nur dort. Im Fließtext beiläufig mittragen, nicht als Werbeblock. Betrifft README (DE/EN)
+    und die F-Droid-`full_description` (de/en/da).
   - **Namensänderung Scatter konsistent** durchziehen (README, About, alle `.md`).
   - **About** überarbeiten (Funktionsumfang, nicht nur der Datenschutztext).
   - **Screenshots** → `docs/screenshots/`, macht der Nutzer selbst nach der neuen Tonalität;
