@@ -73,8 +73,21 @@ Offene Punkte, nach Aufwand und Priorität gruppiert. Die verbindliche Spezifika
     mit der README). Beschreibungstexte liegen seit v0.9.6 unter `fastlane/metadata/android/`
     (de/en/da). Tag-Schema `v*` passt bereits.
   - **Ersetzt die Google-Entwicklerverifizierung nicht** — ab 2027 fallen alt. Stores auch darunter.
-- **README / alle `.md` / GitHub-Repo auf Stand bringen** (KI optional/Standard-aus, Menü „KI",
-  mehrere Anbieter, Post-Sprache) + **Screenshots** → `docs/screenshots/`.
+- **README / GitHub-Repo auf Stand bringen** — der V1-Schritt nach der neuen Tonalität, bewusst als
+  ein Paket (Nutzer 2026-07-17: „bedarf besonderer Aufmerksamkeit"):
+  - **Funktionsumfang** aktualisieren: KI optional und ab Werk aus, vier Anbieter, Menü „KI",
+    Post-Sprache je Netzwerk, Tonalitäten, editierbare Bluesky-Karte, Mammouth-Guthaben.
+  - **Namensänderung Scatter konsistent** durchziehen (README, About, alle `.md`).
+  - **About** überarbeiten (Funktionsumfang, nicht nur der Datenschutztext).
+  - **Screenshots** → `docs/screenshots/`, macht der Nutzer selbst nach der neuen Tonalität;
+    Doppelnutzen mit den F-Droid-Metadaten (`fastlane/metadata/android/*/`, liegen seit v0.9.6).
+  - **F-Droid-Bedarf gleich mitziehen**, nicht zweimal anfassen.
+  - **Entschieden 2026-07-17:** Das **Pflichtenheft bleibt im Repo** — 53 Kotlin-Dateien verweisen
+    per `§`-Kommentar darauf, ohne die Datei zeigten die ins Leere (F-Droid-Leser lesen den Code).
+    Die **README verlinkt es aber nicht mehr** (öffentliche Ansicht = fertiges Produkt, keine
+    offene Werkstatt). Betrifft README-Zeile 67 (DE) und 127 (EN), die beide Dokumente in einem
+    Satz nennen. Offen: ob der Backlog ebenso nur entlinkt oder ganz aus dem Repo genommen wird.
+  - `CLAUDE.md` mit prüfen: verweist aufs Pflichtenheft und enthält lokale Pfade/`~/.zshrc`-Details.
 - **Prompt-Ton und Hashtag-Auswahl** — ongoing, immer mal wieder nachjustieren (Wortlaut isoliert in
   `PromptBuilder.kt`).
 
