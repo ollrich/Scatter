@@ -3,8 +3,9 @@
 # als einziges Asset an ein GitHub Release (Obtainium-Kontrakt, §9.4).
 #
 # Voraussetzung: Das Android-Gradle-Projekt existiert im Repo-Root und die
-# signingConfig in app/build.gradle.kts liest die vier SIGNING_*-Env-Variablen
-# (siehe CLAUDE.md). Die vier Secrets sind im Repo hinterlegt.
+# signingConfig in app/build.gradle.kts liest die vier SIGNING_*-Env-Variablen (
+# SIGNING_STORE_FILE, SIGNING_STORE_PASSWORD, SIGNING_KEY_ALIAS, SIGNING_KEY_PASSWORD).
+# Die vier Secrets sind im Repo hinterlegt.
 
 name: Release
 

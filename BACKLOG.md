@@ -97,7 +97,7 @@ ursprüngliche Reihenfolge (erst Google, dann V1) wurde umgedreht: V1 ist raus, 
     Die **README verlinkt es aber nicht mehr** (öffentliche Ansicht = fertiges Produkt, keine
     offene Werkstatt). Betrifft README-Zeile 67 (DE) und 127 (EN), die beide Dokumente in einem
     Satz nennen. Offen: ob der Backlog ebenso nur entlinkt oder ganz aus dem Repo genommen wird.
-  - `CLAUDE.md` mit prüfen: verweist aufs Pflichtenheft und enthält lokale Pfade/`~/.zshrc`-Details.
+  - **Erledigt 2026-10-08:** `CLAUDE.md` ist raus aus dem Repo (nur noch lokal, per `.gitignore`).
 - **Prompt-Ton und Hashtag-Auswahl** — ongoing, immer mal wieder nachjustieren (Wortlaut isoliert in
   `PromptBuilder.kt`).
 

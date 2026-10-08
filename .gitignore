@@ -20,3 +20,6 @@ captures/
 
 # Logs
 *.log
+
+# Lokale Notizen für Claude Code, nicht öffentlich
+CLAUDE.md
