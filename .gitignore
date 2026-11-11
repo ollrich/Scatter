@@ -23,3 +23,6 @@ captures/
 
 # Lokale Notizen für Claude Code, nicht öffentlich
 CLAUDE.md
+
+# Claude Code: lokale Befehlsfreigaben (werden wörtlich gespeichert, ggf. samt Secrets)
+.claude/settings.local.json
