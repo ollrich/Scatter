@@ -1,7 +1,6 @@
 package app.scatterto.ui.main
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -53,7 +52,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -64,6 +62,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.scatterto.R
+import app.scatterto.ui.components.ScatterLogo
 import app.scatterto.core.blueskyLength
 import app.scatterto.core.composePost
 import app.scatterto.core.mastodonLength
@@ -145,11 +144,7 @@ fun MainScreen(
                 TopAppBar(
                     title = {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Image(
-                                painter = painterResource(R.drawable.ic_logo),
-                                contentDescription = null,
-                                modifier = Modifier.size(28.dp).clip(RoundedCornerShape(7.dp)),
-                            )
+                            ScatterLogo(Modifier.size(28.dp))
                             Text(stringResource(R.string.app_name))
                         }
                     },

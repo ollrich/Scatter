@@ -5,7 +5,7 @@ und einem beliebig farbigen Motiv darueber. Android legt seine eigene Maske an, 
   - Hintergrundebene = die fill-Farbe von id="background" (schreibt values/ic_launcher_background.xml)
   - Vordergrundebene = das Motiv in Originalfarben, zentriert, transparent freigestellt
   - Monochrom-Ebene  = dasselbe Motiv als Silhouette (fuer Themed Icons)
-  - ic_logo.png      = Voll-Logo (Hintergrund + Motiv) fuer App-Leiste, Drawer und About
+  (In der App selbst zeichnet ui/components/ScatterLogo.kt das Motiv ohne Hintergrund.)
 
 Freistellung: Das SVG wird einmal ohne Hintergrundebene gerendert; der Alphakanal ist dann
 direkt die Maske. So funktionieren auch farbige Motive (frueher: Rotkanal, nur fuer Weiss).
@@ -72,7 +72,6 @@ def main() -> None:
     svg_text = SVG.read_text(encoding="utf-8")
     bg = background_color(svg_text)
 
-    full = render(svg_text)
     motif = render(BG_RECT.sub("", svg_text, count=1))
 
     alpha = motif.getchannel("A")
@@ -87,9 +86,6 @@ def main() -> None:
     fg.save(DRAWABLE / "ic_launcher_foreground.png")
     silhouette(fg).save(DRAWABLE / "ic_launcher_monochrome.png")
 
-    # Kleines Voll-Logo (Hintergrund + Motiv) fuer die App-Leiste; runde Ecken macht die App.
-    full.resize((192, 192), Image.LANCZOS).save(DRAWABLE / "ic_logo.png")
-
     BG_XML.write_text(
         '<?xml version="1.0" encoding="utf-8"?>\n'
         "<resources>\n"
@@ -101,7 +97,7 @@ def main() -> None:
 
     print("Hintergrund =", bg)
     print("Motiv = %.0f%% der Leinwand -> %dpx auf %dpx" % (ratio * 100, target, CANVAS))
-    print("Geschrieben:", DRAWABLE, "(foreground, monochrome, ic_logo) +", BG_XML.name)
+    print("Geschrieben:", DRAWABLE, "(foreground, monochrome) +", BG_XML.name)
 
 
 if __name__ == "__main__":

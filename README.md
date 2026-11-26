@@ -1,6 +1,9 @@
 <div align="center">
 
-<img src="design/icon-source.svg" width="112" alt="Scatter">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="design/logo-dark.svg">
+  <img src="design/logo-light.svg" width="112" alt="Scatter">
+</picture>
 
 # Scatter
 

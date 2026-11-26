@@ -30,12 +30,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.Image
 import app.scatterto.R
+import app.scatterto.ui.components.ScatterLogo
 import app.scatterto.ui.components.NetworkHeader
 import app.scatterto.ui.main.MainUiState
 import app.scatterto.ui.theme.BlueskyBlue
@@ -55,11 +54,7 @@ fun AppDrawerContent(state: MainUiState, onClose: () -> Unit, onOpen: (String) -
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Image(
-                    painter = painterResource(R.drawable.ic_logo),
-                    contentDescription = null,
-                    modifier = Modifier.size(32.dp).clip(RoundedCornerShape(8.dp)),
-                )
+                ScatterLogo(Modifier.size(32.dp))
                 Text(
                     stringResource(R.string.app_name),
                     style = MaterialTheme.typography.titleLarge,
