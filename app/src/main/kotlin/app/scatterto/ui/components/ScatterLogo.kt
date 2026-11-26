@@ -6,6 +6,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import app.scatterto.ui.theme.BlueskyBlue
+import app.scatterto.ui.theme.MastodonViolet
 
 /**
  * Das Scatter-Motiv ohne Hintergrund für die App selbst (Titelleiste, Menü, Über). Das App-Icon
@@ -14,7 +16,7 @@ import androidx.compose.ui.graphics.Color
  *
  * Gezeichnet statt als Bild, weil der Quellpunkt themenabhängig sein muss: im Icon ist er weiß,
  * im hellen Theme verschwände Weiß auf der hellen Fläche. Er nimmt deshalb `onSurface`, die beiden
- * Bahnen behalten ihre festen Netzwerk-Töne.
+ * Bahnen tragen die Netzwerk-Originalfarben (dieselben wie Netzwerk-Namen und Sektionskanten).
  *
  * Geometrie 1:1 aus `design/icon-source.svg` (Motiv-Box x 264–890, y 150–776, Kantenlänge 626).
  * Wer das Motiv dort ändert, muss die Kreise hier nachziehen.
@@ -40,18 +42,15 @@ private const val MIN_X = 264f
 private const val MIN_Y = 150f
 private const val BOX = 626f
 
-private val Violet = Color(0xFF9FA0FF) // Mastodon-Bahn
-private val SkyBlue = Color(0xFF7CC0FF) // Bluesky-Bahn
-
 private data class Dot(val cx: Float, val cy: Float, val r: Float, val tone: Color?)
 
 /** tone = null → Quellpunkt in der Theme-Textfarbe. */
 private val DOTS = listOf(
     Dot(380f, 660f, 116f, null),
-    Dot(466f, 457f, 64f, Violet),
-    Dot(527f, 314f, 52f, Violet),
-    Dot(579f, 191f, 41f, Violet),
-    Dot(583f, 574f, 64f, SkyBlue),
-    Dot(726f, 513f, 52f, SkyBlue),
-    Dot(849f, 461f, 41f, SkyBlue),
+    Dot(466f, 457f, 64f, MastodonViolet),
+    Dot(527f, 314f, 52f, MastodonViolet),
+    Dot(579f, 191f, 41f, MastodonViolet),
+    Dot(583f, 574f, 64f, BlueskyBlue),
+    Dot(726f, 513f, 52f, BlueskyBlue),
+    Dot(849f, 461f, 41f, BlueskyBlue),
 )
