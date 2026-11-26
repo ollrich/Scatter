@@ -2,7 +2,7 @@
   <!-- Scatter App-Icon, Konzept B1 "Streuung, Rhythmus".
        Quelle weiss, linke Bahn Violett (Mastodon), rechte Bahn Himmelblau (Bluesky).
        make_icon.py nimmt die Ebene id="background" als Hintergrundfarbe, alles andere als Vordergrund. -->
-  <rect id="background" width="1024" height="1024" fill="#13203F"/>
+  <rect id="background" width="1024" height="1024" fill="#0B1328"/>
   <g transform="translate(512 512) scale(0.8833) translate(-577.0 -463.0)">
     <circle cx="380" cy="660" r="116" fill="#FFFFFF"/>
     <circle cx="466" cy="457" r="64" fill="#9FA0FF"/>
